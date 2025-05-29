@@ -1,0 +1,70 @@
+Question 1: Where will AI create real business value in the next 12 months?
+
+Sub-Questions:
+
+Which parts of our value chain are bottlenecked by human throughput?
+
+What tasks consume high effort but low judgment?
+
+Where do we have rich data but under-leveraged insight?
+
+Which customer touchpoints can be made more proactive or predictive?
+
+What high-frequency workflows are most repeatable across teams?
+
+Question 2: Are we building AI into the business — or just layering it on top?
+
+Sub-Questions:
+
+Which teams use AI in a meaningful, embedded way vs. tool-based add-ons?
+
+What % of workflows have AI involved in core decision points?
+
+Where does human-AI collaboration feel clunky, redundant, or untrusted?
+
+What work would break if we turned off the AI layer?
+
+What process redesigns are required to move from augmentation to integration?
+
+Question 3: Do we have the talent — not just technical, but managerial — to run an AI-augmented business?
+
+Sub-Questions:
+
+Which critical roles have high exposure to AI but low readiness?
+
+Who in our leadership team can speak fluently about AI trade-offs?
+
+Are we developing 'AI adjacent' capabilities like critical thinking, prompt design, and ethical oversight?
+
+Which teams are asking smart questions about AI, not just using it?
+
+Where is our reskill vs. hire decision most urgent?
+
+Question 4: What risks are we not seeing — and what’s our model for responsible AI use?
+
+Sub-Questions:
+
+Where in our workflows do AI models make or influence consequential decisions?
+
+Which outputs are currently unexplainable to a human reviewer?
+
+What data sources could introduce bias or hallucination risk?
+
+What’s our human override process — and who owns it?
+
+How do we test trust with frontline users before full-scale deployment?
+
+Question 5: What are we doing now that will give us an AI advantage three years from now?
+
+Sub-Questions:
+
+What proprietary data or workflows are we capturing today that no one else is?
+
+How are we turning user interactions into compounding model learning?
+
+Where are we building internal AI fluency — not just capability?
+
+What are we building that will be harder to replicate than a model?
+
+Are we designing systems to get smarter the more we use them?
+

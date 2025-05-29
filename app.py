@@ -15,6 +15,7 @@ from utils.database import DatabaseManager
 from utils.benchmarking import IndustryBenchmarking, SensitivityAnalysis, ScenarioOptimization
 from utils.session_manager import SessionManager
 from utils.monte_carlo import MonteCarloSimulator, ScenarioModeler
+from utils.strategic_scenarios import StrategicScenarioPlanner
 
 # Page configuration
 st.set_page_config(
@@ -64,7 +65,7 @@ def main():
     st.sidebar.title("Navigation")
     page = st.sidebar.selectbox(
         "Select Analysis View",
-        ["Overview", "Function Analysis", "Scenario Comparison", "Temporal Analysis", "Monte Carlo Simulation", "Benchmarking & Optimization", "Executive Summary"]
+        ["Overview", "Function Analysis", "Scenario Comparison", "Temporal Analysis", "Monte Carlo Simulation", "Strategic Planning", "Benchmarking & Optimization", "Executive Summary"]
     )
     
     # Session Management Sidebar
@@ -119,6 +120,8 @@ def main():
         show_temporal_analysis()
     elif page == "Monte Carlo Simulation":
         show_monte_carlo_simulation()
+    elif page == "Strategic Planning":
+        show_strategic_planning()
     elif page == "Benchmarking & Optimization":
         show_benchmarking_optimization()
     elif page == "Executive Summary":
@@ -689,6 +692,261 @@ def show_monte_carlo_simulation():
             value_ci = confidence_intervals['value_generated']
             for conf_level, interval in value_ci.items():
                 st.write(f"{conf_level}: ${interval['lower']:,.0f} to ${interval['upper']:,.0f}")
+
+def show_strategic_planning():
+    st.header("🎯 Strategic AI Planning")
+    st.markdown("**Strategic scenario analysis based on critical business questions**")
+    
+    if len(st.session_state.baseline_data) < 1:
+        st.warning("⚠️ Please configure at least one function in Function Analysis first.")
+        return
+    
+    # Strategic planning question framework
+    st.markdown("---")
+    st.subheader("📋 Strategic Planning Framework")
+    
+    questions_framework = {
+        "Business Value": "Where will AI create real business value in the next 12 months?",
+        "Integration Depth": "Are we building AI into the business — or just layering it on top?", 
+        "Talent Readiness": "Do we have the talent to run an AI-augmented business?",
+        "Risk Governance": "What risks are we not seeing — and what's our model for responsible AI use?",
+        "Competitive Advantage": "What are we doing now that will give us an AI advantage three years from now?"
+    }
+    
+    with st.expander("🧭 Strategic Questions Framework", expanded=True):
+        for category, question in questions_framework.items():
+            st.markdown(f"**{category}:** {question}")
+    
+    # Function selection for strategic analysis
+    configured_functions = list(st.session_state.baseline_data.keys())
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        selected_function = st.selectbox("Select Function for Strategic Analysis", configured_functions)
+    
+    with col2:
+        analysis_scope = st.selectbox("Analysis Scope", 
+                                    ["Single Category", "Comprehensive Analysis"], index=1)
+    
+    if selected_function not in st.session_state.baseline_data:
+        st.error("Missing baseline data for the selected function.")
+        return
+    
+    baseline_data = st.session_state.baseline_data[selected_function]
+    
+    # Category selection for single category analysis
+    if analysis_scope == "Single Category":
+        st.markdown("---")
+        selected_category = st.selectbox("Select Strategic Category", 
+                                       list(questions_framework.keys()))
+        
+        # Category-specific configuration
+        st.subheader(f"📊 {selected_category} Analysis")
+        st.markdown(f"**Question:** {questions_framework[selected_category]}")
+        
+        categories_to_analyze = [selected_category.lower().replace(" ", "_")]
+    else:
+        categories_to_analyze = ["business_value", "integration_depth", "talent_readiness", 
+                               "risk_governance", "competitive_advantage"]
+    
+    # Run strategic analysis
+    if st.button("🚀 Run Strategic Analysis", type="primary"):
+        with st.spinner("Analyzing strategic scenarios..."):
+            try:
+                planner = StrategicScenarioPlanner()
+                
+                # Run comprehensive scenario analysis
+                strategic_results = planner.run_comprehensive_scenario_analysis(
+                    baseline_data, categories_to_analyze
+                )
+                
+                # Store results
+                st.session_state[f'strategic_analysis_{selected_function}'] = strategic_results
+                
+                st.success("✅ Strategic analysis completed!")
+                
+            except Exception as e:
+                st.error(f"Strategic analysis failed: {str(e)}")
+                return
+    
+    # Display results if available
+    if f'strategic_analysis_{selected_function}' in st.session_state:
+        strategic_data = st.session_state[f'strategic_analysis_{selected_function}']
+        
+        st.markdown("---")
+        st.subheader("📊 Strategic Analysis Results")
+        
+        # Strategic recommendations overview
+        recommendations = strategic_data.get('strategic_recommendations', {})
+        
+        if recommendations:
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("#### 🎯 Investment Priorities")
+                for rec in recommendations.get('investment_priorities', []):
+                    st.markdown(f"• {rec}")
+                
+                st.markdown("#### ⚠️ Risk Mitigation")
+                for rec in recommendations.get('risk_mitigation', []):
+                    st.markdown(f"• {rec}")
+            
+            with col2:
+                st.markdown("#### 📅 Short-term Actions")
+                for rec in recommendations.get('short_term', []):
+                    st.markdown(f"• {rec}")
+                
+                st.markdown("#### 🔮 Long-term Strategy")
+                for rec in recommendations.get('long_term', []):
+                    st.markdown(f"• {rec}")
+        
+        # Detailed scenario analysis by category
+        scenarios = strategic_data.get('scenarios', {})
+        analysis_results = strategic_data.get('analysis_results', {})
+        
+        for category, category_scenarios in scenarios.items():
+            st.markdown("---")
+            category_title = category.replace("_", " ").title()
+            st.subheader(f"📈 {category_title} Scenarios")
+            
+            # Question context
+            question_key = category.replace("_", " ").title()
+            if question_key in questions_framework:
+                st.markdown(f"**Strategic Question:** {questions_framework[question_key]}")
+            
+            # Scenario comparison results
+            if category in analysis_results:
+                results = analysis_results[category]
+                
+                if 'comparative_analysis' in results and 'summary_table' in results['comparative_analysis']:
+                    summary_table = results['comparative_analysis']['summary_table']
+                    
+                    # Create comparison table
+                    comparison_data = []
+                    for scenario_name, metrics in summary_table.items():
+                        comparison_data.append({
+                            'Scenario': scenario_name,
+                            'Expected ROI (%)': f"{metrics['expected_roi']:.1f}%",
+                            'ROI Risk (σ)': f"{metrics['roi_std']:.1f}%",
+                            'Expected Value': f"${metrics['expected_value']:,.0f}",
+                            'Success Probability': f"{metrics['probability_success']:.1%}"
+                        })
+                    
+                    df = pd.DataFrame(comparison_data)
+                    st.dataframe(df, use_container_width=True)
+                    
+                    # Risk comparison
+                    if 'risk_comparison' in results['comparative_analysis']:
+                        risk_data = results['comparative_analysis']['risk_comparison']
+                        
+                        st.markdown("#### ⚠️ Risk Analysis")
+                        col1, col2, col3 = st.columns(3)
+                        
+                        for i, (scenario_name, risk_metrics) in enumerate(risk_data.items()):
+                            with [col1, col2, col3][i % 3]:
+                                st.markdown(f"**{scenario_name}**")
+                                st.metric("Success Probability", f"{risk_metrics['probability_positive_roi']:.1%}")
+                                st.metric("5% Value at Risk", f"${risk_metrics['value_at_risk_5']:,.0f}")
+            
+            # Scenario details
+            with st.expander(f"📋 {category_title} Scenario Details"):
+                for scenario_name, scenario_config in category_scenarios.items():
+                    st.markdown(f"**{scenario_name}**")
+                    st.markdown(f"*{scenario_config['description']}*")
+                    
+                    ai_init = scenario_config['ai_initiative']
+                    
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        st.write(f"• AI Type: {ai_init['ai_type']}")
+                        st.write(f"• Investment: ${ai_init['investment']:,.0f}")
+                        st.write(f"• Timeline: {ai_init['timeline']}")
+                    
+                    with col2:
+                        st.write(f"• Automation Level: {ai_init['automation_level']}%")
+                        st.write(f"• Workforce Reduction: {ai_init['workforce_reduction']}%")
+                        st.write(f"• Upskilling Required: {ai_init['upskilling_required']}%")
+                    
+                    with col3:
+                        st.write(f"• Technical Risk: {ai_init.get('technical_risk', 0):.1%}")
+                        st.write(f"• Adoption Risk: {ai_init.get('adoption_risk', 0):.1%}")
+                        st.write(f"• Integration Risk: {ai_init.get('integration_risk', 0):.1%}")
+                    
+                    st.markdown("---")
+        
+        # Strategic insights summary
+        st.markdown("---")
+        st.subheader("💡 Strategic Insights Summary")
+        
+        # Cross-category analysis
+        insights = []
+        
+        # Investment efficiency analysis
+        all_summaries = []
+        for category_results in analysis_results.values():
+            if 'comparative_analysis' in category_results and 'summary_table' in category_results['comparative_analysis']:
+                all_summaries.extend(category_results['comparative_analysis']['summary_table'].values())
+        
+        if all_summaries:
+            avg_roi = np.mean([s['expected_roi'] for s in all_summaries])
+            high_roi_scenarios = [s for s in all_summaries if s['expected_roi'] > avg_roi * 1.2]
+            
+            insights.append(f"Average expected ROI across all scenarios: {avg_roi:.1f}%")
+            insights.append(f"High-performing scenarios ({len(high_roi_scenarios)} identified) exceed {avg_roi * 1.2:.1f}% ROI")
+            
+            # Risk vs Return analysis
+            low_risk_high_return = [
+                s for s in all_summaries 
+                if s['expected_roi'] > avg_roi and s['probability_success'] > 0.8
+            ]
+            
+            if low_risk_high_return:
+                insights.append(f"Low-risk, high-return opportunities: {len(low_risk_high_return)} scenarios identified")
+            
+            # Investment range analysis
+            investments = [s['expected_value'] for s in all_summaries]
+            insights.append(f"Investment range: ${min(investments):,.0f} - ${max(investments):,.0f}")
+        
+        for insight in insights:
+            st.markdown(f"• {insight}")
+        
+        # Export strategic analysis
+        st.markdown("---")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("📄 Export Strategic Analysis"):
+                # Create comprehensive report
+                export_data = {
+                    'function': selected_function,
+                    'analysis_scope': analysis_scope,
+                    'strategic_recommendations': recommendations,
+                    'scenario_summaries': {}
+                }
+                
+                # Add scenario summaries
+                for category, results in analysis_results.items():
+                    if 'comparative_analysis' in results:
+                        export_data['scenario_summaries'][category] = results['comparative_analysis']
+                
+                # Convert to downloadable format
+                import json
+                report_json = json.dumps(export_data, indent=2, default=str)
+                
+                st.download_button(
+                    label="Download Strategic Analysis Report",
+                    data=report_json,
+                    file_name=f"strategic_analysis_{selected_function}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                    mime="application/json"
+                )
+        
+        with col2:
+            if st.button("🔄 Run New Analysis"):
+                if f'strategic_analysis_{selected_function}' in st.session_state:
+                    del st.session_state[f'strategic_analysis_{selected_function}']
+                st.rerun()
 
 def show_scenario_comparison():
     st.header("⚖️ Scenario Comparison")
