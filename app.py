@@ -399,16 +399,19 @@ def show_scenario_comparison():
         
         comparison_data = []
         for func in configured_functions:
-            if func in st.session_state.predictions:
+            if (func in st.session_state.predictions and 
+                func in st.session_state.ai_initiatives and 
+                func in st.session_state.baseline_data):
                 pred = st.session_state.predictions[func]
                 baseline = st.session_state.baseline_data[func]
+                ai_config = st.session_state.ai_initiatives[func]
                 
                 comparison_data.append({
                     'Function': func,
                     'Current Revenue': baseline['revenue'],
                     'AI Revenue': baseline['revenue'] + pred['value_generated'],
                     'Current Costs': baseline['costs'],
-                    'AI Costs': baseline['costs'] + st.session_state.ai_initiatives[func]['investment'],
+                    'AI Costs': baseline['costs'] + ai_config['investment'],
                     'ROI': pred['roi'],
                     'Productivity Gain': pred['productivity_gain']
                 })
