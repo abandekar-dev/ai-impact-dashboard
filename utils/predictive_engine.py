@@ -1,13 +1,106 @@
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, ExtraTreesRegressor
+from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
+from sklearn.svm import SVR
+from sklearn.neural_network import MLPRegressor
+from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler
+from sklearn.model_selection import cross_val_score, GridSearchCV, TimeSeriesSplit
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import SelectKBest, f_regression
 import warnings
 warnings.filterwarnings('ignore')
 
 from .data_models import MetricsCalculator, TimeSeriesGenerator
+
+class EnsemblePredictor:
+    """Advanced ensemble predictor combining multiple ML algorithms"""
+    
+    def __init__(self, base_models):
+        self.base_models = base_models
+        self.weights = None
+        self.is_fitted = False
+        
+    def fit(self, X, y):
+        """Fit all base models and learn optimal weights"""
+        if len(X) < 5:  # Not enough data for proper training
+            return self._use_domain_knowledge(X, y)
+            
+        # Fit all base models
+        predictions = {}
+        for name, model in self.base_models.items():
+            try:
+                model.fit(X, y)
+                # Use cross-validation to get predictions
+                cv_scores = cross_val_score(model, X, y, cv=min(3, len(X)), scoring='r2')
+                predictions[name] = cv_scores.mean()
+            except:
+                predictions[name] = 0.0
+        
+        # Calculate ensemble weights based on performance
+        total_score = sum(max(score, 0) for score in predictions.values())
+        if total_score > 0:
+            self.weights = {name: max(score, 0) / total_score for name, score in predictions.items()}
+        else:
+            # Equal weights if no model performs well
+            self.weights = {name: 1.0 / len(self.base_models) for name in self.base_models.keys()}
+        
+        self.is_fitted = True
+        return self
+    
+    def predict(self, X):
+        """Make ensemble predictions"""
+        if not self.is_fitted:
+            return self._fallback_prediction(X)
+        
+        predictions = []
+        total_weight = 0
+        
+        for name, model in self.base_models.items():
+            try:
+                pred = model.predict(X)[0]
+                weight = self.weights.get(name, 0)
+                predictions.append(pred * weight)
+                total_weight += weight
+            except:
+                continue
+        
+        if total_weight > 0 and predictions:
+            return sum(predictions) / total_weight
+        else:
+            return self._fallback_prediction(X)
+    
+    def _use_domain_knowledge(self, X, y):
+        """Use domain knowledge when insufficient data"""
+        # Fit a simple model for minimal data scenarios
+        simple_model = LinearRegression()
+        try:
+            simple_model.fit(X, y)
+            self.base_models['simple'] = simple_model
+            self.weights = {'simple': 1.0}
+        except:
+            self.weights = {name: 1.0 / len(self.base_models) for name in self.base_models.keys()}
+        
+        self.is_fitted = True
+        return self
+    
+    def _fallback_prediction(self, X):
+        """Fallback prediction using domain knowledge"""
+        # Extract key features for rule-based prediction
+        if X.shape[1] >= 7:  # Ensure we have enough features
+            productivity = X[0, 0] if X.shape[1] > 0 else 50
+            automation_level = X[0, 6] if X.shape[1] > 6 else 30
+            investment_ratio = X[0, 17] if X.shape[1] > 17 else 0.1
+            
+            # Simple rule-based prediction
+            base_impact = automation_level * 0.5
+            investment_penalty = investment_ratio * 10
+            productivity_bonus = (productivity - 50) * 0.2
+            
+            return base_impact + productivity_bonus - investment_penalty
+        
+        return 15.0  # Default conservative estimate
 
 class PredictiveEngine:
     """Main engine for predictive modeling of AI implementation impact"""
@@ -19,13 +112,134 @@ class PredictiveEngine:
         self._initialize_models()
     
     def _initialize_models(self):
-        """Initialize machine learning models"""
-        self.models = {
-            'productivity': RandomForestRegressor(n_estimators=100, random_state=42),
-            'value': GradientBoostingRegressor(n_estimators=100, random_state=42),
-            'roi': LinearRegression(),
-            'risk': RandomForestRegressor(n_estimators=50, random_state=42)
+        """Initialize advanced machine learning models with ensemble capabilities"""
+        # Base models with optimized hyperparameters
+        self.base_models = {
+            'rf': RandomForestRegressor(
+                n_estimators=200, 
+                max_depth=10, 
+                min_samples_split=5,
+                min_samples_leaf=2,
+                random_state=42
+            ),
+            'gb': GradientBoostingRegressor(
+                n_estimators=150, 
+                learning_rate=0.1, 
+                max_depth=6,
+                subsample=0.8,
+                random_state=42
+            ),
+            'et': ExtraTreesRegressor(
+                n_estimators=200,
+                max_depth=12,
+                min_samples_split=5,
+                random_state=42
+            ),
+            'ridge': Ridge(alpha=1.0),
+            'lasso': Lasso(alpha=0.1),
+            'elastic': ElasticNet(alpha=0.1, l1_ratio=0.5),
+            'svr': SVR(kernel='rbf', C=1.0, gamma='scale'),
+            'mlp': MLPRegressor(
+                hidden_layer_sizes=(100, 50),
+                max_iter=500,
+                random_state=42,
+                early_stopping=True
+            )
         }
+        
+        # Specialized models for different prediction tasks
+        self.models = {
+            'productivity': self._create_ensemble_model(),
+            'value': self._create_ensemble_model(),
+            'roi': self._create_ensemble_model(),
+            'risk': self._create_ensemble_model()
+        }
+        
+        # Multiple scalers for different model types
+        self.scalers = {
+            'standard': StandardScaler(),
+            'robust': RobustScaler(),
+            'minmax': MinMaxScaler()
+        }
+        
+        # Feature selector
+        self.feature_selector = SelectKBest(score_func=f_regression, k=10)
+        
+        # Model performance tracking
+        self.model_performance = {}
+        
+        # Ensemble weights (will be learned dynamically)
+        self.ensemble_weights = {
+            'productivity': None,
+            'value': None,
+            'roi': None,
+            'risk': None
+        }
+    
+    def _create_ensemble_model(self):
+        """Create an ensemble model combining multiple algorithms"""
+        return EnsemblePredictor(self.base_models)
+    
+    def _engineer_features(self, baseline_data: dict, ai_initiative: dict) -> np.ndarray:
+        """Advanced feature engineering for better predictions"""
+        features = []
+        
+        # Baseline features
+        features.extend([
+            baseline_data['productivity'],
+            baseline_data['revenue'],
+            baseline_data['costs'],
+            baseline_data['headcount'],
+            baseline_data['satisfaction']
+        ])
+        
+        # AI initiative features
+        features.extend([
+            ai_initiative['investment'],
+            ai_initiative['automation_level'],
+            ai_initiative['accuracy_improvement'],
+            ai_initiative['speed_improvement'],
+            ai_initiative['workforce_reduction'],
+            ai_initiative['upskilling_required'],
+            ai_initiative['new_roles_created']
+        ])
+        
+        # Risk features
+        risk_features = [
+            ai_initiative.get('technical_risk', 0.3),
+            ai_initiative.get('adoption_risk', 0.3),
+            ai_initiative.get('integration_risk', 0.3),
+            ai_initiative.get('regulatory_risk', 0.2),
+            ai_initiative.get('competitive_risk', 0.2),
+            ai_initiative.get('data_risk', 0.3)
+        ]
+        features.extend(risk_features)
+        
+        # Derived features (feature interactions)
+        features.extend([
+            baseline_data['revenue'] / max(baseline_data['costs'], 1),  # Current efficiency
+            ai_initiative['investment'] / max(baseline_data['revenue'], 1),  # Investment ratio
+            ai_initiative['automation_level'] * ai_initiative['accuracy_improvement'],  # AI impact
+            baseline_data['productivity'] * baseline_data['satisfaction'],  # Current performance
+            sum(risk_features) / len(risk_features),  # Average risk
+            ai_initiative['automation_level'] / max(ai_initiative.get('workforce_reduction', 1), 0.1),  # Automation efficiency
+        ])
+        
+        # Complexity encoding
+        complexity_map = {'Low': 1, 'Medium': 2, 'High': 3}
+        features.append(complexity_map.get(ai_initiative.get('complexity', 'Medium'), 2))
+        
+        # AI type encoding (one-hot style)
+        ai_types = ['Automation', 'Augmentation', 'Analytics', 'Hybrid']
+        ai_type = ai_initiative.get('ai_type', 'Hybrid')
+        for ai_t in ai_types:
+            features.append(1 if ai_type == ai_t else 0)
+        
+        # Timeline encoding
+        timeline_map = {'3-6 months': 4.5, '6-12 months': 9, '12-18 months': 15, '18+ months': 24}
+        features.append(timeline_map.get(ai_initiative.get('timeline', '6-12 months'), 9))
+        
+        return np.array(features).reshape(1, -1)
     
     def predict_impact(self, baseline_data: dict, ai_initiative: dict) -> dict:
         """
