@@ -14,6 +14,7 @@ from utils.report_generator import ReportGenerator
 from utils.database import DatabaseManager
 from utils.benchmarking import IndustryBenchmarking, SensitivityAnalysis, ScenarioOptimization
 from utils.session_manager import SessionManager
+from utils.monte_carlo import MonteCarloSimulator, ScenarioModeler
 
 # Page configuration
 st.set_page_config(
@@ -63,7 +64,7 @@ def main():
     st.sidebar.title("Navigation")
     page = st.sidebar.selectbox(
         "Select Analysis View",
-        ["Overview", "Function Analysis", "Scenario Comparison", "Temporal Analysis", "Benchmarking & Optimization", "Executive Summary"]
+        ["Overview", "Function Analysis", "Scenario Comparison", "Temporal Analysis", "Monte Carlo Simulation", "Benchmarking & Optimization", "Executive Summary"]
     )
     
     # Session Management Sidebar
@@ -116,6 +117,8 @@ def main():
         show_scenario_comparison()
     elif page == "Temporal Analysis":
         show_temporal_analysis()
+    elif page == "Monte Carlo Simulation":
+        show_monte_carlo_simulation()
     elif page == "Benchmarking & Optimization":
         show_benchmarking_optimization()
     elif page == "Executive Summary":
