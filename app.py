@@ -16,6 +16,7 @@ from utils.benchmarking import IndustryBenchmarking, SensitivityAnalysis, Scenar
 from utils.session_manager import SessionManager
 from utils.monte_carlo import MonteCarloSimulator, ScenarioModeler
 from utils.strategic_scenarios import StrategicScenarioPlanner
+from utils.category_manager import CategoryManager
 
 # Page configuration
 st.set_page_config(
@@ -48,6 +49,9 @@ if 'predictions' not in st.session_state:
     st.session_state.predictions = {}
 if 'data_loaded' not in st.session_state:
     st.session_state.data_loaded = False
+
+# Initialize category manager
+category_manager = CategoryManager()
 
 # Load data from database on first run
 if db and not st.session_state.data_loaded:
@@ -113,7 +117,8 @@ def main():
     if page == "Overview":
         show_overview()
     elif page == "Function Analysis":
-        show_function_analysis()
+        from pages.enhanced_function_analysis import show_enhanced_function_analysis
+        show_enhanced_function_analysis(category_manager, db)
     elif page == "Scenario Comparison":
         show_scenario_comparison()
     elif page == "Temporal Analysis":
