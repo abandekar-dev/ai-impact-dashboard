@@ -503,6 +503,193 @@ def show_function_analysis():
         fig = visualizer.create_impact_summary(predictions, selected_function)
         st.plotly_chart(fig, use_container_width=True)
 
+def show_monte_carlo_simulation():
+    st.header("🎲 Monte Carlo Simulation")
+    st.markdown("**Probabilistic Analysis with Uncertainty Quantification**")
+    
+    if len(st.session_state.predictions) < 1:
+        st.warning("⚠️ Please configure at least one function in Function Analysis first.")
+        return
+    
+    # Function selection for simulation
+    configured_functions = list(st.session_state.predictions.keys())
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        selected_function = st.selectbox("Select Function for Monte Carlo Analysis", configured_functions)
+    
+    with col2:
+        n_simulations = st.selectbox("Number of Simulations", [500, 1000, 2500, 5000], index=1)
+    
+    if selected_function not in st.session_state.baseline_data or selected_function not in st.session_state.ai_initiatives:
+        st.error("Missing baseline data or AI initiative configuration for the selected function.")
+        return
+    
+    # Uncertainty parameter configuration
+    st.markdown("---")
+    st.subheader("⚙️ Uncertainty Parameters")
+    st.markdown("Configure uncertainty ranges for key variables to model realistic variation in outcomes.")
+    
+    with st.expander("📊 Parameter Uncertainty Settings", expanded=True):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown("**Investment & Financial**")
+            investment_std = st.slider("Investment Uncertainty (%)", 5, 30, 15, 
+                                     help="Standard deviation as % of base investment")
+            market_volatility = st.slider("Market Conditions Volatility (%)", 5, 25, 12,
+                                        help="Market condition variation affecting revenue")
+        
+        with col2:
+            st.markdown("**Technical Performance**")
+            automation_std = st.slider("Automation Level Uncertainty (%)", 10, 40, 20,
+                                     help="Variation in achieved automation level")
+            accuracy_std = st.slider("Accuracy Improvement Uncertainty (%)", 15, 40, 25,
+                                   help="Variation in accuracy improvements")
+            speed_std = st.slider("Speed Improvement Uncertainty (%)", 10, 30, 20,
+                                help="Variation in speed improvements")
+        
+        with col3:
+            st.markdown("**Risk Factors**")
+            risk_distribution = st.selectbox("Risk Distribution Type", ["Beta", "Normal"], 
+                                           help="Statistical distribution for risk modeling")
+            baseline_uncertainty = st.slider("Baseline Productivity Uncertainty (%)", 5, 20, 10,
+                                            help="Variation in baseline productivity measurements")
+    
+    # Custom uncertainty parameters
+    uncertainty_params = {
+        'investment': {'distribution': 'normal', 'std_pct': investment_std / 100},
+        'productivity_baseline': {'distribution': 'normal', 'std_pct': baseline_uncertainty / 100},
+        'automation_level': {'distribution': 'normal', 'std_pct': automation_std / 100},
+        'accuracy_improvement': {'distribution': 'normal', 'std_pct': accuracy_std / 100},
+        'speed_improvement': {'distribution': 'normal', 'std_pct': speed_std / 100},
+        'market_conditions': {'distribution': 'normal', 'std_pct': market_volatility / 100},
+    }
+    
+    if risk_distribution == "Beta":
+        uncertainty_params.update({
+            'technical_risk': {'distribution': 'beta', 'alpha': 2, 'beta': 5},
+            'adoption_risk': {'distribution': 'beta', 'alpha': 2, 'beta': 4},
+            'integration_risk': {'distribution': 'beta', 'alpha': 3, 'beta': 4},
+        })
+    else:
+        uncertainty_params.update({
+            'technical_risk': {'distribution': 'normal', 'std_pct': 0.3},
+            'adoption_risk': {'distribution': 'normal', 'std_pct': 0.3},
+            'integration_risk': {'distribution': 'normal', 'std_pct': 0.25},
+        })
+    
+    # Run simulation button
+    if st.button("🚀 Run Monte Carlo Simulation", type="primary"):
+        with st.spinner(f"Running {n_simulations:,} simulations..."):
+            try:
+                # Initialize Monte Carlo simulator
+                simulator = MonteCarloSimulator(n_simulations=n_simulations)
+                
+                # Get baseline data and AI initiative
+                baseline_data = st.session_state.baseline_data[selected_function]
+                ai_initiative = st.session_state.ai_initiatives[selected_function]
+                
+                # Run simulation
+                simulation_results = simulator.run_simulation(
+                    baseline_data, ai_initiative, uncertainty_params
+                )
+                
+                # Store results in session state
+                st.session_state[f'monte_carlo_{selected_function}'] = simulation_results
+                
+                st.success(f"✅ Simulation completed! {n_simulations:,} scenarios analyzed.")
+                
+            except Exception as e:
+                st.error(f"Simulation failed: {str(e)}")
+                return
+    
+    # Display results if available
+    if f'monte_carlo_{selected_function}' in st.session_state:
+        simulation_data = st.session_state[f'monte_carlo_{selected_function}']
+        
+        st.markdown("---")
+        st.subheader("📊 Simulation Results")
+        
+        # Summary statistics
+        summary_stats = simulation_data['summary_statistics']
+        
+        # Key metrics overview
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            roi_stats = summary_stats['roi']
+            st.metric("Expected ROI", f"{roi_stats['mean']:.1f}%",
+                     help=f"Standard deviation: {roi_stats['std']:.1f}%")
+            st.metric("ROI Range", f"{roi_stats['min']:.1f}% to {roi_stats['max']:.1f}%")
+        
+        with col2:
+            value_stats = summary_stats['value_generated']
+            st.metric("Expected Value", f"${value_stats['mean']:,.0f}",
+                     help=f"Standard deviation: ${value_stats['std']:,.0f}")
+            st.metric("Value Range", f"${value_stats['min']:,.0f} to ${value_stats['max']:,.0f}")
+        
+        with col3:
+            productivity_stats = summary_stats['productivity_gain']
+            st.metric("Expected Productivity Gain", f"{productivity_stats['mean']:.1f}%",
+                     help=f"Standard deviation: {productivity_stats['std']:.1f}%")
+        
+        with col4:
+            payback_stats = summary_stats['payback_period']
+            st.metric("Expected Payback", f"{payback_stats['mean']:.1f} months",
+                     help=f"Standard deviation: {payback_stats['std']:.1f} months")
+        
+        # Risk metrics
+        st.markdown("---")
+        st.subheader("⚠️ Risk Analysis")
+        
+        risk_metrics = simulation_data['risk_metrics']
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown("**Success Probabilities**")
+            st.metric("Probability of Positive ROI", f"{risk_metrics['probability_positive_roi']:.1%}")
+            st.metric("Probability ROI > 15%", f"{risk_metrics['probability_roi_above_15']:.1%}")
+            st.metric("Probability ROI > 25%", f"{risk_metrics['probability_roi_above_25']:.1%}")
+        
+        with col2:
+            st.markdown("**Payback Risk**")
+            st.metric("Probability Payback < 24 months", f"{risk_metrics['probability_payback_under_24_months']:.1%}")
+            st.metric("Probability Payback < 36 months", f"{risk_metrics['probability_payback_under_36_months']:.1%}")
+        
+        with col3:
+            st.markdown("**Value at Risk**")
+            st.metric("5% Value at Risk", f"${risk_metrics['value_at_risk_5']:,.0f}",
+                     help="Value exceeded in 95% of scenarios")
+            st.metric("10% Value at Risk", f"${risk_metrics['value_at_risk_10']:,.0f}",
+                     help="Value exceeded in 90% of scenarios")
+            prob_loss = risk_metrics['probability_of_loss']
+            loss_color = "red" if prob_loss > 0.1 else "orange" if prob_loss > 0.05 else "green"
+            st.metric("Probability of Loss", f"{prob_loss:.1%}")
+            st.markdown(f":{loss_color}[Loss probability: {prob_loss:.1%}]")
+        
+        # Confidence intervals
+        st.markdown("---")
+        st.subheader("📈 Confidence Intervals")
+        
+        confidence_intervals = simulation_data['confidence_intervals']
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**ROI Confidence Intervals**")
+            roi_ci = confidence_intervals['roi']
+            for conf_level, interval in roi_ci.items():
+                st.write(f"{conf_level}: {interval['lower']:.1f}% to {interval['upper']:.1f}%")
+        
+        with col2:
+            st.markdown("**Value Generation Confidence Intervals**")
+            value_ci = confidence_intervals['value_generated']
+            for conf_level, interval in value_ci.items():
+                st.write(f"{conf_level}: ${interval['lower']:,.0f} to ${interval['upper']:,.0f}")
+
 def show_scenario_comparison():
     st.header("⚖️ Scenario Comparison")
     
