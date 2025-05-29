@@ -13,6 +13,7 @@ from utils.visualization import DashboardVisualizer
 from utils.report_generator import ReportGenerator
 from utils.database import DatabaseManager
 from utils.benchmarking import IndustryBenchmarking, SensitivityAnalysis, ScenarioOptimization
+from utils.session_manager import SessionManager
 
 # Page configuration
 st.set_page_config(
@@ -32,6 +33,9 @@ def init_database():
         return None
 
 db = init_database()
+
+# Initialize session manager
+session_manager = SessionManager(db) if db else None
 
 # Initialize session state
 if 'ai_initiatives' not in st.session_state:
@@ -61,6 +65,47 @@ def main():
         "Select Analysis View",
         ["Overview", "Function Analysis", "Scenario Comparison", "Temporal Analysis", "Benchmarking & Optimization", "Executive Summary"]
     )
+    
+    # Session Management Sidebar
+    if session_manager:
+        st.sidebar.markdown("---")
+        st.sidebar.subheader("💾 Session Management")
+        
+        # Save current session
+        with st.sidebar.expander("Save Current Session"):
+            session_name = st.text_input("Session Name", key="save_session_name")
+            session_desc = st.text_area("Description (optional)", key="save_session_desc")
+            
+            if st.button("💾 Save Session") and session_name:
+                if session_manager.save_session(session_name, session_desc):
+                    st.success(f"Session '{session_name}' saved!")
+                else:
+                    st.error("Failed to save session")
+        
+        # Load saved session
+        with st.sidebar.expander("Load Saved Session"):
+            saved_sessions = session_manager.get_saved_sessions()
+            
+            if saved_sessions:
+                session_options = [f"{s['name']} ({s['updated_at'].strftime('%Y-%m-%d %H:%M') if hasattr(s['updated_at'], 'strftime') else s['updated_at']})" for s in saved_sessions]
+                selected_session = st.selectbox("Select Session", [""] + session_options, key="load_session_select")
+                
+                if selected_session and st.button("📂 Load Session"):
+                    session_name = selected_session.split(" (")[0]
+                    if session_manager.load_session(session_name):
+                        st.success(f"Session '{session_name}' loaded!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to load session")
+                
+                # Display session info
+                if saved_sessions:
+                    st.markdown("**Saved Sessions:**")
+                    for session in saved_sessions[:3]:
+                        st.write(f"• {session['name']}")
+                        st.caption(session['description'])
+            else:
+                st.write("No saved sessions found")
     
     # Main content based on page selection
     if page == "Overview":
