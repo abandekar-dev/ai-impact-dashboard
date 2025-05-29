@@ -484,30 +484,31 @@ def show_temporal_analysis():
         st.subheader("🏢 Function-Specific Temporal Analysis")
         
         for func in selected_functions:
-            with st.expander(f"📊 {func} - Detailed Temporal View"):
-                fig_individual = visualizer.create_individual_temporal_analysis(
-                    temporal_data[func], func
-                )
-                st.plotly_chart(fig_individual, use_container_width=True)
-                
-                # Key temporal insights
-                data = temporal_data[func]
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    break_even_month = next((i for i, val in enumerate(data['cumulative_roi']) if val > 0), None)
-                    if break_even_month:
-                        st.metric("Break-even Point", f"Month {break_even_month + 1}")
-                    else:
-                        st.metric("Break-even Point", "Beyond horizon")
-                
-                with col2:
-                    max_roi = max(data['monthly_roi'])
-                    st.metric("Peak Monthly ROI", f"{max_roi:.1f}%")
-                
-                with col3:
-                    final_value = data['cumulative_value'][-1]
-                    st.metric("Total Value at End", f"${final_value:,.0f}")
+            if func in temporal_data:
+                with st.expander(f"📊 {func} - Detailed Temporal View"):
+                    fig_individual = visualizer.create_individual_temporal_analysis(
+                        temporal_data[func], func
+                    )
+                    st.plotly_chart(fig_individual, use_container_width=True)
+                    
+                    # Key temporal insights
+                    data = temporal_data[func]
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        break_even_month = next((i for i, val in enumerate(data['cumulative_roi']) if val > 0), None)
+                        if break_even_month:
+                            st.metric("Break-even Point", f"Month {break_even_month + 1}")
+                        else:
+                            st.metric("Break-even Point", "Beyond horizon")
+                    
+                    with col2:
+                        max_roi = max(data['monthly_roi'])
+                        st.metric("Peak Monthly ROI", f"{max_roi:.1f}%")
+                    
+                    with col3:
+                        final_value = data['cumulative_value'][-1]
+                        st.metric("Total Value at End", f"${final_value:,.0f}")
 
 def show_executive_summary():
     st.header("📋 Executive Summary")
