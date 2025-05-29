@@ -662,7 +662,7 @@ def calculate_scenario_totals(functions, use_ai=False):
         if func in st.session_state.baseline_data:
             baseline = st.session_state.baseline_data[func]
             
-            if use_ai and func in st.session_state.predictions:
+            if use_ai and func in st.session_state.predictions and func in st.session_state.ai_initiatives:
                 pred = st.session_state.predictions[func]
                 ai_config = st.session_state.ai_initiatives[func]
                 
