@@ -1,199 +1,126 @@
 import streamlit as st
 import json
-import pandas as pd
 from datetime import datetime
 from typing import Dict, List, Optional
-from .database import DatabaseManager
 
 class SessionManager:
-    """Manage analysis sessions and data persistence"""
+    """Manage analysis sessions using Streamlit's built-in session state"""
     
-    def __init__(self, db_manager: DatabaseManager):
+    def __init__(self, db_manager=None):
         self.db = db_manager
+        # Initialize session storage in Streamlit's session state
+        if 'saved_sessions' not in st.session_state:
+            st.session_state.saved_sessions = {}
     
     def save_session(self, session_name: str, description: str = "") -> bool:
-        """Save current session state to database"""
+        """Save current session state"""
         try:
-            session = self.db.get_session()
-            
-            # Create sessions table if it doesn't exist
-            session.execute("""
-                CREATE TABLE IF NOT EXISTS analysis_sessions (
-                    id SERIAL PRIMARY KEY,
-                    name VARCHAR(255) NOT NULL,
-                    description TEXT,
-                    baseline_data JSON,
-                    ai_initiatives JSON,
-                    predictions JSON,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-            
-            # Check if session name already exists
-            existing = session.execute(
-                "SELECT id FROM analysis_sessions WHERE name = %s",
-                (session_name,)
-            ).fetchone()
-            
             session_data = {
-                'baseline_data': st.session_state.baseline_data,
-                'ai_initiatives': st.session_state.ai_initiatives,
-                'predictions': st.session_state.predictions
+                'name': session_name,
+                'description': description,
+                'baseline_data': dict(st.session_state.baseline_data),
+                'ai_initiatives': dict(st.session_state.ai_initiatives),
+                'predictions': dict(st.session_state.predictions),
+                'saved_at': datetime.now().isoformat()
             }
             
-            if existing:
-                # Update existing session
-                session.execute("""
-                    UPDATE analysis_sessions 
-                    SET description = %s, baseline_data = %s, ai_initiatives = %s, 
-                        predictions = %s, updated_at = CURRENT_TIMESTAMP
-                    WHERE name = %s
-                """, (
-                    description,
-                    json.dumps(session_data['baseline_data']),
-                    json.dumps(session_data['ai_initiatives']),
-                    json.dumps(session_data['predictions']),
-                    session_name
-                ))
-            else:
-                # Create new session
-                session.execute("""
-                    INSERT INTO analysis_sessions (name, description, baseline_data, ai_initiatives, predictions)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (
-                    session_name,
-                    description,
-                    json.dumps(session_data['baseline_data']),
-                    json.dumps(session_data['ai_initiatives']),
-                    json.dumps(session_data['predictions'])
-                ))
+            st.session_state.saved_sessions[session_name] = session_data
             
-            session.commit()
+            # Also save to database if available
+            if self.db:
+                try:
+                    # Use the existing database methods
+                    for func_name, baseline in st.session_state.baseline_data.items():
+                        self.db.save_function_baseline(func_name, baseline)
+                    
+                    for func_name, initiative in st.session_state.ai_initiatives.items():
+                        self.db.save_ai_initiative(func_name, initiative)
+                    
+                    for func_name, prediction in st.session_state.predictions.items():
+                        self.db.save_prediction(func_name, prediction)
+                        
+                except Exception as e:
+                    print(f"Database save failed, but session saved locally: {e}")
+            
             return True
             
         except Exception as e:
-            if session:
-                session.rollback()
             print(f"Error saving session: {e}")
             return False
-        finally:
-            if session:
-                session.close()
     
     def load_session(self, session_name: str) -> bool:
-        """Load session state from database"""
+        """Load session state"""
         try:
-            session = self.db.get_session()
-            
-            result = session.execute(
-                "SELECT baseline_data, ai_initiatives, predictions FROM analysis_sessions WHERE name = %s",
-                (session_name,)
-            ).fetchone()
-            
-            if result:
-                baseline_data, ai_initiatives, predictions = result
+            if session_name in st.session_state.saved_sessions:
+                session_data = st.session_state.saved_sessions[session_name]
                 
                 # Load data into session state
-                st.session_state.baseline_data = json.loads(baseline_data) if baseline_data else {}
-                st.session_state.ai_initiatives = json.loads(ai_initiatives) if ai_initiatives else {}
-                st.session_state.predictions = json.loads(predictions) if predictions else {}
+                st.session_state.baseline_data = session_data['baseline_data']
+                st.session_state.ai_initiatives = session_data['ai_initiatives']
+                st.session_state.predictions = session_data['predictions']
                 
                 return True
+            
+            # Try loading from database if available
+            if self.db:
+                try:
+                    configured_functions = self.db.get_all_configured_functions()
+                    if configured_functions:
+                        # Load from database
+                        data = self.db.load_all_data()
+                        st.session_state.baseline_data = data['baseline_data']
+                        st.session_state.ai_initiatives = data['ai_initiatives']
+                        st.session_state.predictions = data['predictions']
+                        return True
+                except Exception as e:
+                    print(f"Database load failed: {e}")
             
             return False
             
         except Exception as e:
             print(f"Error loading session: {e}")
             return False
-        finally:
-            if session:
-                session.close()
     
     def get_saved_sessions(self) -> List[Dict]:
         """Get list of all saved sessions"""
         try:
-            session = self.db.get_session()
+            sessions = []
             
-            # Check if table exists
-            try:
-                results = session.execute("""
-                    SELECT name, description, created_at, updated_at 
-                    FROM analysis_sessions 
-                    ORDER BY updated_at DESC
-                """).fetchall()
-                
-                sessions = []
-                for result in results:
-                    name, description, created_at, updated_at = result
-                    sessions.append({
-                        'name': name,
-                        'description': description or 'No description',
-                        'created_at': created_at,
-                        'updated_at': updated_at
-                    })
-                
-                return sessions
-                
-            except Exception:
-                # Table doesn't exist yet
-                return []
+            # Get sessions from session state
+            for name, data in st.session_state.saved_sessions.items():
+                sessions.append({
+                    'name': name,
+                    'description': data.get('description', 'No description'),
+                    'updated_at': data.get('saved_at', datetime.now().isoformat())
+                })
             
+            # Sort by update time (most recent first)
+            sessions.sort(key=lambda x: x['updated_at'], reverse=True)
+            return sessions
+                
         except Exception as e:
             print(f"Error getting sessions: {e}")
             return []
-        finally:
-            if session:
-                session.close()
     
     def delete_session(self, session_name: str) -> bool:
         """Delete a saved session"""
         try:
-            session = self.db.get_session()
-            
-            session.execute(
-                "DELETE FROM analysis_sessions WHERE name = %s",
-                (session_name,)
-            )
-            
-            session.commit()
-            return True
+            if session_name in st.session_state.saved_sessions:
+                del st.session_state.saved_sessions[session_name]
+                return True
+            return False
             
         except Exception as e:
-            if session:
-                session.rollback()
             print(f"Error deleting session: {e}")
             return False
-        finally:
-            if session:
-                session.close()
     
     def export_session(self, session_name: str) -> Optional[Dict]:
         """Export session data for download"""
         try:
-            session = self.db.get_session()
-            
-            result = session.execute(
-                "SELECT * FROM analysis_sessions WHERE name = %s",
-                (session_name,)
-            ).fetchone()
-            
-            if result:
-                return {
-                    'session_name': result[1],
-                    'description': result[2],
-                    'baseline_data': json.loads(result[3]) if result[3] else {},
-                    'ai_initiatives': json.loads(result[4]) if result[4] else {},
-                    'predictions': json.loads(result[5]) if result[5] else {},
-                    'created_at': str(result[6]),
-                    'updated_at': str(result[7])
-                }
-            
+            if session_name in st.session_state.saved_sessions:
+                return st.session_state.saved_sessions[session_name]
             return None
             
         except Exception as e:
             print(f"Error exporting session: {e}")
             return None
-        finally:
-            if session:
-                session.close()
