@@ -157,23 +157,23 @@ def show_enhanced_function_analysis(category_manager, db=None):
                 speed_improvement = st.slider("Expected Speed Improvement (%)", 0, 100, 40)
                 workforce_reduction = st.slider("Workforce Reduction (%)", 0, 50, 10)
             
-            # Advanced parameters
-            with st.expander("🔧 Advanced Risk & Impact Parameters"):
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    technical_risk = st.slider("Technical Risk", 0, 100, 30)
-                    adoption_risk = st.slider("Adoption Risk", 0, 100, 40)
-                    integration_risk = st.slider("Integration Risk", 0, 100, 35)
-                
-                with col2:
-                    regulatory_risk = st.slider("Regulatory Risk", 0, 100, 25)
-                    competitive_risk = st.slider("Competitive Risk", 0, 100, 20)
-                    data_risk = st.slider("Data Quality Risk", 0, 100, 30)
-                
-                with col3:
-                    upskilling_required = st.slider("Upskilling Required (%)", 0, 100, 60)
-                    new_roles_created = st.slider("New Roles Created (%)", 0, 30, 5)
+            # Advanced parameters - using markdown header instead of nested expander
+            st.markdown("#### 🔧 Advanced Risk & Impact Parameters")
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                technical_risk = st.slider("Technical Risk", 0, 100, 30)
+                adoption_risk = st.slider("Adoption Risk", 0, 100, 40)
+                integration_risk = st.slider("Integration Risk", 0, 100, 35)
+            
+            with col2:
+                regulatory_risk = st.slider("Regulatory Risk", 0, 100, 25)
+                competitive_risk = st.slider("Competitive Risk", 0, 100, 20)
+                data_risk = st.slider("Data Quality Risk", 0, 100, 30)
+            
+            with col3:
+                upskilling_required = st.slider("Upskilling Required (%)", 0, 100, 60)
+                new_roles_created = st.slider("New Roles Created (%)", 0, 30, 5)
             
             if st.button("🚀 Create AI Initiative", type="primary") and initiative_name:
                 initiative_data = {
