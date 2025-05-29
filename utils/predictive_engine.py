@@ -391,11 +391,9 @@ class PredictiveEngine:
         return roi
     
     def _calculate_workforce_impact(self, baseline_data: dict, ai_initiative: dict) -> dict:
-        """Calculate detailed workforce impact"""
+        """Calculate comprehensive workforce impact with detailed parameters"""
         
         current_headcount = baseline_data['headcount']
-        
-        # Direct workforce changes
         workforce_reduction = ai_initiative.get('workforce_reduction', 0)
         new_roles_created = ai_initiative.get('new_roles_created', 0)
         upskilling_required = ai_initiative.get('upskilling_required', 0)
@@ -408,12 +406,82 @@ class PredictiveEngine:
         # Net headcount change
         net_headcount_change = new_positions - reduced_positions
         
+        # Enhanced workforce metrics
+        avg_salary = baseline_data['costs'] / current_headcount * 0.7  # 70% of costs are labor
+        
+        # Financial impact calculations
+        reduction_savings = reduced_positions * avg_salary
+        upskilling_cost = upskilling_count * (avg_salary * 0.15)  # 15% of salary for training
+        new_hire_cost = new_positions * (avg_salary * 1.2)  # 20% premium for new roles
+        recruitment_cost = new_positions * (avg_salary * 0.25)  # 25% of salary for recruitment
+        
+        # Timeline and transition analysis
+        implementation_timeline = self._parse_timeline(ai_initiative.get('timeline', '6-12 months'))
+        transition_months = min(implementation_timeline, 12)
+        
+        # Skills and change management
+        skill_gap_severity = self._assess_skill_gap(ai_initiative)
+        training_duration = self._estimate_training_duration(upskilling_count, skill_gap_severity)
+        change_resistance = self._estimate_change_resistance(workforce_reduction, upskilling_required)
+        retention_risk = self._calculate_retention_risk(workforce_reduction, ai_initiative.get('change_management', 'Gradual'))
+        
+        # Productivity impact during transition
+        transition_productivity_loss = self._calculate_transition_productivity_loss(
+            workforce_reduction, upskilling_required, transition_months
+        )
+        
+        # Role transformation analysis
+        role_categories = self._categorize_role_changes(ai_initiative, current_headcount)
+        
+        # Strategic workforce metrics
+        workforce_agility = self._calculate_workforce_agility(ai_initiative, current_headcount + net_headcount_change)
+        collaboration_index = self._calculate_collaboration_index(ai_initiative)
+        future_readiness = self._calculate_future_readiness(upskilling_required, new_roles_created)
+        
         return {
-            'reduction': reduced_positions,
-            'new_roles': new_positions,
-            'upskilling': upskilling_count,
+            # Basic workforce metrics
+            'current_headcount': current_headcount,
+            'reduced_positions': reduced_positions,
+            'new_positions': new_positions,
+            'upskilling_count': upskilling_count,
             'net_change': net_headcount_change,
-            'percentage_change': (net_headcount_change / current_headcount) * 100
+            'final_headcount': current_headcount + net_headcount_change,
+            'percentage_change': (net_headcount_change / current_headcount) * 100,
+            
+            # Financial impact
+            'reduction_savings': reduction_savings,
+            'upskilling_cost': upskilling_cost,
+            'new_hire_cost': new_hire_cost,
+            'recruitment_cost': recruitment_cost,
+            'net_cost_impact': new_hire_cost + recruitment_cost + upskilling_cost - reduction_savings,
+            'avg_salary_estimate': avg_salary,
+            
+            # Timeline and transition
+            'implementation_timeline_months': implementation_timeline,
+            'transition_period_months': transition_months,
+            'training_duration_months': training_duration,
+            'transition_productivity_loss_percent': transition_productivity_loss,
+            
+            # Skills and change management
+            'skill_gap_severity': skill_gap_severity,
+            'change_resistance_level': change_resistance,
+            'retention_risk_percent': retention_risk,
+            
+            # Role transformation details
+            'roles_eliminated': role_categories['eliminated'],
+            'roles_transformed': role_categories['transformed'],
+            'roles_created': role_categories['created'],
+            'roles_augmented': role_categories['augmented'],
+            
+            # Strategic metrics
+            'workforce_agility_score': workforce_agility,
+            'human_ai_collaboration_index': collaboration_index,
+            'future_readiness_score': future_readiness,
+            
+            # Capability changes
+            'digital_literacy_improvement': self._assess_digital_literacy_gain(upskilling_required),
+            'process_automation_readiness': self._assess_automation_readiness(ai_initiative),
+            'change_adaptability_score': self._assess_change_adaptability(ai_initiative)
         }
     
     def _calculate_cost_reduction(self, baseline_data: dict, ai_initiative: dict) -> float:
@@ -776,3 +844,152 @@ class PredictiveEngine:
         """Assess stability of model ensemble"""
         # For now, return a fixed score - could be enhanced with actual model validation
         return 0.75
+    
+    # Supporting methods for enhanced workforce impact calculations
+    def _assess_skill_gap(self, ai_initiative: dict) -> str:
+        """Assess the severity of skill gaps based on AI complexity and type"""
+        complexity = ai_initiative.get('complexity', 'Medium')
+        ai_type = ai_initiative.get('ai_type', 'Hybrid')
+        automation_level = ai_initiative.get('automation_level', 30)
+        
+        # Calculate skill gap score
+        complexity_score = {'Low': 1, 'Medium': 2, 'High': 3}.get(complexity, 2)
+        type_score = {'Automation': 2, 'Augmentation': 3, 'Analytics': 2, 'Hybrid': 3}.get(ai_type, 2)
+        automation_score = automation_level / 25  # 0-4 scale
+        
+        total_score = (complexity_score + type_score + automation_score) / 3
+        
+        if total_score >= 3:
+            return "High"
+        elif total_score >= 2:
+            return "Medium"
+        else:
+            return "Low"
+    
+    def _estimate_training_duration(self, employee_count: int, skill_gap: str) -> float:
+        """Estimate training duration in months"""
+        base_duration = {'Low': 2, 'Medium': 4, 'High': 8}.get(skill_gap, 4)
+        
+        # Adjust for scale (larger groups may benefit from economies of scale)
+        if employee_count > 50:
+            scale_factor = 0.8
+        elif employee_count > 20:
+            scale_factor = 0.9
+        else:
+            scale_factor = 1.0
+        
+        return base_duration * scale_factor
+    
+    def _estimate_change_resistance(self, workforce_reduction: float, upskilling_required: float) -> str:
+        """Estimate level of change resistance"""
+        resistance_score = (workforce_reduction * 2 + upskilling_required) / 3
+        
+        if resistance_score >= 40:
+            return "High"
+        elif resistance_score >= 20:
+            return "Medium"
+        else:
+            return "Low"
+    
+    def _calculate_retention_risk(self, workforce_reduction: float, change_management: str) -> float:
+        """Calculate employee retention risk percentage"""
+        base_risk = workforce_reduction * 0.5  # Base risk from layoffs
+        
+        # Adjust for change management approach
+        mgmt_factor = {'Gradual': 0.7, 'Phased': 0.8, 'Big Bang': 1.2}.get(change_management, 0.8)
+        
+        return min(50, base_risk * mgmt_factor)
+    
+    def _calculate_transition_productivity_loss(self, workforce_reduction: float, 
+                                              upskilling_required: float, transition_months: int) -> float:
+        """Calculate productivity loss during transition period"""
+        # Base productivity loss from disruption
+        disruption_loss = (workforce_reduction + upskilling_required * 0.5) / 4
+        
+        # Duration factor (longer transitions have less intensive loss)
+        duration_factor = max(0.5, 1 - (transition_months - 6) * 0.1)
+        
+        return min(30, disruption_loss * duration_factor)
+    
+    def _categorize_role_changes(self, ai_initiative: dict, current_headcount: int) -> dict:
+        """Categorize different types of role changes"""
+        automation_level = ai_initiative.get('automation_level', 30)
+        ai_type = ai_initiative.get('ai_type', 'Hybrid')
+        workforce_reduction = ai_initiative.get('workforce_reduction', 0)
+        
+        eliminated = int(current_headcount * workforce_reduction / 100)
+        
+        if ai_type == 'Automation':
+            transformed = int(current_headcount * 0.15)
+            augmented = int(current_headcount * 0.25)
+            created = int(current_headcount * 0.05)
+        elif ai_type == 'Augmentation':
+            transformed = int(current_headcount * 0.30)
+            augmented = int(current_headcount * 0.40)
+            created = int(current_headcount * 0.10)
+        elif ai_type == 'Analytics':
+            transformed = int(current_headcount * 0.20)
+            augmented = int(current_headcount * 0.30)
+            created = int(current_headcount * 0.15)
+        else:  # Hybrid
+            transformed = int(current_headcount * 0.25)
+            augmented = int(current_headcount * 0.35)
+            created = int(current_headcount * 0.12)
+        
+        return {
+            'eliminated': eliminated,
+            'transformed': transformed,
+            'augmented': augmented,
+            'created': created
+        }
+    
+    def _calculate_workforce_agility(self, ai_initiative: dict, future_headcount: int) -> float:
+        """Calculate workforce agility score (0-100)"""
+        upskilling = ai_initiative.get('upskilling_required', 0)
+        new_roles = ai_initiative.get('new_roles_created', 0)
+        automation = ai_initiative.get('automation_level', 30)
+        
+        # Higher upskilling and new roles indicate more agile workforce
+        agility_score = (upskilling * 0.4 + new_roles * 0.3 + automation * 0.3) * 0.8
+        
+        return min(100, agility_score)
+    
+    def _calculate_collaboration_index(self, ai_initiative: dict) -> float:
+        """Calculate human-AI collaboration index (0-100)"""
+        ai_type = ai_initiative.get('ai_type', 'Hybrid')
+        automation_level = ai_initiative.get('automation_level', 30)
+        
+        # Different AI types have different collaboration patterns
+        type_factor = {'Automation': 0.4, 'Augmentation': 0.9, 'Analytics': 0.7, 'Hybrid': 0.8}.get(ai_type, 0.7)
+        
+        # Moderate automation levels indicate better collaboration
+        automation_factor = 1 - abs(50 - automation_level) / 50
+        
+        return (type_factor * automation_factor) * 100
+    
+    def _calculate_future_readiness(self, upskilling_required: float, new_roles_created: float) -> float:
+        """Calculate future readiness score (0-100)"""
+        readiness = (upskilling_required * 0.6 + new_roles_created * 0.4) * 0.9
+        return min(100, readiness)
+    
+    def _assess_digital_literacy_gain(self, upskilling_required: float) -> float:
+        """Assess improvement in digital literacy (0-100)"""
+        return min(100, upskilling_required * 1.2)
+    
+    def _assess_automation_readiness(self, ai_initiative: dict) -> float:
+        """Assess readiness for process automation (0-100)"""
+        automation_level = ai_initiative.get('automation_level', 30)
+        complexity = ai_initiative.get('complexity', 'Medium')
+        
+        complexity_factor = {'Low': 1.2, 'Medium': 1.0, 'High': 0.8}.get(complexity, 1.0)
+        
+        return min(100, automation_level * complexity_factor)
+    
+    def _assess_change_adaptability(self, ai_initiative: dict) -> float:
+        """Assess organizational change adaptability (0-100)"""
+        change_mgmt = ai_initiative.get('change_management', 'Gradual')
+        upskilling = ai_initiative.get('upskilling_required', 0)
+        
+        mgmt_factor = {'Gradual': 0.9, 'Phased': 1.0, 'Big Bang': 0.7}.get(change_mgmt, 0.9)
+        
+        return min(100, (upskilling * 0.7 + 30) * mgmt_factor)

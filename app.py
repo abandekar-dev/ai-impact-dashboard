@@ -356,6 +356,145 @@ def show_function_analysis():
                     quality_color = "green" if predictions['prediction_quality'] == "High" else "orange" if predictions['prediction_quality'] == "Medium" else "red"
                     st.markdown(f"**Prediction Quality:** :{quality_color}[{predictions['prediction_quality']}]")
         
+        # Enhanced Workforce Impact Analysis
+        if 'workforce_impact' in predictions:
+            st.markdown("---")
+            st.subheader("👥 Comprehensive Workforce Impact Analysis")
+            
+            workforce = predictions['workforce_impact']
+            
+            # Basic Workforce Metrics
+            st.markdown("#### 📊 Workforce Changes")
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.metric("Current Headcount", f"{workforce.get('current_headcount', 0):,}")
+                st.metric("Positions Eliminated", f"{workforce.get('reduced_positions', 0):,}")
+            
+            with col2:
+                st.metric("New Positions Created", f"{workforce.get('new_positions', 0):,}")
+                st.metric("Employees to Upskill", f"{workforce.get('upskilling_count', 0):,}")
+            
+            with col3:
+                net_change = workforce.get('net_change', 0)
+                st.metric("Net Headcount Change", f"{net_change:+,}")
+                st.metric("Final Headcount", f"{workforce.get('final_headcount', 0):,}")
+            
+            with col4:
+                pct_change = workforce.get('percentage_change', 0)
+                st.metric("Percentage Change", f"{pct_change:+.1f}%")
+                avg_salary = workforce.get('avg_salary_estimate', 0)
+                st.metric("Est. Avg Salary", f"${avg_salary:,.0f}")
+            
+            # Financial Impact of Workforce Changes
+            st.markdown("#### 💰 Financial Impact")
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                savings = workforce.get('reduction_savings', 0)
+                st.metric("Reduction Savings", f"${savings:,.0f}", help="Annual savings from position eliminations")
+                upskill_cost = workforce.get('upskilling_cost', 0)
+                st.metric("Upskilling Investment", f"${upskill_cost:,.0f}", help="Cost to train existing employees")
+            
+            with col2:
+                hire_cost = workforce.get('new_hire_cost', 0)
+                st.metric("New Hire Costs", f"${hire_cost:,.0f}", help="Annual cost for new positions")
+                recruit_cost = workforce.get('recruitment_cost', 0)
+                st.metric("Recruitment Costs", f"${recruit_cost:,.0f}", help="One-time recruitment expenses")
+            
+            with col3:
+                net_cost = workforce.get('net_cost_impact', 0)
+                cost_color = "red" if net_cost > 0 else "green"
+                st.metric("Net Cost Impact", f"${net_cost:,.0f}", 
+                         help="Total financial impact (positive = cost, negative = savings)")
+                if net_cost > 0:
+                    st.markdown(f":{cost_color}[Additional Investment Required]")
+                else:
+                    st.markdown(f":{cost_color}[Net Savings Achieved]")
+            
+            # Timeline and Transition Management
+            st.markdown("#### ⏱️ Implementation Timeline & Transition")
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                impl_timeline = workforce.get('implementation_timeline_months', 0)
+                st.metric("Implementation Period", f"{impl_timeline} months")
+                transition_months = workforce.get('transition_period_months', 0)
+                st.metric("Transition Period", f"{transition_months} months")
+            
+            with col2:
+                training_duration = workforce.get('training_duration_months', 0)
+                st.metric("Training Duration", f"{training_duration:.1f} months")
+                productivity_loss = workforce.get('transition_productivity_loss_percent', 0)
+                st.metric("Transition Productivity Loss", f"{productivity_loss:.1f}%")
+            
+            with col3:
+                skill_gap = workforce.get('skill_gap_severity', 'Medium')
+                gap_color = "red" if skill_gap == "High" else "orange" if skill_gap == "Medium" else "green"
+                st.markdown(f"**Skill Gap Severity:** :{gap_color}[{skill_gap}]")
+                
+                resistance = workforce.get('change_resistance_level', 'Medium')
+                resist_color = "red" if resistance == "High" else "orange" if resistance == "Medium" else "green"
+                st.markdown(f"**Change Resistance:** :{resist_color}[{resistance}]")
+                
+                retention_risk = workforce.get('retention_risk_percent', 0)
+                st.metric("Retention Risk", f"{retention_risk:.1f}%")
+            
+            # Role Transformation Analysis
+            st.markdown("#### 🔄 Role Transformation Breakdown")
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                eliminated = workforce.get('roles_eliminated', 0)
+                st.metric("Roles Eliminated", f"{eliminated:,}", help="Positions completely removed")
+            
+            with col2:
+                transformed = workforce.get('roles_transformed', 0)
+                st.metric("Roles Transformed", f"{transformed:,}", help="Existing roles with major changes")
+            
+            with col3:
+                augmented = workforce.get('roles_augmented', 0)
+                st.metric("Roles Augmented", f"{augmented:,}", help="Roles enhanced with AI assistance")
+            
+            with col4:
+                created = workforce.get('roles_created', 0)
+                st.metric("New Roles Created", f"{created:,}", help="Entirely new positions")
+            
+            # Strategic Workforce Metrics
+            st.markdown("#### 🚀 Strategic Workforce Capabilities")
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                agility = workforce.get('workforce_agility_score', 0)
+                agility_color = "green" if agility > 70 else "orange" if agility > 40 else "red"
+                st.metric("Workforce Agility", f"{agility:.0f}/100")
+                st.markdown(f":{agility_color}[{agility:.0f}/100 - Adaptability to change]")
+                
+                collaboration = workforce.get('human_ai_collaboration_index', 0)
+                collab_color = "green" if collaboration > 70 else "orange" if collaboration > 40 else "red"
+                st.metric("Human-AI Collaboration", f"{collaboration:.0f}/100")
+                st.markdown(f":{collab_color}[{collaboration:.0f}/100 - Integration effectiveness]")
+            
+            with col2:
+                future_ready = workforce.get('future_readiness_score', 0)
+                ready_color = "green" if future_ready > 70 else "orange" if future_ready > 40 else "red"
+                st.metric("Future Readiness", f"{future_ready:.0f}/100")
+                st.markdown(f":{ready_color}[{future_ready:.0f}/100 - Preparedness for future]")
+                
+                digital_literacy = workforce.get('digital_literacy_improvement', 0)
+                st.metric("Digital Literacy Gain", f"{digital_literacy:.0f}/100")
+            
+            with col3:
+                automation_ready = workforce.get('process_automation_readiness', 0)
+                auto_color = "green" if automation_ready > 70 else "orange" if automation_ready > 40 else "red"
+                st.metric("Automation Readiness", f"{automation_ready:.0f}/100")
+                st.markdown(f":{auto_color}[{automation_ready:.0f}/100 - Process automation capability]")
+                
+                adaptability = workforce.get('change_adaptability_score', 0)
+                adapt_color = "green" if adaptability > 70 else "orange" if adaptability > 40 else "red"
+                st.metric("Change Adaptability", f"{adaptability:.0f}/100")
+                st.markdown(f":{adapt_color}[{adaptability:.0f}/100 - Organizational flexibility]")
+        
         # Visualization
         visualizer = DashboardVisualizer()
         fig = visualizer.create_impact_summary(predictions, selected_function)
