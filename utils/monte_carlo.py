@@ -4,7 +4,7 @@ from typing import Dict, List, Tuple, Optional
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
-from scipy import stats
+from scipy import stats as scipy_stats
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -33,6 +33,10 @@ class MonteCarloSimulator:
         
         # Define default uncertainty parameters if not provided
         if uncertainty_parameters is None:
+            uncertainty_parameters = self._get_default_uncertainty_params()
+        
+        # Ensure we have a valid dictionary
+        if not isinstance(uncertainty_parameters, dict):
             uncertainty_parameters = self._get_default_uncertainty_params()
         
         # Storage for simulation results
@@ -242,8 +246,8 @@ class MonteCarloSimulator:
                 'max': np.max(values),
                 'q25': np.percentile(values, 25),
                 'q75': np.percentile(values, 75),
-                'skewness': stats.skew(values) if len(values) > 2 else 0,
-                'kurtosis': stats.kurtosis(values) if len(values) > 3 else 0
+                'skewness': float(scipy_stats.skew(values)) if len(values) > 2 else 0.0,
+                'kurtosis': float(scipy_stats.kurtosis(values)) if len(values) > 3 else 0.0
             }
         
         return stats
