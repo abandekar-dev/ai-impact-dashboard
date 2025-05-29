@@ -12,6 +12,7 @@ from utils.predictive_engine import PredictiveEngine
 from utils.visualization import DashboardVisualizer
 from utils.report_generator import ReportGenerator
 from utils.database import DatabaseManager
+from utils.benchmarking import IndustryBenchmarking, SensitivityAnalysis, ScenarioOptimization
 
 # Page configuration
 st.set_page_config(
@@ -58,7 +59,7 @@ def main():
     st.sidebar.title("Navigation")
     page = st.sidebar.selectbox(
         "Select Analysis View",
-        ["Overview", "Function Analysis", "Scenario Comparison", "Temporal Analysis", "Executive Summary"]
+        ["Overview", "Function Analysis", "Scenario Comparison", "Temporal Analysis", "Benchmarking & Optimization", "Executive Summary"]
     )
     
     # Main content based on page selection
@@ -107,7 +108,9 @@ def show_overview():
     with col1:
         st.markdown("**Enterprise Functions Available:**")
         functions = ["HR & Talent Management", "Finance & Accounting", "Operations & Supply Chain", 
-                    "Sales & Marketing", "IT & Technology", "Customer Service", "Legal & Compliance", "R&D"]
+                    "Sales & Marketing", "IT & Technology", "Customer Service", "Legal & Compliance", "R&D",
+                    "Manufacturing & Production", "Quality Assurance", "Business Development", "Strategy & Planning",
+                    "Risk Management", "Procurement", "Facilities Management", "Data & Analytics"]
         for func in functions:
             if func in st.session_state.ai_initiatives:
                 st.success(f"✅ {func} - Configured")
@@ -127,7 +130,9 @@ def show_function_analysis():
     
     # Function selector
     functions = ["HR & Talent Management", "Finance & Accounting", "Operations & Supply Chain", 
-                "Sales & Marketing", "IT & Technology", "Customer Service", "Legal & Compliance", "R&D"]
+                "Sales & Marketing", "IT & Technology", "Customer Service", "Legal & Compliance", "R&D",
+                "Manufacturing & Production", "Quality Assurance", "Business Development", "Strategy & Planning",
+                "Risk Management", "Procurement", "Facilities Management", "Data & Analytics"]
     
     selected_function = st.selectbox("Select Enterprise Function", functions)
     
@@ -174,6 +179,9 @@ def show_function_analysis():
             technical_risk = st.slider("Technical Risk (0-100)", 0, 100, 30)
             adoption_risk = st.slider("User Adoption Risk (0-100)", 0, 100, 40)
             integration_risk = st.slider("Integration Risk (0-100)", 0, 100, 35)
+            regulatory_risk = st.slider("Regulatory Risk (0-100)", 0, 100, 25)
+            competitive_risk = st.slider("Competitive Risk (0-100)", 0, 100, 20)
+            data_risk = st.slider("Data Quality Risk (0-100)", 0, 100, 30)
         
         with col2:
             st.markdown("**Expected Improvements**")
@@ -209,6 +217,9 @@ def show_function_analysis():
             'technical_risk': technical_risk,
             'adoption_risk': adoption_risk,
             'integration_risk': integration_risk,
+            'regulatory_risk': regulatory_risk,
+            'competitive_risk': competitive_risk,
+            'data_risk': data_risk,
             'automation_level': automation_level,
             'accuracy_improvement': accuracy_improvement,
             'speed_improvement': speed_improvement,
@@ -225,6 +236,9 @@ def show_function_analysis():
             'technical_risk': technical_risk,
             'adoption_risk': adoption_risk,
             'integration_risk': integration_risk,
+            'regulatory_risk': regulatory_risk,
+            'competitive_risk': competitive_risk,
+            'data_risk': data_risk,
             'automation_level': automation_level,
             'accuracy_improvement': accuracy_improvement,
             'speed_improvement': speed_improvement,
