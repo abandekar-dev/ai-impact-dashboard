@@ -71,6 +71,8 @@ def main():
         show_scenario_comparison()
     elif page == "Temporal Analysis":
         show_temporal_analysis()
+    elif page == "Benchmarking & Optimization":
+        show_benchmarking_optimization()
     elif page == "Executive Summary":
         show_executive_summary()
 
@@ -621,18 +623,133 @@ def calculate_scenario_totals(functions, use_ai=False):
                 
                 totals['revenue'] += baseline['revenue'] + pred['value_generated']
                 totals['costs'] += baseline['costs'] + ai_config['investment']
-                totals['headcount'] += baseline['headcount'] * (1 - ai_config['workforce_reduction']/100)
+                totals['headcount'] += int(baseline['headcount'] * (1 - ai_config['workforce_reduction']/100))
                 totals['productivity'] += baseline['productivity'] + pred['productivity_gain']
             else:
                 totals['revenue'] += baseline['revenue']
                 totals['costs'] += baseline['costs']
-                totals['headcount'] += baseline['headcount']
+                totals['headcount'] += int(baseline['headcount'])
                 totals['productivity'] += baseline['productivity']
     
     # Average productivity
     totals['productivity'] = totals['productivity'] / function_count
     
     return totals
+
+def show_benchmarking_optimization():
+    st.header("📊 Benchmarking & Optimization")
+    
+    if len(st.session_state.predictions) < 1:
+        st.warning("⚠️ Please configure at least one function in Function Analysis first.")
+        return
+    
+    # Initialize benchmarking tools
+    benchmark_tool = IndustryBenchmarking()
+    sensitivity_tool = SensitivityAnalysis()
+    optimization_tool = ScenarioOptimization()
+    
+    # Tabs for different analysis types
+    tab1, tab2, tab3 = st.tabs(["🏭 Industry Benchmarking", "📈 Sensitivity Analysis", "🎯 Scenario Optimization"])
+    
+    with tab1:
+        st.subheader("Industry Benchmark Comparison")
+        
+        # Industry selection
+        industry = st.selectbox(
+            "Select your industry for benchmarking:",
+            ["Technology", "Financial Services", "Manufacturing", "Healthcare", "Retail", "General"]
+        )
+        
+        if st.button("🔍 Run Benchmark Analysis"):
+            comparison = benchmark_tool.get_industry_comparison(industry, st.session_state.predictions)
+            
+            # Display comparison metrics
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                perf = comparison['performance']['roi_vs_benchmark']
+                st.metric("ROI vs Industry", f"{perf:+.1f}%", delta=f"vs {industry} average")
+            
+            with col2:
+                perf = comparison['performance']['payback_vs_benchmark']
+                st.metric("Payback vs Industry", f"{perf:+.1f}%", delta="better" if perf > 0 else "slower")
+            
+            with col3:
+                perf = comparison['performance']['productivity_vs_benchmark']
+                st.metric("Productivity vs Industry", f"{perf:+.1f}%", delta=f"vs {industry} average")
+            
+            # Benchmark comparison chart
+            benchmark_fig = benchmark_tool.create_benchmark_comparison_chart(comparison)
+            st.plotly_chart(benchmark_fig, use_container_width=True)
+    
+    with tab2:
+        st.subheader("Sensitivity Analysis")
+        
+        # Function selection for sensitivity analysis
+        selected_function = st.selectbox(
+            "Select function for sensitivity analysis:",
+            list(st.session_state.predictions.keys())
+        )
+        
+        # Factor selection
+        factor = st.selectbox(
+            "Select factor to analyze:",
+            ["investment", "automation_level", "accuracy_improvement", "speed_improvement", "technical_risk", "adoption_risk"]
+        )
+        
+        if st.button("📊 Run Sensitivity Analysis"):
+            baseline_data = st.session_state.baseline_data[selected_function]
+            ai_initiative = st.session_state.ai_initiatives[selected_function]
+            predictions = st.session_state.predictions[selected_function]
+            
+            sensitivity_results = sensitivity_tool.run_sensitivity_analysis(
+                baseline_data, ai_initiative, predictions, factor
+            )
+            
+            # Display sensitivity chart
+            sensitivity_fig = sensitivity_tool.create_sensitivity_chart(sensitivity_results)
+            st.plotly_chart(sensitivity_fig, use_container_width=True)
+    
+    with tab3:
+        st.subheader("Scenario Optimization")
+        
+        # Function selection for optimization
+        opt_function = st.selectbox(
+            "Select function to optimize:",
+            list(st.session_state.predictions.keys()),
+            key="opt_function"
+        )
+        
+        # Optimization target
+        target_metric = st.selectbox(
+            "Optimization target:",
+            ["roi", "value_generated", "payback_period", "risk_adjusted_roi"]
+        )
+        
+        if st.button("🎯 Optimize Scenario"):
+            baseline_data = st.session_state.baseline_data[opt_function]
+            ai_initiative = st.session_state.ai_initiatives[opt_function]
+            
+            optimization_results = optimization_tool.optimize_scenario(
+                baseline_data, ai_initiative, target_metric
+            )
+            
+            if optimization_results['best_result']:
+                st.subheader("🏆 Optimization Results")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("**Current Configuration**")
+                    current_pred = st.session_state.predictions[opt_function]
+                    st.write(f"ROI: {current_pred['roi']:.1f}%")
+                    st.write(f"Value: ${current_pred['value_generated']:,.0f}")
+                
+                with col2:
+                    st.markdown("**Optimized Configuration**")
+                    best_result = optimization_results['best_result']
+                    st.write(f"ROI: {best_result['roi']:.1f}%")
+                    st.write(f"Value: ${best_result['value_generated']:,.0f}")
 
 if __name__ == "__main__":
     main()
