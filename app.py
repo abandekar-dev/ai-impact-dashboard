@@ -21,6 +21,17 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Initialize database manager
+@st.cache_resource
+def init_database():
+    try:
+        return DatabaseManager()
+    except Exception as e:
+        st.error(f"Database connection failed: {e}")
+        return None
+
+db = init_database()
+
 # Initialize session state
 if 'ai_initiatives' not in st.session_state:
     st.session_state.ai_initiatives = {}
@@ -28,6 +39,16 @@ if 'baseline_data' not in st.session_state:
     st.session_state.baseline_data = {}
 if 'predictions' not in st.session_state:
     st.session_state.predictions = {}
+if 'data_loaded' not in st.session_state:
+    st.session_state.data_loaded = False
+
+# Load data from database on first run
+if db and not st.session_state.data_loaded:
+    data = db.load_all_data()
+    st.session_state.baseline_data = data['baseline_data']
+    st.session_state.ai_initiatives = data['ai_initiatives']
+    st.session_state.predictions = data['predictions']
+    st.session_state.data_loaded = True
 
 def main():
     st.title("🎯 AI Impact Predictive Dashboard")
@@ -169,15 +190,32 @@ def show_function_analysis():
     # Save configuration
     if st.button("💾 Save Configuration & Run Predictions", type="primary"):
         # Store baseline data
-        st.session_state.baseline_data[selected_function] = {
+        baseline_data = {
             'productivity': current_productivity,
-            'headcount': current_headcount,
+            'headcount': int(current_headcount),
             'revenue': current_revenue,
             'costs': current_costs,
             'satisfaction': current_satisfaction
         }
+        st.session_state.baseline_data[selected_function] = baseline_data
         
         # Store AI initiative data
+        initiative_data = {
+            'ai_type': ai_type,
+            'complexity': implementation_complexity,
+            'investment': investment_amount,
+            'timeline': implementation_timeline,
+            'change_management': change_management,
+            'technical_risk': technical_risk,
+            'adoption_risk': adoption_risk,
+            'integration_risk': integration_risk,
+            'automation_level': automation_level,
+            'accuracy_improvement': accuracy_improvement,
+            'speed_improvement': speed_improvement,
+            'workforce_reduction': workforce_reduction,
+            'upskilling_required': upskilling_required,
+            'new_roles_created': new_roles_created
+        }
         st.session_state.ai_initiatives[selected_function] = {
             'type': ai_type,
             'complexity': implementation_complexity,
@@ -195,13 +233,19 @@ def show_function_analysis():
             'new_roles_created': new_roles_created
         }
         
+        # Save to database if available
+        if db:
+            db.save_function_baseline(selected_function, baseline_data)
+            db.save_ai_initiative(selected_function, initiative_data)
+        
         # Run predictions
         engine = PredictiveEngine()
-        predictions = engine.predict_impact(
-            st.session_state.baseline_data[selected_function],
-            st.session_state.ai_initiatives[selected_function]
-        )
+        predictions = engine.predict_impact(baseline_data, initiative_data)
         st.session_state.predictions[selected_function] = predictions
+        
+        # Save predictions to database if available
+        if db:
+            db.save_prediction(selected_function, predictions)
         
         st.success("✅ Configuration saved and predictions generated!")
         st.rerun()
