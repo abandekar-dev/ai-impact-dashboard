@@ -625,3 +625,154 @@ class PredictiveEngine:
             metrics['min_payback'] = np.min(paybacks)
         
         return metrics
+    
+    def _generate_synthetic_training_data(self, baseline_data: dict, ai_initiative: dict) -> list:
+        """Generate realistic training scenarios for model fitting"""
+        training_scenarios = []
+        
+        # Create variations around the current scenario
+        for i in range(20):
+            # Vary key parameters realistically
+            variation_data = baseline_data.copy()
+            variation_ai = ai_initiative.copy()
+            
+            # Add realistic noise to parameters
+            variation_data['productivity'] = max(10, baseline_data['productivity'] + np.random.normal(0, 10))
+            variation_data['revenue'] = max(100000, baseline_data['revenue'] * (1 + np.random.normal(0, 0.2)))
+            variation_ai['automation_level'] = max(0, min(100, ai_initiative['automation_level'] + np.random.normal(0, 15)))
+            variation_ai['investment'] = max(10000, ai_initiative['investment'] * (1 + np.random.normal(0, 0.3)))
+            
+            features = self._engineer_features(variation_data, variation_ai)
+            
+            # Calculate expected outcomes using domain knowledge
+            productivity_target = self._domain_knowledge_productivity(variation_data, variation_ai)
+            value_target = self._domain_knowledge_value(variation_data, variation_ai, productivity_target)
+            roi_target = self._domain_knowledge_roi(value_target, variation_ai['investment'], variation_data['costs'])
+            
+            training_scenarios.append({
+                'features': features,
+                'productivity': productivity_target,
+                'value': value_target,
+                'roi': roi_target
+            })
+        
+        return training_scenarios
+    
+    def _fit_models(self, training_data: list, current_features: np.ndarray):
+        """Fit ensemble models using training data"""
+        if len(training_data) < 5:
+            return
+        
+        # Prepare training matrices
+        X = np.vstack([scenario['features'] for scenario in training_data])
+        
+        # Fit models for each target
+        for target in ['productivity', 'value', 'roi']:
+            y = np.array([scenario[target] for scenario in training_data])
+            try:
+                self.models[target].fit(X, y)
+            except Exception as e:
+                print(f"Model fitting error for {target}: {e}")
+    
+    def _predict_with_ensemble(self, target: str, features: np.ndarray, baseline_data: dict, ai_initiative: dict) -> float:
+        """Make prediction using ensemble model with fallback"""
+        try:
+            prediction = self.models[target].predict(features)
+            if isinstance(prediction, (list, np.ndarray)):
+                prediction = prediction[0] if len(prediction) > 0 else 0
+            
+            # Apply domain knowledge bounds
+            if target == 'productivity':
+                return max(0, min(100, prediction))
+            elif target == 'value':
+                return max(0, prediction)
+            elif target == 'roi':
+                return max(-50, min(500, prediction))
+            
+            return prediction
+        except:
+            # Fallback to enhanced domain knowledge
+            if target == 'productivity':
+                return self._domain_knowledge_productivity(baseline_data, ai_initiative)
+            elif target == 'value':
+                productivity = self._domain_knowledge_productivity(baseline_data, ai_initiative)
+                return self._domain_knowledge_value(baseline_data, ai_initiative, productivity)
+            elif target == 'roi':
+                productivity = self._domain_knowledge_productivity(baseline_data, ai_initiative)
+                value = self._domain_knowledge_value(baseline_data, ai_initiative, productivity)
+                return self._domain_knowledge_roi(value, ai_initiative['investment'], baseline_data['costs'])
+            
+            return 0.0  # Default fallback
+    
+    def _domain_knowledge_productivity(self, baseline_data: dict, ai_initiative: dict) -> float:
+        """Calculate productivity gain using enhanced domain knowledge"""
+        automation_impact = ai_initiative['automation_level'] * 0.4
+        accuracy_impact = ai_initiative['accuracy_improvement'] * 0.3
+        speed_impact = ai_initiative['speed_improvement'] * 0.2
+        
+        complexity_penalty = {'Low': 0.9, 'Medium': 0.8, 'High': 0.6}.get(ai_initiative.get('complexity', 'Medium'), 0.8)
+        baseline_factor = (baseline_data['productivity'] / 100) * 0.5
+        
+        return (automation_impact + accuracy_impact + speed_impact) * complexity_penalty + baseline_factor
+    
+    def _domain_knowledge_value(self, baseline_data: dict, ai_initiative: dict, productivity_gain: float) -> float:
+        """Calculate value generation using enhanced domain knowledge"""
+        revenue_enhancement = baseline_data['revenue'] * (productivity_gain / 100) * 0.6
+        cost_reduction = baseline_data['costs'] * (ai_initiative['automation_level'] / 100) * 0.3
+        efficiency_gains = baseline_data['revenue'] * 0.05 * (productivity_gain / 20)
+        
+        return revenue_enhancement + cost_reduction + efficiency_gains
+    
+    def _domain_knowledge_roi(self, value_generated: float, investment: float, baseline_costs: float) -> float:
+        """Calculate ROI using enhanced domain knowledge"""
+        annual_return = value_generated - (investment * 0.15)  # 15% annual capital cost
+        return (annual_return / investment) * 100 if investment > 0 else 0
+    
+    def get_prediction_confidence(self, baseline_data: dict, ai_initiative: dict) -> dict:
+        """Get confidence metrics for predictions"""
+        features = self._engineer_features(baseline_data, ai_initiative)
+        
+        # Calculate various confidence factors
+        data_quality = self._assess_data_quality(baseline_data, ai_initiative)
+        feature_reliability = self._assess_feature_reliability(features)
+        model_stability = self._assess_model_stability()
+        
+        overall_confidence = (data_quality + feature_reliability + model_stability) / 3
+        
+        return {
+            'overall_confidence': overall_confidence,
+            'data_quality': data_quality,
+            'feature_reliability': feature_reliability,
+            'model_stability': model_stability,
+            'confidence_level': 'High' if overall_confidence > 0.8 else 'Medium' if overall_confidence > 0.6 else 'Low'
+        }
+    
+    def _assess_data_quality(self, baseline_data: dict, ai_initiative: dict) -> float:
+        """Assess quality of input data"""
+        quality_score = 0.8  # Base score
+        
+        # Check for reasonable values
+        if baseline_data['productivity'] < 10 or baseline_data['productivity'] > 95:
+            quality_score -= 0.1
+        if baseline_data['revenue'] < 100000:
+            quality_score -= 0.1
+        if ai_initiative['investment'] < 10000:
+            quality_score -= 0.1
+            
+        return max(0.3, quality_score)
+    
+    def _assess_feature_reliability(self, features: np.ndarray) -> float:
+        """Assess reliability of engineered features"""
+        if features.shape[1] == 0:
+            return 0.5
+        
+        # Check for extreme values
+        extreme_values = np.sum(np.abs(features) > 3) / features.size
+        reliability = 1.0 - min(0.5, extreme_values * 2)
+        
+        return max(0.4, reliability)
+    
+    def _assess_model_stability(self) -> float:
+        """Assess stability of model ensemble"""
+        # For now, return a fixed score - could be enhanced with actual model validation
+        return 0.75

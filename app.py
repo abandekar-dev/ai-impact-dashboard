@@ -329,6 +329,33 @@ def show_function_analysis():
         with col4:
             st.metric("Payback Period", f"{predictions['payback_period']:.1f} months")
         
+        # Model confidence and quality indicators (if available)
+        if 'confidence_metrics' in predictions:
+            st.markdown("---")
+            st.subheader("🎯 Prediction Quality & Confidence")
+            
+            confidence = predictions['confidence_metrics']
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                confidence_color = "green" if confidence['overall_confidence'] > 0.8 else "orange" if confidence['overall_confidence'] > 0.6 else "red"
+                st.metric(
+                    "Overall Confidence", 
+                    f"{confidence['overall_confidence']:.1%}",
+                    help="Higher confidence indicates more reliable predictions"
+                )
+                st.markdown(f"**Quality Level:** :{confidence_color}[{confidence['confidence_level']}]")
+            
+            with col2:
+                st.metric("Data Quality", f"{confidence['data_quality']:.1%}")
+                st.metric("Feature Reliability", f"{confidence['feature_reliability']:.1%}")
+            
+            with col3:
+                st.metric("Model Stability", f"{confidence['model_stability']:.1%}")
+                if 'prediction_quality' in predictions:
+                    quality_color = "green" if predictions['prediction_quality'] == "High" else "orange" if predictions['prediction_quality'] == "Medium" else "red"
+                    st.markdown(f"**Prediction Quality:** :{quality_color}[{predictions['prediction_quality']}]")
+        
         # Visualization
         visualizer = DashboardVisualizer()
         fig = visualizer.create_impact_summary(predictions, selected_function)
