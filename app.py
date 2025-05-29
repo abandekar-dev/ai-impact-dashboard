@@ -11,6 +11,7 @@ from utils.data_models import EnterpriseFunction, AIInitiative
 from utils.predictive_engine import PredictiveEngine
 from utils.visualization import DashboardVisualizer
 from utils.report_generator import ReportGenerator
+from utils.database import DatabaseManager
 
 # Page configuration
 st.set_page_config(
