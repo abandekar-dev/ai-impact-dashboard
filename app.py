@@ -457,14 +457,17 @@ def show_temporal_analysis():
         temporal_data = {}
         
         for func in selected_functions:
-            baseline = st.session_state.baseline_data[func]
-            ai_config = st.session_state.ai_initiatives[func]
-            predictions = st.session_state.predictions[func]
-            
-            temporal_projection = engine.generate_temporal_projection(
-                baseline, ai_config, predictions, months
-            )
-            temporal_data[func] = temporal_projection
+            if (func in st.session_state.baseline_data and 
+                func in st.session_state.ai_initiatives and 
+                func in st.session_state.predictions):
+                baseline = st.session_state.baseline_data[func]
+                ai_config = st.session_state.ai_initiatives[func]
+                predictions = st.session_state.predictions[func]
+                
+                temporal_projection = engine.generate_temporal_projection(
+                    baseline, ai_config, predictions, months
+                )
+                temporal_data[func] = temporal_projection
         
         # Visualize temporal trends
         st.markdown("---")
