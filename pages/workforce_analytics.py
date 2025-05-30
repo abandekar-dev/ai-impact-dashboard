@@ -25,6 +25,10 @@ def show_workforce_analytics():
         st.warning("Please configure baseline data for enterprise functions first in 'Input by Department/Business'.")
         return
     
+    # Show selected industry context
+    selected_industry = st.session_state.get('selected_industry', 'Technology')
+    st.info(f"Analyzing workforce for {selected_industry} industry functions")
+    
     # Department selection
     departments = list(st.session_state.baseline_data.keys())
     selected_dept = st.selectbox("Select Department for Analysis", departments)

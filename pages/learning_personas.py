@@ -18,6 +18,10 @@ def show_learning_personas():
         st.warning("Please configure baseline data for enterprise functions first in 'Input by Department/Business'.")
         return
     
+    # Show selected industry context
+    selected_industry = st.session_state.get('selected_industry', 'Technology')
+    st.info(f"Learning analysis for {selected_industry} industry functions")
+    
     # Initialize analyzers
     persona_analyzer = LearningPersonaAnalyzer()
     curriculum_builder = DynamicCurriculumBuilder()

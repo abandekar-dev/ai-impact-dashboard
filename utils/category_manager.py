@@ -8,6 +8,273 @@ class CategoryManager:
     
     def __init__(self):
         self.default_categories = {
+            # Technology Industry
+            "IT & Technology": [
+                "Infrastructure & Cloud Services",
+                "Software Development",
+                "DevOps & IT Operations",
+                "Cybersecurity",
+                "Data Engineering & Analytics",
+                "Enterprise Systems"
+            ],
+            "Data & Analytics": [
+                "Data Engineering",
+                "Business Intelligence",
+                "Machine Learning & AI",
+                "Data Governance",
+                "Analytics & Reporting",
+                "Data Science"
+            ],
+            "Product Development": [
+                "Product Strategy",
+                "Software Engineering",
+                "Quality Assurance",
+                "User Experience Design",
+                "Product Management",
+                "Release Management"
+            ],
+            "Customer Support": [
+                "Technical Support",
+                "Customer Success",
+                "Knowledge Management",
+                "Escalation Management",
+                "Self-Service Platforms",
+                "Support Analytics"
+            ],
+            
+            # Retail Industry
+            "Store Operations": [
+                "Inventory Management",
+                "Point of Sale Systems",
+                "Staff Scheduling",
+                "Loss Prevention",
+                "Customer Service",
+                "Store Analytics"
+            ],
+            "E-commerce": [
+                "Online Platform Management",
+                "Digital Marketing",
+                "Order Fulfillment",
+                "Customer Experience",
+                "Product Catalog Management",
+                "Payment Processing"
+            ],
+            "Supply Chain & Logistics": [
+                "Warehouse Management",
+                "Transportation Planning",
+                "Vendor Management",
+                "Demand Forecasting",
+                "Distribution Centers",
+                "Last-Mile Delivery"
+            ],
+            "Merchandising": [
+                "Product Planning",
+                "Pricing Strategy",
+                "Category Management",
+                "Seasonal Planning",
+                "Visual Merchandising",
+                "Vendor Relations"
+            ],
+            "Customer Experience": [
+                "Customer Journey Mapping",
+                "Loyalty Programs",
+                "Customer Feedback",
+                "Personalization",
+                "Omnichannel Experience",
+                "Customer Analytics"
+            ],
+            "Marketing & Promotions": [
+                "Campaign Management",
+                "Digital Marketing",
+                "Brand Management",
+                "Promotional Planning",
+                "Social Media Marketing",
+                "Marketing Analytics"
+            ],
+            
+            # Manufacturing Industry
+            "Production & Assembly": [
+                "Production Planning",
+                "Assembly Line Operations",
+                "Equipment Maintenance",
+                "Quality Control",
+                "Workflow Optimization",
+                "Safety Management"
+            ],
+            "Quality Control": [
+                "Inspection Processes",
+                "Testing & Validation",
+                "Quality Metrics",
+                "Defect Analysis",
+                "Compliance Monitoring",
+                "Continuous Improvement"
+            ],
+            "Plant Operations": [
+                "Facility Management",
+                "Equipment Monitoring",
+                "Energy Management",
+                "Environmental Compliance",
+                "Maintenance Scheduling",
+                "Operational Analytics"
+            ],
+            "R&D & Engineering": [
+                "Product Design",
+                "Process Engineering",
+                "Materials Research",
+                "Prototype Development",
+                "Testing & Validation",
+                "Innovation Management"
+            ],
+            "Maintenance & Facilities": [
+                "Preventive Maintenance",
+                "Equipment Repair",
+                "Facility Management",
+                "Asset Management",
+                "Maintenance Scheduling",
+                "Safety Compliance"
+            ],
+            "Safety & Compliance": [
+                "Safety Protocols",
+                "Regulatory Compliance",
+                "Incident Management",
+                "Environmental Health",
+                "Training & Certification",
+                "Audit & Inspection"
+            ],
+            
+            # Healthcare Industry
+            "Patient Care": [
+                "Clinical Workflows",
+                "Patient Monitoring",
+                "Treatment Planning",
+                "Care Coordination",
+                "Patient Communication",
+                "Health Records Management"
+            ],
+            "Clinical Operations": [
+                "Scheduling & Appointments",
+                "Clinical Documentation",
+                "Medical Equipment Management",
+                "Clinical Decision Support",
+                "Care Quality Metrics",
+                "Regulatory Compliance"
+            ],
+            "Medical Records": [
+                "Electronic Health Records",
+                "Medical Coding",
+                "Documentation Management",
+                "Data Privacy & Security",
+                "Interoperability",
+                "Clinical Data Analytics"
+            ],
+            "Pharmacy": [
+                "Medication Management",
+                "Prescription Processing",
+                "Drug Interaction Monitoring",
+                "Inventory Management",
+                "Clinical Pharmacy Services",
+                "Regulatory Compliance"
+            ],
+            "Laboratory Services": [
+                "Sample Processing",
+                "Test Management",
+                "Quality Control",
+                "Results Reporting",
+                "Equipment Management",
+                "Laboratory Information Systems"
+            ],
+            "Administrative Services": [
+                "Patient Registration",
+                "Insurance Processing",
+                "Billing & Collections",
+                "Scheduling Coordination",
+                "Medical Records Management",
+                "Regulatory Documentation"
+            ],
+            "Finance & Billing": [
+                "Revenue Cycle Management",
+                "Claims Processing",
+                "Patient Billing",
+                "Insurance Verification",
+                "Payment Processing",
+                "Financial Reporting"
+            ],
+            "Compliance & Risk Management": [
+                "Regulatory Compliance",
+                "Risk Assessment",
+                "Quality Assurance",
+                "Policy Management",
+                "Audit & Monitoring",
+                "Safety Management"
+            ],
+            
+            # Life Sciences Industry
+            "R&D & Discovery": [
+                "Drug Discovery",
+                "Clinical Research",
+                "Data Analysis",
+                "Regulatory Documentation",
+                "Collaboration Management",
+                "Intellectual Property"
+            ],
+            "Clinical Trials": [
+                "Protocol Management",
+                "Patient Recruitment",
+                "Data Collection",
+                "Regulatory Reporting",
+                "Site Management",
+                "Safety Monitoring"
+            ],
+            "Regulatory Affairs": [
+                "Regulatory Submissions",
+                "Compliance Monitoring",
+                "Documentation Management",
+                "Agency Interactions",
+                "Product Labeling",
+                "Post-Market Surveillance"
+            ],
+            "Manufacturing & Production": [
+                "Process Development",
+                "Production Planning",
+                "Quality Control",
+                "Batch Records",
+                "Equipment Validation",
+                "Supply Chain Management"
+            ],
+            "Quality Assurance": [
+                "Quality Systems",
+                "Validation & Verification",
+                "Audit Management",
+                "Deviation Investigation",
+                "Documentation Control",
+                "Training Management"
+            ],
+            "Medical Affairs": [
+                "Scientific Communications",
+                "Medical Information",
+                "Clinical Evidence Generation",
+                "KOL Management",
+                "Medical Education",
+                "Safety Surveillance"
+            ],
+            "Commercial Operations": [
+                "Sales Force Effectiveness",
+                "Marketing Analytics",
+                "Market Access",
+                "Customer Engagement",
+                "Channel Management",
+                "Launch Planning"
+            ],
+            "Supply Chain": [
+                "Demand Planning",
+                "Procurement",
+                "Manufacturing Planning",
+                "Distribution",
+                "Inventory Management",
+                "Vendor Management"
+            ],
+            
+            # Common Functions (appear in multiple industries)
             "Finance & Accounting": [
                 "Accounts Payable / Receivable",
                 "General Ledger / Bookkeeping",

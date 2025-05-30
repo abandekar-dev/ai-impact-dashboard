@@ -11,11 +11,42 @@ def show_enhanced_function_analysis(category_manager, db=None):
     st.header("🏢 Enhanced Function Analysis")
     st.markdown("**Configure enterprise functions with categories and multiple AI initiatives**")
     
-    # Function selector with predefined options
-    functions = ["HR & Talent Management", "Finance & Accounting", "Operations & Supply Chain", 
-                "Sales & Marketing", "IT & Technology", "Customer Service", "Legal & Compliance", "R&D",
-                "Manufacturing & Production", "Quality Assurance", "Business Development", "Strategy & Planning",
-                "Risk Management", "Procurement", "Facilities Management", "Data & Analytics"]
+    # Industry selector
+    industries = {
+        "Technology": ["IT & Technology", "Data & Analytics", "Product Development", "Customer Support", 
+                      "Sales & Marketing", "HR & Talent Management", "Finance & Accounting", "Legal & Compliance"],
+        "Retail": ["Store Operations", "E-commerce", "Supply Chain & Logistics", "Merchandising", 
+                  "Customer Experience", "Marketing & Promotions", "Finance & Accounting", "HR & Talent Management"],
+        "Manufacturing": ["Production & Assembly", "Quality Control", "Plant Operations", "Supply Chain Management", 
+                         "R&D & Engineering", "Maintenance & Facilities", "Safety & Compliance", "Finance & Accounting"],
+        "Healthcare": ["Patient Care", "Clinical Operations", "Medical Records", "Pharmacy", "Laboratory Services", 
+                      "Administrative Services", "Finance & Billing", "Compliance & Risk Management"],
+        "Financial Services": ["Investment Management", "Loan Processing", "Risk Assessment", "Customer Service", 
+                              "Compliance & Regulatory", "Trading Operations", "Wealth Management", "Operations & Technology"],
+        "Life Sciences": ["R&D & Discovery", "Clinical Trials", "Regulatory Affairs", "Manufacturing & Production", 
+                         "Quality Assurance", "Medical Affairs", "Commercial Operations", "Supply Chain"],
+        "Energy & Utilities": ["Operations & Maintenance", "Grid Management", "Customer Service", "Safety & Compliance", 
+                              "Asset Management", "Trading & Risk", "Environmental Management", "Engineering"],
+        "Education": ["Academic Affairs", "Student Services", "Research & Development", "Administration", 
+                     "IT & Technology", "Facilities Management", "Finance & Budgeting", "Human Resources"],
+        "Government": ["Public Services", "Policy Development", "Regulatory Oversight", "Citizen Services", 
+                      "Administrative Operations", "Finance & Budgeting", "IT & Digital Services", "Human Resources"]
+    }
+    
+    # Load saved industry if available
+    saved_industry = st.session_state.get('selected_industry', 'Technology')
+    
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        selected_industry = st.selectbox("Select Industry", list(industries.keys()), 
+                                        index=list(industries.keys()).index(saved_industry) if saved_industry in industries else 0)
+        st.session_state.selected_industry = selected_industry
+    
+    with col2:
+        st.info(f"Functions customized for {selected_industry} industry")
+    
+    # Get industry-specific functions
+    functions = industries[selected_industry]
     
     selected_function = st.selectbox("Select Enterprise Function", functions)
     
