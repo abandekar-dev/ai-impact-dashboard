@@ -112,24 +112,9 @@ def main():
     # Analyses Section
     st.sidebar.markdown("### 🔬 Analyses")
     
-    if st.sidebar.button("🎲 Monte Carlo Simulation", use_container_width=True,
-                        type="primary" if st.session_state.selected_page == "Monte Carlo Simulation" else "secondary"):
-        st.session_state.selected_page = "Monte Carlo Simulation"
-        st.rerun()
-    
     if st.sidebar.button("🎯 Strategic Planning", use_container_width=True,
                         type="primary" if st.session_state.selected_page == "Strategic Planning" else "secondary"):
         st.session_state.selected_page = "Strategic Planning"
-        st.rerun()
-    
-    if st.sidebar.button("⚖️ Benchmarking & Optimization", use_container_width=True,
-                        type="primary" if st.session_state.selected_page == "Benchmarking & Optimization" else "secondary"):
-        st.session_state.selected_page = "Benchmarking & Optimization"
-        st.rerun()
-    
-    if st.sidebar.button("📊 Performance Analysis", use_container_width=True,
-                        type="primary" if st.session_state.selected_page == "Performance Analysis" else "secondary"):
-        st.session_state.selected_page = "Performance Analysis"
         st.rerun()
     
     if st.sidebar.button("👥 Workforce Analytics", use_container_width=True,
@@ -140,6 +125,21 @@ def main():
     if st.sidebar.button("🎓 AI Learning & Upskilling Personas", use_container_width=True,
                         type="primary" if st.session_state.selected_page == "AI Learning & Upskilling Personas" else "secondary"):
         st.session_state.selected_page = "AI Learning & Upskilling Personas"
+        st.rerun()
+    
+    if st.sidebar.button("📊 Performance Analysis", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Performance Analysis" else "secondary"):
+        st.session_state.selected_page = "Performance Analysis"
+        st.rerun()
+    
+    if st.sidebar.button("⚖️ Benchmarking & Optimization", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Benchmarking & Optimization" else "secondary"):
+        st.session_state.selected_page = "Benchmarking & Optimization"
+        st.rerun()
+    
+    if st.sidebar.button("🎲 Monte Carlo Simulation", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Monte Carlo Simulation" else "secondary"):
+        st.session_state.selected_page = "Monte Carlo Simulation"
         st.rerun()
     
     st.sidebar.markdown("---")
