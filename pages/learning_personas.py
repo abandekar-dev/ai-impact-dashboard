@@ -507,10 +507,11 @@ def show_skill_gap_analysis(persona_analysis: dict):
         investment_data = []
         for i, skill in enumerate(enterprise_priorities[:5]):
             # Find skill in analysis
-            skill_analysis = next((analysis for s, analysis in top_gaps if s == skill), None)
+            skill_analysis = next(((s, analysis) for s, analysis in top_gaps if s == skill), None)
             if skill_analysis:
-                personas_affected = skill_analysis[1]['personas_affected']
-                avg_gap = skill_analysis[1]['average_gap']
+                skill_name, analysis = skill_analysis
+                personas_affected = analysis['personas_affected']
+                avg_gap = analysis['average_gap']
                 
                 # Estimate investment (simplified calculation)
                 estimated_cost = personas_affected * avg_gap * 50  # $50 per gap point per person
