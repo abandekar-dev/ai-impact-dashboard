@@ -147,6 +147,11 @@ def main():
         st.session_state.selected_page = "Workforce Analytics"
         st.rerun()
     
+    if st.sidebar.button("🎓 AI Learning & Upskilling Personas", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "AI Learning & Upskilling Personas" else "secondary"):
+        st.session_state.selected_page = "AI Learning & Upskilling Personas"
+        st.rerun()
+    
     st.sidebar.markdown("---")
     
     # Outputs Section
@@ -239,6 +244,9 @@ def main():
     elif page == "Workforce Analytics":
         from pages.workforce_analytics import show_workforce_analytics
         show_workforce_analytics()
+    elif page == "AI Learning & Upskilling Personas":
+        from pages.learning_personas import show_learning_personas
+        show_learning_personas()
     elif page == "AI Assistant":
         from pages.ai_assistant import show_ai_assistant
         show_ai_assistant()
