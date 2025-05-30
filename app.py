@@ -132,6 +132,11 @@ def main():
         st.session_state.selected_page = "Benchmarking & Optimization"
         st.rerun()
     
+    if st.sidebar.button("📊 Performance Analysis", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Performance Analysis" else "secondary"):
+        st.session_state.selected_page = "Performance Analysis"
+        st.rerun()
+    
     st.sidebar.markdown("---")
     
     # Outputs Section
@@ -210,6 +215,9 @@ def main():
         show_strategic_planning()
     elif page == "Benchmarking & Optimization":
         show_benchmarking_optimization()
+    elif page == "Performance Analysis":
+        from pages.performance_analysis import show_performance_analysis
+        show_performance_analysis(category_manager)
     elif page == "Executive Summary":
         show_executive_summary()
 
