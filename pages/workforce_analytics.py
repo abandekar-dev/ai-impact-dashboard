@@ -362,8 +362,15 @@ def show_human_ai_integration_architecture(architect: HumanAIIntegrationArchitec
     st.subheader("🤖 Human-AI Integration Architecture")
     
     # Design integration architecture
-    with st.spinner("Designing human-AI integration architecture..."):
-        architecture = architect.design_integration_architecture(profile, ai_initiative)
+    try:
+        with st.spinner("Designing human-AI integration architecture..."):
+            architecture = architect.design_integration_architecture(profile, ai_initiative)
+    except Exception as e:
+        st.error(f"Error in integration architecture design: {str(e)}")
+        st.write("Debug info:")
+        st.write(f"AI Initiative: {ai_initiative}")
+        st.write(f"Profile department: {profile.department}")
+        return
     
     # Display integration model
     st.markdown("#### 🔗 Integration Model")
