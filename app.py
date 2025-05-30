@@ -82,7 +82,7 @@ def main():
     
     # Inputs Section
     st.sidebar.markdown("### 📥 Inputs")
-    if st.sidebar.button("🔧 Function Analysis", use_container_width=True,
+    if st.sidebar.button("🏢 Input by Department/Business", use_container_width=True,
                         type="primary" if st.session_state.selected_page == "Function Analysis" else "secondary"):
         st.session_state.selected_page = "Function Analysis"
         st.rerun()
