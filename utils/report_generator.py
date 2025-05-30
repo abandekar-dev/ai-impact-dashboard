@@ -27,16 +27,21 @@ class ReportGenerator:
                 'total_headcount_impact': 0
             }
         
-        # Calculate aggregate metrics
-        total_investment = sum(ai_initiatives[f]['investment'] for f in predictions.keys())
-        total_value = sum(predictions[f]['value_generated'] for f in predictions.keys())
+        # Calculate aggregate metrics with data validation
+        total_investment = sum(ai_initiatives[f]['investment'] for f in predictions.keys() 
+                             if f in ai_initiatives and 'investment' in ai_initiatives[f])
+        total_value = sum(predictions[f]['value_generated'] for f in predictions.keys()
+                         if 'value_generated' in predictions[f])
         
-        roi_values = [predictions[f]['roi'] for f in predictions.keys()]
-        average_roi = np.mean(roi_values)
+        roi_values = [predictions[f]['roi'] for f in predictions.keys() 
+                     if 'roi' in predictions[f] and predictions[f]['roi'] is not None]
+        average_roi = np.mean(roi_values) if roi_values else 0
         
         payback_values = [predictions[f]['payback_period'] for f in predictions.keys() 
-                         if predictions[f]['payback_period'] != float('inf')]
-        average_payback = np.mean(payback_values) if payback_values else float('inf')
+                         if 'payback_period' in predictions[f] and 
+                         predictions[f]['payback_period'] != float('inf') and
+                         predictions[f]['payback_period'] is not None]
+        average_payback = np.mean(payback_values) if payback_values else 0
         
         productivity_values = [predictions[f]['productivity_gain'] for f in predictions.keys()]
         average_productivity = np.mean(productivity_values)

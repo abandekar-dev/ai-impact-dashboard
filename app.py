@@ -87,6 +87,21 @@ def main():
         st.session_state.selected_page = "Function Analysis"
         st.rerun()
     
+    if st.sidebar.button("🎯 Corporate Objectives & KPIs", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Corporate Objectives" else "secondary"):
+        st.session_state.selected_page = "Corporate Objectives"
+        st.rerun()
+    
+    if st.sidebar.button("💰 Budget & Resource Constraints", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Budget Resources" else "secondary"):
+        st.session_state.selected_page = "Budget Resources"
+        st.rerun()
+    
+    if st.sidebar.button("🔄 Change Management Readiness", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Change Management" else "secondary"):
+        st.session_state.selected_page = "Change Management"
+        st.rerun()
+    
     st.sidebar.markdown("---")
     
     # Analyses Section
@@ -176,6 +191,15 @@ def main():
     elif page == "Function Analysis":
         from pages.enhanced_function_analysis import show_enhanced_function_analysis
         show_enhanced_function_analysis(category_manager, db)
+    elif page == "Corporate Objectives":
+        from pages.corporate_objectives import show_corporate_objectives
+        show_corporate_objectives()
+    elif page == "Budget Resources":
+        from pages.budget_resources import show_budget_resources
+        show_budget_resources()
+    elif page == "Change Management":
+        from pages.change_management import show_change_management
+        show_change_management()
     elif page == "Scenario Comparison":
         show_scenario_comparison()
     elif page == "Temporal Analysis":
