@@ -140,8 +140,29 @@ def show_enhanced_function_analysis(category_manager, db=None):
             
             with col1:
                 initiative_name = st.text_input("Initiative Name")
-                ai_type = st.selectbox("AI Implementation Type", 
-                                      ["Automation", "Augmentation", "Analytics", "Hybrid"])
+                ai_type = st.selectbox("AI Implementation Type", [
+                    "🤖 Generative AI - Summarization (documents, transcripts, calls)",
+                    "🤖 Generative AI - Content Generation (emails, presentations, training)",
+                    "🤖 Generative AI - Conversation / Dialogue (chatbots, assistants)",
+                    "🔶 Predictive AI - Forecasting / Prediction (churn, demand, attrition)",
+                    "🔶 Predictive AI - Recommendation (next best action, skill path)",
+                    "🔶 Predictive AI - Classification / Tagging (documents, risks, intent)",
+                    "🔶 Predictive AI - Sentiment & Emotion Analysis",
+                    "🔸 Agentic AI - Autonomous Task Execution (multi-step workflows)",
+                    "🔸 Agentic AI - Goal-Oriented Planning (task decomposition)",
+                    "🔸 Agentic AI - Reasoning Across Contexts (decision chaining)",
+                    "🔸 Agentic AI - Multi-Agent Collaboration (coordination)",
+                    "🔸 Agentic AI - System Orchestration / Tool Use (APIs, apps)",
+                    "🔸 Agentic AI - Monitoring + Proactive Alerting (triggered actions)",
+                    "🔹 Data AI - Data Extraction / Structuring (OCR, unstructured data)",
+                    "🔹 Data AI - Knowledge Retention / Retrieval (memory-enabled responses)",
+                    "🔹 Data AI - AutoML & Pattern Discovery (insight generation)",
+                    "⚙️ Classical ML - Regression and Time Series Forecasting",
+                    "⚙️ Classical ML - Classification and Clustering (segmentation, fraud)",
+                    "⚙️ Classical ML - Computer Vision (image inspection, recognition)",
+                    "⚙️ Classical ML - Natural Language Processing (text analysis)",
+                    "⚙️ Classical ML - Deep Neural Networks (pattern recognition)"
+                ])
                 implementation_complexity = st.selectbox("Implementation Complexity", 
                                                         ["Low", "Medium", "High"])
                 investment_amount = st.number_input("Investment Amount ($)", 
