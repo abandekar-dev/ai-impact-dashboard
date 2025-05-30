@@ -1352,7 +1352,7 @@ def show_executive_summary():
     st.subheader("💡 Strategic Recommendations")
     
     recommendations = report_generator.generate_recommendations(
-        st.session_state.predictions, st.session_state.ai_initiatives
+        st.session_state.predictions, aggregated_initiatives
     )
     
     for i, rec in enumerate(recommendations, 1):
