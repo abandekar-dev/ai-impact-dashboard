@@ -164,6 +164,14 @@ def main():
         st.sidebar.markdown("---")
         st.sidebar.subheader("💾 Session Management")
         
+        # Create new session button
+        if st.sidebar.button("🆕 Create New Session", use_container_width=True, type="secondary"):
+            if session_manager.create_new_session():
+                st.success("New session created! All data cleared.")
+                st.rerun()
+            else:
+                st.error("Failed to create new session")
+        
         # Save current session
         with st.sidebar.expander("Save Current Session"):
             session_name = st.text_input("Session Name", key="save_session_name")
