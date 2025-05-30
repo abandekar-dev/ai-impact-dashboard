@@ -112,16 +112,6 @@ def main():
     # Analyses Section
     st.sidebar.markdown("### 🔬 Analyses")
     
-    if st.sidebar.button("📊 Scenario Comparison", use_container_width=True,
-                        type="primary" if st.session_state.selected_page == "Scenario Comparison" else "secondary"):
-        st.session_state.selected_page = "Scenario Comparison"
-        st.rerun()
-    
-    if st.sidebar.button("⏱️ Temporal Analysis", use_container_width=True,
-                        type="primary" if st.session_state.selected_page == "Temporal Analysis" else "secondary"):
-        st.session_state.selected_page = "Temporal Analysis"
-        st.rerun()
-    
     if st.sidebar.button("🎲 Monte Carlo Simulation", use_container_width=True,
                         type="primary" if st.session_state.selected_page == "Monte Carlo Simulation" else "secondary"):
         st.session_state.selected_page = "Monte Carlo Simulation"
@@ -228,10 +218,6 @@ def main():
     elif page == "Enterprise Integration":
         from pages.enterprise_integrations import show_enterprise_integrations
         show_enterprise_integrations()
-    elif page == "Scenario Comparison":
-        show_scenario_comparison()
-    elif page == "Temporal Analysis":
-        show_temporal_analysis()
     elif page == "Monte Carlo Simulation":
         show_monte_carlo_simulation()
     elif page == "Strategic Planning":
