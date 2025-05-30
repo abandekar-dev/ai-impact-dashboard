@@ -1225,11 +1225,40 @@ def show_executive_summary():
         st.warning("⚠️ Please configure at least one function in Function Analysis first.")
         return
     
-    # Generate executive summary
+    # Generate executive summary with aggregated data
     report_generator = ReportGenerator()
+    
+    # Aggregate AI initiatives from category structure
+    aggregated_initiatives = {}
+    for function_name in st.session_state.baseline_data.keys():
+        if f'categories_{function_name}' in st.session_state:
+            categories = st.session_state[f'categories_{function_name}']
+            
+            # Aggregate initiatives for this function
+            total_investment = 0
+            total_automation = 0
+            total_workforce_reduction = 0
+            initiative_count = 0
+            
+            for category_data in categories.values():
+                initiatives = category_data.get('ai_initiatives', {})
+                for init_data in initiatives.values():
+                    total_investment += init_data.get('investment', 0)
+                    total_automation += init_data.get('automation_level', 0)
+                    total_workforce_reduction += init_data.get('workforce_reduction', 0)
+                    initiative_count += 1
+            
+            if initiative_count > 0:
+                aggregated_initiatives[function_name] = {
+                    'investment': total_investment,
+                    'automation_level': total_automation / initiative_count,
+                    'workforce_reduction': total_workforce_reduction / initiative_count,
+                    'initiative_count': initiative_count
+                }
+    
     summary_data = report_generator.generate_executive_summary(
         st.session_state.baseline_data,
-        st.session_state.ai_initiatives,
+        aggregated_initiatives,
         st.session_state.predictions
     )
     

@@ -49,7 +49,7 @@ class ReportGenerator:
         # Calculate total headcount impact
         total_headcount_impact = 0
         for func in predictions.keys():
-            if func in baseline_data:
+            if func in baseline_data and func in ai_initiatives:
                 current_headcount = baseline_data[func]['headcount']
                 workforce_reduction = ai_initiatives[func].get('workforce_reduction', 0)
                 headcount_reduction = current_headcount * (workforce_reduction / 100)
@@ -58,11 +58,12 @@ class ReportGenerator:
         # Identify high priority functions (high ROI, low risk)
         high_priority_functions = []
         for func in predictions.keys():
-            roi = predictions[func]['roi']
-            risk_score = self._calculate_risk_score(ai_initiatives[func])
-            
-            if roi > average_roi and risk_score < 50:  # Above average ROI, below average risk
-                high_priority_functions.append(func)
+            if func in ai_initiatives and 'roi' in predictions[func]:
+                roi = predictions[func]['roi']
+                risk_score = self._calculate_risk_score(ai_initiatives[func])
+                
+                if roi > average_roi and risk_score < 50:  # Above average ROI, below average risk
+                    high_priority_functions.append(func)
         
         return {
             'total_investment': total_investment,
