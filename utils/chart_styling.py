@@ -9,25 +9,31 @@ import pandas as pd
 class ChartTheme:
     """Professional chart theming with modern color palettes and styling"""
     
-    # Color palettes
+    # Modern color palettes
     PRIMARY_COLORS = [
-        '#6366f1',  # Indigo
-        '#10b981',  # Emerald  
-        '#f59e0b',  # Amber
-        '#ef4444',  # Red
-        '#8b5cf6',  # Violet
-        '#06b6d4',  # Cyan
-        '#f97316',  # Orange
-        '#84cc16',  # Lime
+        '#FF6B6B',  # Coral Red
+        '#4ECDC4',  # Turquoise
+        '#45B7D1',  # Sky Blue  
+        '#96CEB4',  # Mint Green
+        '#FFEAA7',  # Warm Yellow
+        '#DDA0DD',  # Plum
+        '#98D8C8',  # Seafoam
+        '#F7DC6F',  # Sunny Yellow
     ]
     
     GRADIENT_COLORS = {
         'blue': ['#667eea', '#764ba2'],
-        'green': ['#11998e', '#38ef7d'],
-        'purple': ['#667eea', '#764ba2'],
-        'orange': ['#f093fb', '#f5576c'],
-        'teal': ['#4facfe', '#00f2fe'],
-        'pink': ['#fa709a', '#fee140']
+        'green': ['#56CCF2', '#2F80ED'],
+        'purple': ['#A8EDEA', '#FED6E3'],
+        'orange': ['#FF9A8B', '#F093FB'],
+        'teal': ['#4FACFE', '#00F2FE'],
+        'pink': ['#FA709A', '#FEE140'],
+        'coral': ['#FF6B6B', '#FFE66D'],
+        'mint': ['#4ECDC4', '#44A08D'],
+        'sunset': ['#FF512F', '#F09819'],
+        'ocean': ['#2193b0', '#6dd5ed'],
+        'forest': ['#134E5E', '#71B280'],
+        'aurora': ['#00C6FF', '#0072FF']
     }
     
     @staticmethod
@@ -261,15 +267,17 @@ class EnhancedCharts:
         return fig
 
 def create_styled_metric_card(value: str, label: str, color_theme: str = 'blue') -> str:
-    """Create HTML for styled metric card"""
+    """Create HTML for styled metric card with vibrant modern design"""
     gradient = ChartTheme.GRADIENT_COLORS.get(color_theme, ChartTheme.GRADIENT_COLORS['blue'])
     
     return f"""
     <div style="background: linear-gradient(135deg, {gradient[0]} 0%, {gradient[1]} 100%); 
-                padding: 1.5rem; border-radius: 12px; color: white; text-align: center;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin: 0.5rem 0;">
-        <h3 style="margin: 0; font-size: 2rem; font-weight: bold;">{value}</h3>
-        <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">{label}</p>
+                padding: 2rem; border-radius: 20px; color: white; text-align: center;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); margin: 1rem 0;
+                transform: scale(1); transition: transform 0.3s ease;
+                border: 1px solid rgba(255, 255, 255, 0.2);">
+        <h2 style="margin: 0; font-size: 2.5rem; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">{value}</h2>
+        <p style="margin: 0.8rem 0 0 0; opacity: 0.95; font-size: 1.1rem; font-weight: 500; letter-spacing: 0.5px;">{label}</p>
     </div>
     """
 

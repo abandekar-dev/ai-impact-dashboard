@@ -240,43 +240,58 @@ def main():
         show_executive_summary()
 
 def show_overview():
-    st.header("📊 Dashboard Overview")
+    # Add modern background styling
+    st.markdown("""
+    <style>
+    .main > div {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+    .block-container {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        margin-top: 2rem;
+        padding: 2rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    <h1 style="text-align: center; color: #2c3e50; font-size: 3rem; font-weight: 700; 
+               text-shadow: 2px 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        📊 AI Strategic Dashboard
+    </h1>
+    """, unsafe_allow_html=True)
     
     # Modern metrics cards with gradient styling
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         active_functions = len(st.session_state.baseline_data)
-        st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                    padding: 1.5rem; border-radius: 12px; color: white; text-align: center;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-            <h3 style="margin: 0; font-size: 2rem; font-weight: bold;">{active_functions}</h3>
-            <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Active Functions</p>
-        </div>
-        """, unsafe_allow_html=True)
+        from utils.chart_styling import create_styled_metric_card
+        st.markdown(create_styled_metric_card(
+            f"{active_functions}", 
+            "Active Functions",
+            "aurora"
+        ), unsafe_allow_html=True)
     
     with col2:
         total_revenue = sum(data.get('annual_revenue', 0) for data in st.session_state.baseline_data.values())
-        st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
-                    padding: 1.5rem; border-radius: 12px; color: white; text-align: center;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-            <h3 style="margin: 0; font-size: 2rem; font-weight: bold;">${total_revenue:,.0f}</h3>
-            <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Total Revenue</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(create_styled_metric_card(
+            f"${total_revenue:,.0f}", 
+            "Total Revenue",
+            "forest"
+        ), unsafe_allow_html=True)
     
     with col3:
         total_headcount = sum(data.get('headcount', 0) for data in st.session_state.baseline_data.values())
-        st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
-                    padding: 1.5rem; border-radius: 12px; color: white; text-align: center;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-            <h3 style="margin: 0; font-size: 2rem; font-weight: bold;">{total_headcount:,}</h3>
-            <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Total Headcount</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(create_styled_metric_card(
+            f"{total_headcount:,}", 
+            "Total Headcount",
+            "coral"
+        ), unsafe_allow_html=True)
     
     with col4:
         if st.session_state.predictions:
@@ -284,14 +299,11 @@ def show_overview():
             roi_display = f"{avg_roi:.1f}%"
         else:
             roi_display = "N/A"
-        st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); 
-                    padding: 1.5rem; border-radius: 12px; color: white; text-align: center;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-            <h3 style="margin: 0; font-size: 2rem; font-weight: bold;">{roi_display}</h3>
-            <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Projected ROI</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(create_styled_metric_card(
+            roi_display, 
+            "Projected ROI",
+            "sunset"
+        ), unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -877,7 +889,7 @@ def show_monte_carlo_simulation():
             st.markdown(create_styled_metric_card(
                 f"{roi_stats['mean']:.1f}%", 
                 "Expected ROI",
-                "blue"
+                "ocean"
             ), unsafe_allow_html=True)
             st.caption(f"Range: {roi_stats['min']:.1f}% to {roi_stats['max']:.1f}%")
         
@@ -885,7 +897,7 @@ def show_monte_carlo_simulation():
             st.markdown(create_styled_metric_card(
                 f"${value_stats['mean']:,.0f}", 
                 "Expected Value",
-                "green"
+                "mint"
             ), unsafe_allow_html=True)
             st.caption(f"Range: ${value_stats['min']:,.0f} to ${value_stats['max']:,.0f}")
         
@@ -901,7 +913,7 @@ def show_monte_carlo_simulation():
             st.markdown(create_styled_metric_card(
                 f"{payback_stats['mean']:.1f}mo", 
                 "Expected Payback",
-                "orange"
+                "coral"
             ), unsafe_allow_html=True)
             st.caption(f"Std Dev: {payback_stats['std']:.1f} months")
         
