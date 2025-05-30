@@ -408,6 +408,214 @@ class PredictiveWorkforceAnalyzer:
         importance_factor = min(importance_change / 50, 1.0)  # Normalize to 0-1
         
         return int(base_score * (1 + importance_factor))
+    
+    def _calculate_net_headcount_change(self, role_impacts: Dict[str, Any], ai_initiative: Dict[str, Any]) -> int:
+        """Calculate net change in headcount"""
+        total_affected = sum(impact["affected_positions"] for impact in role_impacts.values())
+        # Estimate new roles created based on AI complexity
+        complexity_factor = {"Low": 0.1, "Medium": 0.15, "High": 0.2}.get(ai_initiative.get('complexity', 'Medium'), 0.15)
+        new_roles = int(total_affected * complexity_factor)
+        return new_roles - total_affected
+    
+    def _calculate_retraining_needs(self, role_impacts: Dict[str, Any], profile: WorkforceProfile) -> Dict[str, Any]:
+        """Calculate retraining requirements"""
+        total_affected = sum(impact["affected_positions"] for impact in role_impacts.values())
+        
+        return {
+            "total_employees_needing_training": total_affected,
+            "estimated_training_hours": total_affected * 40,  # 40 hours per person
+            "training_cost": total_affected * 2000,  # $2000 per person
+            "training_timeline_months": 6
+        }
+    
+    def _generate_training_recommendations(self, skill_gaps: List[Dict[str, Any]], timeline_months: int) -> List[Dict[str, Any]]:
+        """Generate training recommendations"""
+        recommendations = []
+        
+        for gap in skill_gaps[:5]:  # Top 5 critical gaps
+            training_duration = min(timeline_months // 2, gap["gap_size"] // 10)
+            
+            recommendations.append({
+                "skill": gap["skill"],
+                "training_type": "Intensive Program" if gap["severity"] == "Critical" else "Regular Training",
+                "duration_months": max(1, training_duration),
+                "priority": gap["training_priority"],
+                "delivery_method": "Blended Learning",
+                "estimated_cost": gap["gap_size"] * 50  # $50 per gap point
+            })
+        
+        return recommendations
+    
+    def _prioritize_skill_investments(self, skill_gaps: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Prioritize skill investment areas"""
+        priority_areas = []
+        
+        # Group by severity and sort by impact
+        critical_skills = [gap for gap in skill_gaps if gap["severity"] == "Critical"]
+        high_skills = [gap for gap in skill_gaps if gap["severity"] == "High"]
+        
+        if critical_skills:
+            total_critical_investment = sum(gap["gap_size"] * 100 for gap in critical_skills)
+            priority_areas.append({
+                "category": "Critical Skills",
+                "skills": [gap["skill"] for gap in critical_skills],
+                "investment_priority": 1,
+                "estimated_investment": total_critical_investment,
+                "timeline": "Immediate (0-3 months)"
+            })
+        
+        if high_skills:
+            total_high_investment = sum(gap["gap_size"] * 75 for gap in high_skills)
+            priority_areas.append({
+                "category": "High-Impact Skills", 
+                "skills": [gap["skill"] for gap in high_skills],
+                "investment_priority": 2,
+                "estimated_investment": total_high_investment,
+                "timeline": "Short-term (3-6 months)"
+            })
+        
+        return priority_areas
+    
+    def _analyze_individual_role_transformation(self, role: str, ai_initiative: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze transformation for individual role"""
+        automation_level = ai_initiative.get('automation_level', 30) / 100
+        susceptibility = self._get_role_automation_susceptibility(role)
+        impact_level = automation_level * susceptibility
+        
+        return {
+            "role": role,
+            "impact_level": impact_level,
+            "transformation_type": self._determine_transformation_type(impact_level),
+            "creates_new_roles": impact_level > 0.5,
+            "new_roles": [{"role": f"AI-Enhanced {role}", "skills_required": ["AI Collaboration", "Data Analysis"]}] if impact_level > 0.5 else [],
+            "timeline_months": self._estimate_transformation_timeline(self._determine_transformation_type(impact_level))
+        }
+    
+    def _identify_role_evolution_patterns(self, role_transformations: Dict[str, Any]) -> Dict[str, Any]:
+        """Identify patterns in role evolution"""
+        patterns = {
+            "automation_heavy": [],
+            "augmentation_focused": [],
+            "minimal_change": []
+        }
+        
+        for role, transformation in role_transformations.items():
+            impact_level = transformation.get("impact_level", 0)
+            if impact_level > 0.7:
+                patterns["automation_heavy"].append(role)
+            elif impact_level > 0.3:
+                patterns["augmentation_focused"].append(role)
+            else:
+                patterns["minimal_change"].append(role)
+        
+        return patterns
+    
+    def _analyze_organizational_structure_changes(self, role_transformations: Dict[str, Any], profile: WorkforceProfile) -> Dict[str, Any]:
+        """Analyze changes to organizational structure"""
+        total_roles = len(role_transformations)
+        highly_impacted = sum(1 for t in role_transformations.values() if t.get("impact_level", 0) > 0.6)
+        
+        return {
+            "structure_change_magnitude": highly_impacted / total_roles if total_roles > 0 else 0,
+            "recommended_structure": "Flatter hierarchy" if highly_impacted > total_roles * 0.5 else "Current structure",
+            "new_reporting_relationships": highly_impacted,
+            "span_of_control_changes": "Increased" if highly_impacted > 0 else "Unchanged"
+        }
+    
+    def _assess_management_impact(self, role_transformations: Dict[str, Any]) -> Dict[str, Any]:
+        """Assess impact on management roles"""
+        management_roles = [role for role in role_transformations.keys() if "manager" in role.lower() or "lead" in role.lower()]
+        
+        return {
+            "management_roles_affected": len(management_roles),
+            "leadership_skill_requirements": ["Change Management", "AI Strategy", "Digital Leadership"],
+            "management_structure_changes": "Moderate" if management_roles else "Minimal"
+        }
+    
+    def _calculate_productivity_factors(self, ai_initiative: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculate productivity improvement factors"""
+        base_improvement = ai_initiative.get('automation_level', 30) * 0.01  # 1% per automation level
+        complexity_bonus = {"Low": 1.0, "Medium": 1.2, "High": 1.5}.get(ai_initiative.get('complexity', 'Medium'), 1.2)
+        
+        return {
+            "multiplier": 1 + (base_improvement * complexity_bonus),
+            "factors": {
+                "automation_efficiency": base_improvement * 0.6,
+                "reduced_errors": base_improvement * 0.3,
+                "faster_processing": base_improvement * 0.1
+            }
+        }
+    
+    def _calculate_engagement_factors(self, ai_initiative: Dict[str, Any], profile: WorkforceProfile) -> Dict[str, Any]:
+        """Calculate engagement impact factors"""
+        ai_type = ai_initiative.get('ai_type', 'Automation')
+        
+        # Different AI types affect engagement differently
+        engagement_impacts = {
+            "Generative AI": 5,  # Generally positive for creativity
+            "Predictive Analytics": 2,  # Neutral to slightly positive
+            "Process Automation": -3,  # May reduce job satisfaction initially
+            "Augmentation": 7,  # Very positive for empowerment
+            "Automation": -5  # May cause anxiety
+        }
+        
+        base_change = engagement_impacts.get(ai_type, 0)
+        
+        return {
+            "change": base_change,
+            "factors": {
+                "job_enrichment": 3 if "Augmentation" in ai_type else -1,
+                "learning_opportunities": 5 if ai_type != "Automation" else 1,
+                "autonomy_change": 2 if "Augmentation" in ai_type else -2
+            }
+        }
+    
+    def _analyze_performance_distribution_changes(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze changes in performance distribution"""
+        current_avg = np.mean(list(profile.performance_scores.values()))
+        
+        # AI typically reduces variance and improves average
+        improvement_factor = 1 + (ai_initiative.get('automation_level', 30) * 0.005)
+        
+        return {
+            "current_average": current_avg,
+            "projected_average": current_avg * improvement_factor,
+            "variance_reduction": "20-30%" if ai_initiative.get('automation_level', 30) > 50 else "10-15%",
+            "top_performer_impact": "Moderate enhancement",
+            "low_performer_impact": "Significant improvement"
+        }
+    
+    def _predict_quality_metrics(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any]) -> Dict[str, Any]:
+        """Predict quality improvements"""
+        automation_level = ai_initiative.get('automation_level', 30)
+        
+        return {
+            "error_reduction": f"{automation_level * 0.5:.1f}%",
+            "consistency_improvement": f"{automation_level * 0.3:.1f}%",
+            "compliance_enhancement": f"{automation_level * 0.4:.1f}%",
+            "customer_satisfaction_impact": f"+{automation_level * 0.2:.1f}%"
+        }
+    
+    def _assess_innovation_capacity_change(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any]) -> Dict[str, Any]:
+        """Assess changes in innovation capacity"""
+        ai_type = ai_initiative.get('ai_type', 'Automation')
+        
+        innovation_multipliers = {
+            "Generative AI": 1.3,
+            "Predictive Analytics": 1.1,
+            "Process Automation": 0.9,
+            "Augmentation": 1.2,
+            "Automation": 0.8
+        }
+        
+        multiplier = innovation_multipliers.get(ai_type, 1.0)
+        
+        return {
+            "innovation_capacity_change": f"{(multiplier - 1) * 100:+.1f}%",
+            "creative_time_freed": f"+{ai_initiative.get('automation_level', 30) * 0.3:.1f} hours/week",
+            "ideation_support": "High" if "Generative" in ai_type else "Medium",
+            "experimentation_capability": "Enhanced" if multiplier > 1 else "Maintained"
+        }
 
 class HumanAIIntegrationArchitect:
     """Design human-AI integration architectures"""
