@@ -65,12 +65,69 @@ def main():
     st.title("🎯 AI Impact Predictive Dashboard")
     st.markdown("**Executive Dashboard for Predictive Modeling of AI Implementation Impact**")
     
-    # Sidebar navigation
+    # Sidebar navigation with grouped buttons
     st.sidebar.title("Navigation")
-    page = st.sidebar.selectbox(
-        "Select Analysis View",
-        ["Overview", "Function Analysis", "Scenario Comparison", "Temporal Analysis", "Monte Carlo Simulation", "Strategic Planning", "Benchmarking & Optimization", "Executive Summary"]
-    )
+    
+    # Initialize session state for page selection
+    if 'selected_page' not in st.session_state:
+        st.session_state.selected_page = "Overview"
+    
+    # Overview (always visible)
+    if st.sidebar.button("🏠 Overview", use_container_width=True, 
+                        type="primary" if st.session_state.selected_page == "Overview" else "secondary"):
+        st.session_state.selected_page = "Overview"
+        st.rerun()
+    
+    st.sidebar.markdown("---")
+    
+    # Inputs Section
+    st.sidebar.markdown("### 📥 Inputs")
+    if st.sidebar.button("🔧 Function Analysis", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Function Analysis" else "secondary"):
+        st.session_state.selected_page = "Function Analysis"
+        st.rerun()
+    
+    st.sidebar.markdown("---")
+    
+    # Analyses Section
+    st.sidebar.markdown("### 🔬 Analyses")
+    
+    if st.sidebar.button("📊 Scenario Comparison", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Scenario Comparison" else "secondary"):
+        st.session_state.selected_page = "Scenario Comparison"
+        st.rerun()
+    
+    if st.sidebar.button("⏱️ Temporal Analysis", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Temporal Analysis" else "secondary"):
+        st.session_state.selected_page = "Temporal Analysis"
+        st.rerun()
+    
+    if st.sidebar.button("🎲 Monte Carlo Simulation", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Monte Carlo Simulation" else "secondary"):
+        st.session_state.selected_page = "Monte Carlo Simulation"
+        st.rerun()
+    
+    if st.sidebar.button("🎯 Strategic Planning", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Strategic Planning" else "secondary"):
+        st.session_state.selected_page = "Strategic Planning"
+        st.rerun()
+    
+    if st.sidebar.button("⚖️ Benchmarking & Optimization", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Benchmarking & Optimization" else "secondary"):
+        st.session_state.selected_page = "Benchmarking & Optimization"
+        st.rerun()
+    
+    st.sidebar.markdown("---")
+    
+    # Outputs Section
+    st.sidebar.markdown("### 📤 Outputs")
+    if st.sidebar.button("📋 Executive Summary", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Executive Summary" else "secondary"):
+        st.session_state.selected_page = "Executive Summary"
+        st.rerun()
+    
+    # Use the selected page
+    page = st.session_state.selected_page
     
     # Session Management Sidebar
     if session_manager:
