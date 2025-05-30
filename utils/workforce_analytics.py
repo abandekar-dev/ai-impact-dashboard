@@ -948,6 +948,100 @@ class HumanAIIntegrationArchitect:
             return "Augmentation"
         else:
             return "Oversight"
+    
+    def _analyze_role_impacts(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any], integration_model: str) -> List[Dict[str, Any]]:
+        """Analyze role impacts for integration architecture"""
+        affected_roles = []
+        
+        for role, count in profile.role_distribution.items():
+            susceptibility = self._get_role_automation_susceptibility(role)
+            automation_level = ai_initiative.get('automation_level', 30) / 100
+            impact_level = automation_level * susceptibility
+            
+            affected_roles.append({
+                "role": role,
+                "impact_type": "High Impact" if impact_level > 0.6 else "Medium Impact" if impact_level > 0.3 else "Low Impact",
+                "transformation_level": impact_level * 100,
+                "ai_collaboration_type": integration_model,
+                "timeline_months": 6 if impact_level > 0.5 else 12
+            })
+        
+        return affected_roles
+    
+    def _design_new_roles(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any], integration_model: str) -> List[Dict[str, Any]]:
+        """Design new roles for AI integration"""
+        new_roles = []
+        
+        if integration_model in ["Hybrid", "Creative Partnership"]:
+            new_roles.extend([
+                {
+                    "role": "AI Integration Specialist",
+                    "skills_required": ["AI Systems", "Process Design", "Change Management"],
+                    "headcount": max(1, profile.current_headcount // 20),
+                    "reporting_to": "Department Manager",
+                    "priority": "High"
+                },
+                {
+                    "role": "Human-AI Collaboration Coordinator", 
+                    "skills_required": ["Project Management", "AI Literacy", "Training Design"],
+                    "headcount": max(1, profile.current_headcount // 30),
+                    "reporting_to": "Operations Manager",
+                    "priority": "Medium"
+                }
+            ])
+        
+        return new_roles
+    
+    def _plan_skills_transformation(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any]) -> Dict[str, Dict[str, float]]:
+        """Plan skills transformation for roles"""
+        skills_transformation = {}
+        
+        for role in profile.role_distribution.keys():
+            skills_transformation[role] = {
+                "AI Collaboration": 40,
+                "Digital Literacy": 30,
+                "Data Interpretation": 25,
+                "Process Optimization": 20,
+                "Continuous Learning": 35
+            }
+        
+        return skills_transformation
+    
+    def _create_integration_timeline(self, ai_initiative: Dict[str, Any], integration_model: str) -> Dict[str, str]:
+        """Create integration timeline"""
+        base_timeline = ai_initiative.get('timeline', '12 months')
+        
+        return {
+            "Planning Phase": "1-2 months",
+            "Pilot Implementation": "2-4 months", 
+            "Scaled Rollout": "3-6 months",
+            "Optimization": "2-3 months"
+        }
+    
+    def _design_governance_structure(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any]) -> Dict[str, Any]:
+        """Design governance structure"""
+        return {
+            "steering_committee": "Executive sponsor + Department heads",
+            "implementation_team": "Project manager + Technical leads + Change champions",
+            "decision_framework": "Escalation matrix with clear approval levels",
+            "review_frequency": "Bi-weekly progress reviews",
+            "success_metrics": ["User adoption rate", "Performance indicators", "ROI tracking"]
+        }
+    
+    def _get_role_automation_susceptibility(self, role: str) -> float:
+        """Get automation susceptibility for different roles"""
+        susceptibility_map = {
+            "Data Entry": 0.9, "Administrative": 0.7, "Analyst": 0.6, "Manager": 0.3,
+            "Creative": 0.2, "Customer Service": 0.6, "Sales": 0.4, "Engineer": 0.5,
+            "Developer": 0.3, "Consultant": 0.2, "Specialist": 0.5, "Coordinator": 0.6,
+            "Representative": 0.5, "Assistant": 0.7, "Controller": 0.4
+        }
+        
+        for role_key, susceptibility in susceptibility_map.items():
+            if role_key.lower() in role.lower():
+                return susceptibility
+        
+        return 0.5  # Default moderate susceptibility
 
 class ExperienceOptimizer:
     """Optimize workforce experience during AI transformation"""
@@ -993,6 +1087,81 @@ class ExperienceOptimizer:
             "success_metrics": success_metrics,
             "monitoring_framework": self._create_experience_monitoring_framework()
         }
+    
+    def _assess_experience_baseline(self, profile: WorkforceProfile) -> Dict[str, Any]:
+        """Assess current experience baseline"""
+        return {
+            "overall_satisfaction": profile.engagement_score,
+            "retention_rate": profile.retention_rate,
+            "productivity_index": profile.productivity_index,
+            "learning_engagement": 65,  # Default baseline
+            "career_satisfaction": 70,
+            "work_life_balance": 75
+        }
+    
+    def _predict_experience_impact(self, profile: WorkforceProfile, transformation_plan: Dict[str, Any]) -> Dict[str, Any]:
+        """Predict experience impact from transformation"""
+        change_magnitude = transformation_plan.get('change_magnitude', 0.3)
+        
+        return {
+            "satisfaction_change": -10 * change_magnitude + 5,  # Initial dip, then improvement
+            "learning_opportunity_increase": 20 * change_magnitude,
+            "career_clarity_improvement": 15 * change_magnitude,
+            "stress_level_change": 10 * change_magnitude,
+            "innovation_engagement": 25 * change_magnitude
+        }
+    
+    def _design_optimization_strategies(self, baseline: Dict[str, Any], impact: Dict[str, Any]) -> Dict[str, Any]:
+        """Design experience optimization strategies"""
+        return {
+            "communication_strategy": "Multi-channel communication with regular updates",
+            "learning_programs": "Personalized AI skills development paths",
+            "support_systems": "Peer mentoring and coaching programs",
+            "recognition_programs": "Achievement-based rewards for adaptation",
+            "feedback_mechanisms": "Continuous pulse surveys and feedback loops"
+        }
+    
+    def _create_experience_journey_map(self, transformation_plan: Dict[str, Any], strategies: Dict[str, Any]) -> Dict[str, Any]:
+        """Create experience journey map"""
+        timeline_months = transformation_plan.get('timeline_months', 18)
+        
+        return {
+            "Phase 1 (Months 1-3)": {
+                "experience_focus": "Awareness and preparation",
+                "key_activities": ["Communication launch", "Initial training", "Feedback collection"],
+                "expected_sentiment": "Cautious optimism"
+            },
+            "Phase 2 (Months 4-9)": {
+                "experience_focus": "Active learning and adaptation", 
+                "key_activities": ["Skill development", "Pilot participation", "Peer support"],
+                "expected_sentiment": "Growing confidence"
+            },
+            "Phase 3 (Months 10-18)": {
+                "experience_focus": "Mastery and innovation",
+                "key_activities": ["Advanced capabilities", "Innovation projects", "Knowledge sharing"],
+                "expected_sentiment": "Enthusiasm and engagement"
+            }
+        }
+    
+    def _define_experience_success_metrics(self, baseline: Dict[str, Any]) -> Dict[str, Any]:
+        """Define experience success metrics"""
+        return {
+            "engagement_score": {"baseline": baseline.get("overall_satisfaction", 75), "target": 85},
+            "learning_participation": {"baseline": 60, "target": 80},
+            "innovation_submissions": {"baseline": 10, "target": 25},
+            "retention_rate": {"baseline": baseline.get("retention_rate", 90), "target": 92},
+            "change_readiness": {"baseline": 50, "target": 75}
+        }
+    
+    def _create_experience_monitoring_framework(self) -> Dict[str, Any]:
+        """Create experience monitoring framework"""
+        return {
+            "pulse_surveys": "Monthly 5-question engagement surveys",
+            "focus_groups": "Quarterly deep-dive sessions with representative groups",
+            "performance_metrics": "Bi-weekly productivity and quality indicators",
+            "feedback_channels": "Always-on suggestion box and feedback portal",
+            "sentiment_analysis": "AI-powered analysis of internal communications"
+        }
 
 class DynamicWorkforcePlanner:
     """Dynamic workforce planning and modeling"""
@@ -1028,4 +1197,75 @@ class DynamicWorkforcePlanner:
             "succession_planning": succession_planning,
             "contingency_plans": contingency_plans,
             "adaptive_strategies": self._design_adaptive_strategies(baseline_profile, ai_initiatives)
+        }
+    
+    def _create_scenario_projections(self, profile: WorkforceProfile, ai_initiatives: List[Dict[str, Any]], planning_horizon: str) -> Dict[str, Any]:
+        """Create scenario projections"""
+        scenarios = {}
+        base_headcount = profile.current_headcount
+        
+        for scenario_type in self.scenario_types:
+            multiplier = {"Conservative": 0.8, "Moderate": 1.0, "Aggressive": 1.3, "Disruptive": 1.6}.get(scenario_type, 1.0)
+            
+            scenarios[scenario_type] = {
+                "headcount_projection": int(base_headcount * (1 - 0.1 * multiplier)),
+                "productivity_gain": profile.productivity_index * 0.15 * multiplier,
+                "cost_reduction": profile.cost_per_employee * base_headcount * 0.08 * multiplier,
+                "timeline_months": {"Conservative": 24, "Moderate": 18, "Aggressive": 12, "Disruptive": 9}.get(scenario_type, 18)
+            }
+        
+        return scenarios
+    
+    def _optimize_resource_allocation(self, profile: WorkforceProfile, ai_initiatives: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Optimize resource allocation"""
+        total_investment = sum(init.get('investment', 0) for init in ai_initiatives)
+        
+        return {
+            "technology_allocation": total_investment * 0.5,
+            "training_allocation": total_investment * 0.25,
+            "change_management_allocation": total_investment * 0.15,
+            "contingency_allocation": total_investment * 0.1,
+            "optimization_rationale": "Balanced approach focusing on technology foundation and people development"
+        }
+    
+    def _create_capacity_planning_model(self, profile: WorkforceProfile, ai_initiatives: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Create capacity planning model"""
+        current_capacity = profile.current_headcount * profile.productivity_index / 100
+        
+        return {
+            "current_capacity": current_capacity,
+            "projected_capacity": current_capacity * 1.2,  # 20% improvement
+            "capacity_gaps": ["Peak season coverage", "Specialized AI skills", "Change management support"],
+            "scaling_recommendations": "Gradual capacity building with external support during transition"
+        }
+    
+    def _create_succession_planning_framework(self, profile: WorkforceProfile, ai_initiatives: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Create succession planning framework"""
+        management_roles = [role for role in profile.role_distribution.keys() if "manager" in role.lower() or "lead" in role.lower()]
+        
+        return {
+            "critical_roles": management_roles + ["AI Integration Specialist", "Senior Analyst"],
+            "succession_readiness": "60% of critical roles have identified successors",
+            "development_programs": ["Leadership development", "AI skills certification", "Cross-functional rotation"],
+            "succession_timeline": "12-18 months for most critical positions"
+        }
+    
+    def _create_contingency_plans(self, profile: WorkforceProfile, ai_initiatives: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Create contingency plans"""
+        return {
+            "talent_shortage": "Partnership with external providers and accelerated training programs",
+            "budget_cuts": "Prioritize core AI initiatives and extend timeline",
+            "technology_delays": "Implement interim solutions and adjust rollout schedule", 
+            "resistance_higher_than_expected": "Enhanced change management and communication efforts",
+            "performance_below_targets": "Additional training and process optimization"
+        }
+    
+    def _design_adaptive_strategies(self, profile: WorkforceProfile, ai_initiatives: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Design adaptive strategies"""
+        return {
+            "continuous_monitoring": "Real-time dashboards for key workforce metrics",
+            "agile_planning": "Quarterly plan reviews and adjustments",
+            "scenario_triggers": "Predefined metrics that trigger plan modifications",
+            "feedback_loops": "Regular employee and stakeholder input collection",
+            "flexibility_mechanisms": "Built-in plan variation points for different outcomes"
         }
