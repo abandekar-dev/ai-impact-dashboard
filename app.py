@@ -1311,15 +1311,18 @@ def show_executive_summary():
                     'Risk Level': 30  # Use default risk level for aggregated data
                 })
         
-        priority_df = pd.DataFrame(priority_data).sort_values('Priority Score', ascending=False)
-        
-        for _, row in priority_df.iterrows():
-            if row['Priority Score'] > 70:
-                st.success(f"🟢 {row['Function']} (Score: {row['Priority Score']:.1f})")
-            elif row['Priority Score'] > 50:
-                st.warning(f"🟡 {row['Function']} (Score: {row['Priority Score']:.1f})")
-            else:
-                st.error(f"🔴 {row['Function']} (Score: {row['Priority Score']:.1f})")
+        if priority_data:
+            priority_df = pd.DataFrame(priority_data).sort_values('Priority Score', ascending=False)
+            
+            for _, row in priority_df.iterrows():
+                if row['Priority Score'] > 70:
+                    st.success(f"🟢 {row['Function']} (Score: {row['Priority Score']:.1f})")
+                elif row['Priority Score'] > 50:
+                    st.warning(f"🟡 {row['Function']} (Score: {row['Priority Score']:.1f})")
+                else:
+                    st.error(f"🔴 {row['Function']} (Score: {row['Priority Score']:.1f})")
+        else:
+            st.info("Configure AI initiatives in departments to see priority analysis.")
     
     # Risk assessment
     st.markdown("---")
