@@ -71,15 +71,62 @@ class DatabaseManager:
         if not self.database_url:
             raise ValueError("DATABASE_URL environment variable not found")
         
-        self.engine = create_engine(self.database_url)
+        # Configure engine with connection pooling and retry logic
+        self.engine = create_engine(
+            self.database_url,
+            pool_pre_ping=True,  # Validate connections before use
+            pool_recycle=300,    # Recycle connections every 5 minutes
+            pool_size=5,
+            max_overflow=10,
+            connect_args={
+                "connect_timeout": 10,
+                "application_name": "ai_dashboard"
+            }
+        )
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
         
-        # Create tables if they don't exist
-        Base.metadata.create_all(bind=self.engine)
+        # Create tables with retry logic
+        self._create_tables_with_retry()
+    
+    def _create_tables_with_retry(self, max_retries=3):
+        """Create database tables with retry logic"""
+        import time
+        for attempt in range(max_retries):
+            try:
+                Base.metadata.create_all(bind=self.engine)
+                return
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)  # Exponential backoff
+                    continue
+                raise e
     
     def get_session(self):
-        """Get database session"""
+        """Get database session with connection validation"""
         return self.SessionLocal()
+    
+    def _execute_with_retry(self, operation, *args, **kwargs):
+        """Execute database operation with retry logic"""
+        import time
+        max_retries = 3
+        for attempt in range(max_retries):
+            session = None
+            try:
+                session = self.get_session()
+                result = operation(session, *args, **kwargs)
+                session.commit()
+                return result
+            except Exception as e:
+                if session:
+                    session.rollback()
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)
+                    continue
+                print(f"Database operation failed after {max_retries} attempts: {e}")
+                return False
+            finally:
+                if session:
+                    session.close()
     
     def save_function_baseline(self, function_name: str, baseline_data: Dict) -> bool:
         """Save or update enterprise function baseline data"""
