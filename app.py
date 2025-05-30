@@ -102,6 +102,11 @@ def main():
         st.session_state.selected_page = "Change Management"
         st.rerun()
     
+    if st.sidebar.button("🔗 Enterprise Data Integration", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Enterprise Integration" else "secondary"):
+        st.session_state.selected_page = "Enterprise Integration"
+        st.rerun()
+    
     st.sidebar.markdown("---")
     
     # Analyses Section
@@ -205,6 +210,9 @@ def main():
     elif page == "Change Management":
         from pages.change_management import show_change_management
         show_change_management()
+    elif page == "Enterprise Integration":
+        from pages.enterprise_integrations import show_enterprise_integrations
+        show_enterprise_integrations()
     elif page == "Scenario Comparison":
         show_scenario_comparison()
     elif page == "Temporal Analysis":
