@@ -445,7 +445,38 @@ def show_human_ai_integration_architecture(architect: HumanAIIntegrationArchitec
     st.markdown("#### 🏛️ Governance Structure")
     
     if architecture.governance_structure:
-        st.json(architecture.governance_structure)
+        try:
+            # Create a more structured display
+            governance = architecture.governance_structure
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("**Steering Committee**")
+                st.write(governance.get('steering_committee', 'Not defined'))
+                
+                st.markdown("**Review Frequency**")
+                st.write(governance.get('review_frequency', 'Not defined'))
+            
+            with col2:
+                st.markdown("**Implementation Team**")
+                st.write(governance.get('implementation_team', 'Not defined'))
+                
+                st.markdown("**Decision Framework**")
+                st.write(governance.get('decision_framework', 'Not defined'))
+            
+            st.markdown("**Success Metrics**")
+            metrics = governance.get('success_metrics', [])
+            if isinstance(metrics, list):
+                for metric in metrics:
+                    st.write(f"• {metric}")
+            else:
+                st.write(str(metrics))
+                
+        except Exception as e:
+            st.error(f"Error displaying governance structure: {str(e)}")
+            st.write("Raw governance data:")
+            st.write(architecture.governance_structure)
 
 def show_experience_optimization(optimizer: ExperienceOptimizer,
                                profile: WorkforceProfile, 
