@@ -146,6 +146,11 @@ def main():
     
     # Outputs Section
     st.sidebar.markdown("### 📤 Outputs")
+    if st.sidebar.button("🤖 AI Strategic Assistant", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "AI Assistant" else "secondary"):
+        st.session_state.selected_page = "AI Assistant"
+        st.rerun()
+    
     if st.sidebar.button("📋 Executive Summary", use_container_width=True,
                         type="primary" if st.session_state.selected_page == "Executive Summary" else "secondary"):
         st.session_state.selected_page = "Executive Summary"
@@ -226,6 +231,9 @@ def main():
     elif page == "Performance Analysis":
         from pages.performance_analysis import show_performance_analysis
         show_performance_analysis(category_manager)
+    elif page == "AI Assistant":
+        from pages.ai_assistant import show_ai_assistant
+        show_ai_assistant()
     elif page == "Executive Summary":
         show_executive_summary()
 
