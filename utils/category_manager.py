@@ -8,75 +8,134 @@ class CategoryManager:
     
     def __init__(self):
         self.default_categories = {
-            "Human Resources": [
-                "Recruitment & Talent Acquisition",
-                "Employee Performance Management", 
-                "Learning & Development",
-                "Compensation & Benefits",
-                "Employee Engagement"
-            ],
-            "Finance": [
-                "Financial Planning & Analysis",
-                "Accounts Payable/Receivable",
-                "Risk Management & Compliance",
-                "Treasury Management",
+            "Finance & Accounting": [
+                "Accounts Payable / Receivable",
+                "General Ledger / Bookkeeping",
+                "Financial Planning & Analysis (FP&A)",
+                "Tax & Treasury",
+                "Audit & Controls",
                 "Financial Reporting"
             ],
-            "Operations": [
-                "Supply Chain Management",
-                "Quality Control & Assurance",
-                "Production Planning",
+            "HR & Talent Management": [
+                "Talent Acquisition / Recruiting",
+                "Learning & Development",
+                "Performance Management",
+                "Compensation & Benefits",
+                "Workforce Planning",
+                "Employee Relations & HR Operations"
+            ],
+            "Operations & Supply Chain": [
                 "Inventory Management",
-                "Process Optimization"
+                "Procurement / Sourcing",
+                "Logistics & Distribution",
+                "Manufacturing Planning",
+                "Demand Forecasting",
+                "Vendor & Supplier Management"
             ],
-            "Sales": [
-                "Lead Generation & Qualification",
-                "Sales Forecasting",
-                "Customer Relationship Management",
-                "Pricing & Revenue Optimization",
-                "Sales Performance Analytics"
-            ],
-            "Marketing": [
-                "Customer Segmentation & Targeting",
-                "Content Creation & Management",
+            "Sales & Marketing": [
+                "Lead Generation",
+                "Sales Enablement",
+                "CRM & Pipeline Management",
                 "Campaign Management",
-                "Brand Monitoring & Analytics",
-                "Marketing Attribution"
+                "Digital / Performance Marketing",
+                "Brand & Content Strategy",
+                "Customer Analytics"
+            ],
+            "IT & Technology": [
+                "Infrastructure & Networks",
+                "Security & Access Management",
+                "IT Helpdesk / End-User Support",
+                "Enterprise Systems (ERP, HCM)",
+                "Application Development",
+                "DevOps / IT Operations"
             ],
             "Customer Service": [
-                "Customer Support & Help Desk",
-                "Technical Support",
-                "Customer Success Management",
-                "Complaint Resolution",
-                "Service Quality Monitoring"
+                "Contact Center Operations",
+                "Ticketing / Case Management",
+                "Escalation Management",
+                "Field Service Support",
+                "Omnichannel Engagement",
+                "Self-Service & Automation"
             ],
-            "IT": [
-                "Infrastructure Management",
-                "Cybersecurity & Compliance",
-                "Software Development",
-                "Data Management & Analytics",
-                "User Support & Training"
-            ],
-            "Legal": [
+            "Legal & Compliance": [
                 "Contract Management",
-                "Compliance Monitoring",
-                "Intellectual Property Management",
-                "Legal Research & Analysis",
-                "Risk Assessment"
+                "Risk & Regulatory Compliance",
+                "Data Privacy & Governance",
+                "Litigation Support",
+                "Policy Management",
+                "IP & Trademark"
+            ],
+            "R&D": [
+                "Product Discovery",
+                "Prototype Development",
+                "User Research & Testing",
+                "Innovation Programs",
+                "Scientific or Technical Research",
+                "Regulatory Approvals (e.g., FDA, ISO)"
+            ],
+            "Manufacturing & Production": [
+                "Production Planning",
+                "Plant Operations",
+                "Assembly Line Optimization",
+                "Equipment Maintenance",
+                "Quality Control",
+                "Shop Floor Data Capture"
+            ],
+            "Quality Assurance": [
+                "Product Testing & Certification",
+                "Root Cause Analysis",
+                "Corrective & Preventive Action (CAPA)",
+                "Supplier Quality Management",
+                "Customer Feedback Loop",
+                "Audits & Documentation"
+            ],
+            "Business Development": [
+                "Strategic Partnerships",
+                "M&A Pipeline Development",
+                "New Market Entry",
+                "Go-to-Market Strategy",
+                "Competitive Intelligence",
+                "Partner Onboarding"
+            ],
+            "Strategy & Planning": [
+                "Corporate Strategy",
+                "Strategic Initiatives / OKRs",
+                "Business Case Development",
+                "Portfolio & Scenario Planning",
+                "Market and Competitive Analysis",
+                "Transformation Program Management"
+            ],
+            "Risk Management": [
+                "Enterprise Risk Assessment",
+                "Operational Risk",
+                "Financial Risk (e.g., credit, liquidity)",
+                "Cybersecurity Risk",
+                "Third-Party Risk",
+                "Risk Controls & Monitoring"
             ],
             "Procurement": [
-                "Vendor Selection & Management",
-                "Purchase Order Processing",
+                "Sourcing Strategy",
+                "Supplier Selection",
                 "Contract Negotiation",
-                "Spend Analysis",
+                "Purchase Order Management",
+                "Category Management",
                 "Supplier Performance Monitoring"
             ],
-            "Research & Development": [
-                "Product Design & Innovation",
-                "Research Data Analysis",
-                "Prototype Testing",
-                "Competitive Intelligence",
-                "Patent Research"
+            "Facilities Management": [
+                "Space Planning",
+                "Maintenance & Repairs",
+                "Safety & Compliance",
+                "Real Estate Management",
+                "Energy & Sustainability",
+                "Physical Security"
+            ],
+            "Data & Analytics": [
+                "BI & Reporting",
+                "Data Engineering",
+                "Data Governance",
+                "Advanced Analytics & Modeling",
+                "ML/AI Ops",
+                "Self-Service Analytics Enablement"
             ]
         }
     

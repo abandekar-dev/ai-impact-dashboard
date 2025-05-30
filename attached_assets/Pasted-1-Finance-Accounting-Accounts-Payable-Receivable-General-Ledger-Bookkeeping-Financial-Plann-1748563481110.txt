@@ -1,0 +1,209 @@
+1. Finance & Accounting
+Accounts Payable / Receivable
+
+General Ledger / Bookkeeping
+
+Financial Planning & Analysis (FP&A)
+
+Tax & Treasury
+
+Audit & Controls
+
+Financial Reporting
+
+2. HR & Talent Management
+Talent Acquisition / Recruiting
+
+Learning & Development
+
+Performance Management
+
+Compensation & Benefits
+
+Workforce Planning
+
+Employee Relations & HR Operations
+
+3. Operations & Supply Chain
+Inventory Management
+
+Procurement / Sourcing
+
+Logistics & Distribution
+
+Manufacturing Planning
+
+Demand Forecasting
+
+Vendor & Supplier Management
+
+4. Sales & Marketing
+Lead Generation
+
+Sales Enablement
+
+CRM & Pipeline Management
+
+Campaign Management
+
+Digital / Performance Marketing
+
+Brand & Content Strategy
+
+Customer Analytics
+
+5. IT (Information Technology)
+Infrastructure & Networks
+
+Security & Access Management
+
+IT Helpdesk / End-User Support
+
+Enterprise Systems (ERP, HCM)
+
+Application Development
+
+DevOps / IT Operations
+
+6. Customer Service
+Contact Center Operations
+
+Ticketing / Case Management
+
+Escalation Management
+
+Field Service Support
+
+Omnichannel Engagement
+
+Self-Service & Automation
+
+7. Legal & Compliance
+Contract Management
+
+Risk & Regulatory Compliance
+
+Data Privacy & Governance
+
+Litigation Support
+
+Policy Management
+
+IP & Trademark
+
+8. R&D (Research & Development)
+Product Discovery
+
+Prototype Development
+
+User Research & Testing
+
+Innovation Programs
+
+Scientific or Technical Research
+
+Regulatory Approvals (e.g., FDA, ISO)
+
+9. Manufacturing
+Production Planning
+
+Plant Operations
+
+Assembly Line Optimization
+
+Equipment Maintenance
+
+Quality Control
+
+Shop Floor Data Capture
+
+10. Quality Assurance
+Product Testing & Certification
+
+Root Cause Analysis
+
+Corrective & Preventive Action (CAPA)
+
+Supplier Quality Management
+
+Customer Feedback Loop
+
+Audits & Documentation
+
+11. Business Development
+Strategic Partnerships
+
+M&A Pipeline Development
+
+New Market Entry
+
+Go-to-Market Strategy
+
+Competitive Intelligence
+
+Partner Onboarding
+
+12. Strategy & Planning
+Corporate Strategy
+
+Strategic Initiatives / OKRs
+
+Business Case Development
+
+Portfolio & Scenario Planning
+
+Market and Competitive Analysis
+
+Transformation Program Management
+
+13. Risk Management
+Enterprise Risk Assessment
+
+Operational Risk
+
+Financial Risk (e.g., credit, liquidity)
+
+Cybersecurity Risk
+
+Third-Party Risk
+
+Risk Controls & Monitoring
+
+14. Procurement
+Sourcing Strategy
+
+Supplier Selection
+
+Contract Negotiation
+
+Purchase Order Management
+
+Category Management
+
+Supplier Performance Monitoring
+
+15. Facilities Management
+Space Planning
+
+Maintenance & Repairs
+
+Safety & Compliance
+
+Real Estate Management
+
+Energy & Sustainability
+
+Physical Security
+
+16. Data & Analytics
+BI & Reporting
+
+Data Engineering
+
+Data Governance
+
+Advanced Analytics & Modeling
+
+ML/AI Ops
+
+Self-Service Analytics Enablement
