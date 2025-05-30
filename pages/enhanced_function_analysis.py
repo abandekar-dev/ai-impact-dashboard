@@ -41,13 +41,64 @@ def show_enhanced_function_analysis(category_manager, db=None):
             current_satisfaction = st.number_input("Performance Satisfaction (0-100)", 
                                                  min_value=0.0, max_value=100.0, value=80.0, step=0.1)
         
+        # Learning & Development Profile
+        st.markdown("#### 🎓 Learning & Development Profile")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            current_ai_proficiency = st.slider(
+                "Current AI Proficiency Level (%)",
+                min_value=0, max_value=100, value=30,
+                help="Department's overall AI knowledge and skills"
+            )
+            
+            learning_budget_allocation = st.slider(
+                "L&D Budget Allocation (%)",
+                min_value=0, max_value=100, value=15,
+                help="Percentage of department budget allocated to learning"
+            )
+            
+            training_completion_rate = st.slider(
+                "Training Completion Rate (%)",
+                min_value=0, max_value=100, value=80
+            )
+        
+        with col2:
+            preferred_learning_formats = st.multiselect(
+                "Preferred Learning Formats",
+                ["Self-paced Online", "Live Virtual Sessions", "In-person Workshops", 
+                 "Hands-on Labs", "Mentorship Programs", "Micro-learning", 
+                 "Project-based Learning", "Peer Learning Groups"],
+                default=["Self-paced Online", "Live Virtual Sessions"]
+            )
+            
+            learning_time_availability = st.selectbox(
+                "Time Availability for Learning",
+                ["Limited (1-2 hours/week)", "Moderate (3-5 hours/week)", "Flexible (6+ hours/week)"],
+                index=1
+            )
+            
+            change_readiness_score = st.slider(
+                "Change Readiness Score (%)",
+                min_value=0, max_value=100, value=70,
+                help="Department's openness to adopting new technologies"
+            )
+
         if st.button("💾 Save Function Baseline"):
             baseline_data = {
                 'productivity': current_productivity,
                 'headcount': int(current_headcount),
                 'revenue': current_revenue,
                 'costs': current_costs,
-                'satisfaction': current_satisfaction
+                'satisfaction': current_satisfaction,
+                # Learning & Development data
+                'ai_proficiency': current_ai_proficiency,
+                'learning_budget': learning_budget_allocation,
+                'training_completion': training_completion_rate,
+                'preferred_formats': preferred_learning_formats,
+                'time_availability': learning_time_availability,
+                'change_readiness': change_readiness_score
             }
             st.session_state.baseline_data[selected_function] = baseline_data
             

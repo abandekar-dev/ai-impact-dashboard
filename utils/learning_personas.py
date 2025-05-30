@@ -76,15 +76,18 @@ class LearningPersonaAnalyzer:
             "Peer Learning Groups"
         ]
     
-    def analyze_enterprise_personas(self, departments_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Analyze personas across all departments"""
+    def analyze_enterprise_personas(self, departments_data: Dict[str, Any], workforce_analytics_data: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Analyze personas across all departments using baseline data and workforce analytics"""
         
         enterprise_personas = []
         department_personas = {}
         
         for dept_name, dept_data in departments_data.items():
+            # Get workforce analytics data for this department if available
+            workforce_data = workforce_analytics_data.get(dept_name, {}) if workforce_analytics_data else {}
+            
             # Create department-specific personas
-            dept_personas = self._create_department_personas(dept_name, dept_data)
+            dept_personas = self._create_department_personas(dept_name, dept_data, workforce_data)
             department_personas[dept_name] = dept_personas
             enterprise_personas.extend(dept_personas)
         
@@ -102,8 +105,8 @@ class LearningPersonaAnalyzer:
             "skill_gap_analysis": self._analyze_skill_gaps(enterprise_personas)
         }
     
-    def _create_department_personas(self, department: str, dept_data: Dict[str, Any]) -> List[LearningPersona]:
-        """Create personas specific to a department"""
+    def _create_department_personas(self, department: str, dept_data: Dict[str, Any], workforce_data: Dict[str, Any] = None) -> List[LearningPersona]:
+        """Create personas specific to a department using baseline and workforce data"""
         
         personas = []
         headcount = dept_data.get('headcount', 50)
@@ -113,42 +116,48 @@ class LearningPersonaAnalyzer:
         
         for role_level, count in role_levels.items():
             if count > 0:
-                persona = self._create_persona_for_role(department, role_level, dept_data)
+                persona = self._create_persona_for_role(department, role_level, dept_data, workforce_data)
                 personas.append(persona)
         
         return personas
     
-    def _create_persona_for_role(self, department: str, role_level: str, dept_data: Dict[str, Any]) -> LearningPersona:
-        """Create a specific persona for a role level in a department"""
+    def _create_persona_for_role(self, department: str, role_level: str, dept_data: Dict[str, Any], workforce_data: Dict[str, Any] = None) -> LearningPersona:
+        """Create a specific persona for a role level in a department using actual data"""
         
         persona_id = f"{department}_{role_level}".replace(" ", "_").lower()
         
-        # Base proficiency levels by role
-        base_proficiency = {
-            "Entry": 20,
-            "Mid": 35, 
-            "Senior": 50,
-            "Executive": 30
-        }
+        # Use actual AI proficiency from department data if available
+        if 'ai_proficiency' in dept_data:
+            base_proficiency = dept_data['ai_proficiency']
+        else:
+            # Fallback to role-based estimates
+            role_base = {"Entry": 20, "Mid": 35, "Senior": 50, "Executive": 30}
+            dept_adjustments = {
+                "IT & Technology": 25, "Finance & Accounting": 10, "HR & Talent Management": 5,
+                "Operations & Supply Chain": 15, "Sales & Marketing": 12, "Customer Service": 8
+            }
+            base_proficiency = role_base.get(role_level, 30) + dept_adjustments.get(department, 0)
         
-        # Department-specific adjustments
-        dept_adjustments = {
-            "IT & Technology": 25,
-            "Finance & Accounting": 10,
-            "HR & Talent Management": 5,
-            "Operations & Supply Chain": 15,
-            "Sales & Marketing": 12,
-            "Customer Service": 8
-        }
-        
-        current_proficiency = base_proficiency.get(role_level, 30) + dept_adjustments.get(department, 0)
-        current_proficiency = min(100, max(0, current_proficiency))
+        # Adjust by role level
+        role_multipliers = {"Entry": 0.8, "Mid": 1.0, "Senior": 1.2, "Executive": 0.9}
+        current_proficiency = min(100, max(0, base_proficiency * role_multipliers.get(role_level, 1.0)))
         
         # Generate skill gaps based on department and role
         skill_gaps = self._generate_skill_gaps(department, role_level)
         
-        # Determine learning preferences
-        learning_style, time_availability, motivation_factors = self._determine_learning_preferences(role_level)
+        # Use actual learning preferences from department data if available
+        if 'preferred_formats' in dept_data and dept_data['preferred_formats']:
+            preferred_formats = dept_data['preferred_formats']
+        else:
+            preferred_formats = self._get_preferred_formats(role_level)
+        
+        if 'time_availability' in dept_data:
+            time_availability = dept_data['time_availability']
+        else:
+            time_availability = {"Entry": "Moderate", "Mid": "Limited", "Senior": "Limited", "Executive": "Limited"}.get(role_level, "Moderate")
+        
+        # Determine learning style and motivation factors
+        learning_style, motivation_factors = self._determine_learning_style_and_motivation(role_level)
         
         persona = LearningPersona(
             persona_id=persona_id,
@@ -161,7 +170,7 @@ class LearningPersonaAnalyzer:
             time_availability=time_availability,
             technical_background=self._get_technical_background(department, role_level),
             motivation_factors=motivation_factors,
-            preferred_learning_format=self._get_preferred_formats(role_level),
+            preferred_learning_format=preferred_formats,
             career_goals=self._get_career_goals(department, role_level),
             skill_gaps=skill_gaps
         )
