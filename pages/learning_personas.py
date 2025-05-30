@@ -465,16 +465,23 @@ def show_skill_gap_analysis(persona_analysis: dict):
         for skill, analysis in top_gaps[:10]:
             gap_data.append({
                 "Skill": skill,
-                "Average Gap": f"{analysis['average_gap']:.1f}",
-                "Max Gap": f"{analysis['max_gap']:.1f}",
+                "Average Gap": analysis['average_gap'],
+                "Max Gap": analysis['max_gap'],
                 "Personas Affected": analysis['personas_affected'],
-                "Priority Level": f"{analysis['priority_level']:.1f}"
+                "Priority Level": analysis['priority_level'],
+                "Average Gap Display": f"{analysis['average_gap']:.1f}",
+                "Max Gap Display": f"{analysis['max_gap']:.1f}",
+                "Priority Level Display": f"{analysis['priority_level']:.1f}"
             })
         
         gap_df = pd.DataFrame(gap_data)
-        st.dataframe(gap_df, use_container_width=True)
         
-        # Skill gap visualization
+        # Display formatted version
+        display_df = gap_df[['Skill', 'Average Gap Display', 'Max Gap Display', 'Personas Affected', 'Priority Level Display']].copy()
+        display_df.columns = ['Skill', 'Average Gap', 'Max Gap', 'Personas Affected', 'Priority Level']
+        st.dataframe(display_df, use_container_width=True)
+        
+        # Skill gap visualization using numeric values
         fig = px.scatter(gap_df, 
                         x='Average Gap', 
                         y='Personas Affected',
