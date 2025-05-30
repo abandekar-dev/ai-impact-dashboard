@@ -26,20 +26,27 @@ def show_enhanced_function_analysis(category_manager, db=None):
     
     # Function baseline metrics (one per function)
     with st.expander("📋 Function Baseline Metrics", expanded=True):
+        
+        # Load existing data if available
+        existing_data = st.session_state.baseline_data.get(selected_function, {})
+        
         col1, col2 = st.columns(2)
         
         with col1:
             current_productivity = st.number_input("Current Productivity Index (0-100)", 
-                                                 min_value=0.0, max_value=100.0, value=75.0, step=0.1)
-            current_headcount = st.number_input("Current Headcount", min_value=1, value=100, step=1)
+                                                 min_value=0.0, max_value=100.0, 
+                                                 value=existing_data.get('productivity', 75.0), step=0.1)
+            current_headcount = st.number_input("Current Headcount", min_value=1, 
+                                               value=existing_data.get('headcount', 100), step=1)
             current_revenue = st.number_input("Annual Revenue Contribution ($)", 
-                                            min_value=0, value=1000000, step=10000)
+                                            min_value=0, value=existing_data.get('revenue', 1000000), step=10000)
         
         with col2:
             current_costs = st.number_input("Annual Operating Costs ($)", 
-                                          min_value=0, value=500000, step=10000)
+                                          min_value=0, value=existing_data.get('costs', 500000), step=10000)
             current_satisfaction = st.number_input("Performance Satisfaction (0-100)", 
-                                                 min_value=0.0, max_value=100.0, value=80.0, step=0.1)
+                                                 min_value=0.0, max_value=100.0, 
+                                                 value=existing_data.get('satisfaction', 80.0), step=0.1)
         
         # Learning & Development Profile
         st.markdown("#### 🎓 Learning & Development Profile")
@@ -49,19 +56,19 @@ def show_enhanced_function_analysis(category_manager, db=None):
         with col1:
             current_ai_proficiency = st.slider(
                 "Current AI Proficiency Level (%)",
-                min_value=0, max_value=100, value=30,
+                min_value=0, max_value=100, value=existing_data.get('ai_proficiency', 30),
                 help="Department's overall AI knowledge and skills"
             )
             
             learning_budget_allocation = st.slider(
                 "L&D Budget Allocation (%)",
-                min_value=0, max_value=100, value=15,
+                min_value=0, max_value=100, value=existing_data.get('learning_budget', 15),
                 help="Percentage of department budget allocated to learning"
             )
             
             training_completion_rate = st.slider(
                 "Training Completion Rate (%)",
-                min_value=0, max_value=100, value=80
+                min_value=0, max_value=100, value=existing_data.get('training_completion', 80)
             )
         
         with col2:
@@ -70,42 +77,65 @@ def show_enhanced_function_analysis(category_manager, db=None):
                 ["Self-paced Online", "Live Virtual Sessions", "In-person Workshops", 
                  "Hands-on Labs", "Mentorship Programs", "Micro-learning", 
                  "Project-based Learning", "Peer Learning Groups"],
-                default=["Self-paced Online", "Live Virtual Sessions"]
+                default=existing_data.get('preferred_formats', ["Self-paced Online", "Live Virtual Sessions"])
             )
+            
+            time_options = ["Limited (1-2 hours/week)", "Moderate (3-5 hours/week)", "Flexible (6+ hours/week)"]
+            existing_time = existing_data.get('time_availability', "Moderate (3-5 hours/week)")
+            time_index = time_options.index(existing_time) if existing_time in time_options else 1
             
             learning_time_availability = st.selectbox(
                 "Time Availability for Learning",
-                ["Limited (1-2 hours/week)", "Moderate (3-5 hours/week)", "Flexible (6+ hours/week)"],
-                index=1
+                time_options,
+                index=time_index
             )
             
             change_readiness_score = st.slider(
                 "Change Readiness Score (%)",
-                min_value=0, max_value=100, value=70,
+                min_value=0, max_value=100, value=existing_data.get('change_readiness', 70),
                 help="Department's openness to adopting new technologies"
             )
 
-        if st.button("💾 Save Function Baseline"):
-            baseline_data = {
-                'productivity': current_productivity,
-                'headcount': int(current_headcount),
-                'revenue': current_revenue,
-                'costs': current_costs,
-                'satisfaction': current_satisfaction,
-                # Learning & Development data
-                'ai_proficiency': current_ai_proficiency,
-                'learning_budget': learning_budget_allocation,
-                'training_completion': training_completion_rate,
-                'preferred_formats': preferred_learning_formats,
-                'time_availability': learning_time_availability,
-                'change_readiness': change_readiness_score
-            }
-            st.session_state.baseline_data[selected_function] = baseline_data
-            
-            if db:
-                db.save_function_baseline(selected_function, baseline_data)
-            
-            st.success("Function baseline saved!")
+        # Auto-save data as user inputs it
+        baseline_data = {
+            'productivity': current_productivity,
+            'headcount': int(current_headcount),
+            'revenue': current_revenue,
+            'costs': current_costs,
+            'satisfaction': current_satisfaction,
+            # Learning & Development data
+            'ai_proficiency': current_ai_proficiency,
+            'learning_budget': learning_budget_allocation,
+            'training_completion': training_completion_rate,
+            'preferred_formats': preferred_learning_formats,
+            'time_availability': learning_time_availability,
+            'change_readiness': change_readiness_score
+        }
+        
+        # Always save to session state immediately
+        st.session_state.baseline_data[selected_function] = baseline_data
+        
+        # Save button for explicit confirmation
+        col1, col2 = st.columns([1, 4])
+        with col1:
+            if st.button("💾 Save Function Baseline"):
+                success_db = False
+                
+                if db:
+                    try:
+                        db.save_function_baseline(selected_function, baseline_data)
+                        success_db = True
+                    except Exception as e:
+                        st.warning(f"Database save failed, but data is preserved locally")
+                
+                if success_db:
+                    st.success("Function baseline saved to database!")
+                else:
+                    st.success("Function baseline saved locally!")
+        
+        with col2:
+            if selected_function in st.session_state.baseline_data:
+                st.info(f"✓ Data for {selected_function} is preserved in your session")
     
     st.markdown("---")
     

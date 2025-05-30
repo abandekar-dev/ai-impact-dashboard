@@ -55,11 +55,53 @@ category_manager = CategoryManager()
 
 # Load data from database on first run
 if db and not st.session_state.data_loaded:
-    data = db.load_all_data()
-    st.session_state.baseline_data = data['baseline_data']
-    st.session_state.ai_initiatives = data['ai_initiatives']
-    st.session_state.predictions = data['predictions']
-    st.session_state.data_loaded = True
+    try:
+        data = db.load_all_data()
+        st.session_state.baseline_data = data['baseline_data']
+        st.session_state.ai_initiatives = data['ai_initiatives']
+        st.session_state.predictions = data['predictions']
+        st.session_state.data_loaded = True
+    except Exception as e:
+        print(f"Database load failed, using local session storage: {e}")
+        st.session_state.data_loaded = True
+
+# Auto-save mechanism to preserve data across page navigation
+def auto_save_data():
+    """Automatically save data to prevent loss during navigation"""
+    if 'last_save_timestamp' not in st.session_state:
+        st.session_state.last_save_timestamp = 0
+    
+    import time
+    current_time = time.time()
+    
+    # Auto-save every 30 seconds if data has changed
+    if current_time - st.session_state.last_save_timestamp > 30:
+        try:
+            # Save to local session storage as backup
+            if not hasattr(st.session_state, 'local_backup'):
+                st.session_state.local_backup = {}
+            
+            st.session_state.local_backup = {
+                'baseline_data': dict(st.session_state.baseline_data),
+                'ai_initiatives': dict(st.session_state.ai_initiatives),
+                'predictions': dict(st.session_state.predictions),
+                'timestamp': current_time
+            }
+            
+            # Try to save to database if available
+            if db:
+                try:
+                    for func_name, baseline in st.session_state.baseline_data.items():
+                        db.save_function_baseline(func_name, baseline)
+                except Exception:
+                    pass  # Silent fail, data is still preserved locally
+                    
+            st.session_state.last_save_timestamp = current_time
+        except Exception:
+            pass  # Continue even if auto-save fails
+
+# Call auto-save
+auto_save_data()
 
 def main():
     st.title("🎯 AI Impact Predictive Dashboard")
