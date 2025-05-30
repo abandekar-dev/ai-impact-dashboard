@@ -242,53 +242,187 @@ def main():
 def show_overview():
     st.header("📊 Dashboard Overview")
     
+    # Modern metrics cards with gradient styling
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("Active Functions", len(st.session_state.ai_initiatives))
+        active_functions = len(st.session_state.baseline_data)
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    padding: 1.5rem; border-radius: 12px; color: white; text-align: center;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+            <h3 style="margin: 0; font-size: 2rem; font-weight: bold;">{active_functions}</h3>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Active Functions</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
     with col2:
-        total_investment = sum(init.get('investment', 0) for init in st.session_state.ai_initiatives.values())
-        st.metric("Total AI Investment", f"${total_investment:,.0f}")
+        total_revenue = sum(data.get('annual_revenue', 0) for data in st.session_state.baseline_data.values())
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
+                    padding: 1.5rem; border-radius: 12px; color: white; text-align: center;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+            <h3 style="margin: 0; font-size: 2rem; font-weight: bold;">${total_revenue:,.0f}</h3>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Total Revenue</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
     with col3:
-        if st.session_state.predictions:
-            avg_roi = np.mean([p.get('roi', 0) for p in st.session_state.predictions.values()])
-            st.metric("Average Projected ROI", f"{avg_roi:.1f}%")
-        else:
-            st.metric("Average Projected ROI", "N/A")
+        total_headcount = sum(data.get('headcount', 0) for data in st.session_state.baseline_data.values())
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+                    padding: 1.5rem; border-radius: 12px; color: white; text-align: center;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+            <h3 style="margin: 0; font-size: 2rem; font-weight: bold;">{total_headcount:,}</h3>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Total Headcount</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
     with col4:
         if st.session_state.predictions:
-            total_productivity = sum(p.get('productivity_gain', 0) for p in st.session_state.predictions.values())
-            st.metric("Total Productivity Gain", f"{total_productivity:.1f}%")
+            avg_roi = np.mean([p.get('roi', 0) for p in st.session_state.predictions.values()])
+            roi_display = f"{avg_roi:.1f}%"
         else:
-            st.metric("Total Productivity Gain", "N/A")
+            roi_display = "N/A"
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); 
+                    padding: 1.5rem; border-radius: 12px; color: white; text-align: center;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+            <h3 style="margin: 0; font-size: 2rem; font-weight: bold;">{roi_display}</h3>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Projected ROI</p>
+        </div>
+        """, unsafe_allow_html=True)
     
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
     
-    # Quick setup section
-    st.subheader("🚀 Quick Setup")
-    st.markdown("Get started by configuring AI initiatives for your enterprise functions.")
+    # Enhanced function status in styled cards
+    st.markdown("""
+    <div style="background: white; padding: 2rem; border-radius: 12px; 
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb;">
+    """, unsafe_allow_html=True)
+    
+    st.subheader("🚀 Function Configuration Status")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("**Enterprise Functions Available:**")
+        st.markdown("**Enterprise Functions:**")
         functions = ["HR & Talent Management", "Finance & Accounting", "Operations & Supply Chain", 
                     "Sales & Marketing", "IT & Technology", "Customer Service", "Legal & Compliance", "R&D",
                     "Manufacturing & Production", "Quality Assurance", "Business Development", "Strategy & Planning",
                     "Risk Management", "Procurement", "Facilities Management", "Data & Analytics"]
+        
         for func in functions:
-            if func in st.session_state.ai_initiatives:
-                st.success(f"✅ {func} - Configured")
+            if func in st.session_state.baseline_data:
+                st.markdown(f"""
+                <div style="background: #f0f9ff; padding: 0.75rem; border-radius: 8px; 
+                            margin: 0.25rem 0; border-left: 4px solid #10b981;">
+                    ✅ {func} - Configured
+                </div>
+                """, unsafe_allow_html=True)
             else:
-                st.info(f"⚪ {func} - Not configured")
+                st.markdown(f"""
+                <div style="background: #f9fafb; padding: 0.75rem; border-radius: 8px; 
+                            margin: 0.25rem 0; border-left: 4px solid #d1d5db;">
+                    ⚪ {func} - Not configured
+                </div>
+                """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("**Next Steps:**")
-        st.markdown("1. Navigate to **Function Analysis** to configure AI initiatives")
-        st.markdown("2. Set baseline metrics and AI implementation parameters")
-        st.markdown("3. Use **Scenario Comparison** to evaluate different approaches")
-        st.markdown("4. Review **Temporal Analysis** for time-based projections")
-        st.markdown("5. Generate **Executive Summary** for stakeholder presentations")
+        st.markdown("**Quick Start Guide:**")
+        steps = [
+            "Navigate to **Function Analysis** to configure departments",
+            "Set baseline metrics and AI implementation parameters", 
+            "Use **Strategic Planning** to evaluate scenarios",
+            "Review **Workforce Analytics** for impact assessment",
+            "Generate **Executive Summary** for stakeholder presentations"
+        ]
+        
+        for i, step in enumerate(steps, 1):
+            st.markdown(f"""
+            <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; 
+                        margin: 0.5rem 0; border-left: 4px solid #3b82f6;">
+                <strong>{i}.</strong> {step}
+            </div>
+            """, unsafe_allow_html=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Performance visualization if data exists
+    if len(st.session_state.baseline_data) > 0:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("""
+        <div style="background: white; padding: 2rem; border-radius: 12px; 
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb;">
+        """, unsafe_allow_html=True)
+        
+        st.subheader("📈 Performance Overview")
+        
+        # Create enhanced performance visualization
+        functions = []
+        productivity = []
+        satisfaction = []
+        
+        for func_name, data in st.session_state.baseline_data.items():
+            functions.append(func_name)
+            productivity.append(data.get('current_productivity', 0))
+            satisfaction.append(data.get('performance_satisfaction', 0))
+        
+        fig = go.Figure()
+        
+        # Enhanced bar chart with modern styling
+        fig.add_trace(go.Bar(
+            name='Current Productivity', 
+            x=functions, 
+            y=productivity,
+            marker_color='rgba(99, 102, 241, 0.8)',
+            marker_line_color='rgba(99, 102, 241, 1.0)',
+            marker_line_width=2,
+            text=[f'{p}%' for p in productivity],
+            textposition='outside'
+        ))
+        
+        fig.add_trace(go.Bar(
+            name='Performance Satisfaction', 
+            x=functions, 
+            y=satisfaction,
+            marker_color='rgba(16, 185, 129, 0.8)',
+            marker_line_color='rgba(16, 185, 129, 1.0)',
+            marker_line_width=2,
+            text=[f'{s}%' for s in satisfaction],
+            textposition='outside'
+        ))
+        
+        fig.update_layout(
+            title={
+                'text': "Current Performance Metrics by Function",
+                'x': 0.5,
+                'xanchor': 'center',
+                'font': {'size': 18, 'family': 'Arial, sans-serif', 'color': '#1f2937'}
+            },
+            xaxis_title="Business Functions",
+            yaxis_title="Performance Score (0-100)",
+            barmode='group',
+            height=450,
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font={'family': 'Arial, sans-serif', 'color': '#374151'},
+            legend={
+                'orientation': 'h',
+                'yanchor': 'bottom',
+                'y': 1.02,
+                'xanchor': 'right',
+                'x': 1,
+                'bgcolor': 'rgba(255,255,255,0.8)'
+            },
+            margin={'t': 60, 'b': 40, 'l': 40, 'r': 40}
+        )
+        
+        fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)', tickangle=45)
+        fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)')
+        
+        st.plotly_chart(fig, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
 def show_function_analysis():
     st.header("🏢 Function Analysis")
@@ -730,30 +864,46 @@ def show_monte_carlo_simulation():
         # Summary statistics
         summary_stats = simulation_data['summary_statistics']
         
-        # Key metrics overview
+        # Enhanced key metrics overview with styled cards
         col1, col2, col3, col4 = st.columns(4)
         
+        roi_stats = summary_stats['roi']
+        value_stats = summary_stats['value_generated']
+        productivity_stats = summary_stats['productivity_gain']
+        payback_stats = summary_stats['payback_period']
+        
         with col1:
-            roi_stats = summary_stats['roi']
-            st.metric("Expected ROI", f"{roi_stats['mean']:.1f}%",
-                     help=f"Standard deviation: {roi_stats['std']:.1f}%")
-            st.metric("ROI Range", f"{roi_stats['min']:.1f}% to {roi_stats['max']:.1f}%")
+            from utils.chart_styling import create_styled_metric_card
+            st.markdown(create_styled_metric_card(
+                f"{roi_stats['mean']:.1f}%", 
+                "Expected ROI",
+                "blue"
+            ), unsafe_allow_html=True)
+            st.caption(f"Range: {roi_stats['min']:.1f}% to {roi_stats['max']:.1f}%")
         
         with col2:
-            value_stats = summary_stats['value_generated']
-            st.metric("Expected Value", f"${value_stats['mean']:,.0f}",
-                     help=f"Standard deviation: ${value_stats['std']:,.0f}")
-            st.metric("Value Range", f"${value_stats['min']:,.0f} to ${value_stats['max']:,.0f}")
+            st.markdown(create_styled_metric_card(
+                f"${value_stats['mean']:,.0f}", 
+                "Expected Value",
+                "green"
+            ), unsafe_allow_html=True)
+            st.caption(f"Range: ${value_stats['min']:,.0f} to ${value_stats['max']:,.0f}")
         
         with col3:
-            productivity_stats = summary_stats['productivity_gain']
-            st.metric("Expected Productivity Gain", f"{productivity_stats['mean']:.1f}%",
-                     help=f"Standard deviation: {productivity_stats['std']:.1f}%")
+            st.markdown(create_styled_metric_card(
+                f"{productivity_stats['mean']:.1f}%", 
+                "Productivity Gain",
+                "purple"
+            ), unsafe_allow_html=True)
+            st.caption(f"Std Dev: {productivity_stats['std']:.1f}%")
         
         with col4:
-            payback_stats = summary_stats['payback_period']
-            st.metric("Expected Payback", f"{payback_stats['mean']:.1f} months",
-                     help=f"Standard deviation: {payback_stats['std']:.1f} months")
+            st.markdown(create_styled_metric_card(
+                f"{payback_stats['mean']:.1f}mo", 
+                "Expected Payback",
+                "orange"
+            ), unsafe_allow_html=True)
+            st.caption(f"Std Dev: {payback_stats['std']:.1f} months")
         
         # Risk metrics
         st.markdown("---")
@@ -785,25 +935,72 @@ def show_monte_carlo_simulation():
             st.metric("Probability of Loss", f"{prob_loss:.1%}")
             st.markdown(f":{loss_color}[Loss probability: {prob_loss:.1%}]")
         
-        # Confidence intervals
+        # Enhanced visualizations
         st.markdown("---")
-        st.subheader("📈 Confidence Intervals")
+        st.subheader("📈 Distribution Analysis")
+        
+        # Create distribution charts
+        from utils.chart_styling import EnhancedCharts, create_styled_card
+        chart_creator = EnhancedCharts()
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # ROI distribution chart
+            roi_data = simulation_data.get('raw_results', {}).get('roi', [])
+            if roi_data:
+                roi_fig = chart_creator.create_distribution_chart(
+                    roi_data, "ROI Distribution", "blue"
+                )
+                st.plotly_chart(roi_fig, use_container_width=True)
+        
+        with col2:
+            # Value generation distribution chart
+            value_data = simulation_data.get('raw_results', {}).get('value_generated', [])
+            if value_data:
+                value_fig = chart_creator.create_distribution_chart(
+                    value_data, "Value Generation Distribution", "green"
+                )
+                st.plotly_chart(value_fig, use_container_width=True)
+        
+        # Risk analysis visualization
+        st.markdown("---")
+        st.subheader("⚠️ Risk Assessment")
+        
+        risk_metrics = simulation_data['risk_metrics']
+        risk_data = {
+            'Probability of Loss': risk_metrics.get('probability_of_loss', 0),
+            'Technical Risk': 0.2,  # Example - would come from simulation
+            'Market Risk': 0.15,   # Example - would come from simulation
+            'Implementation Risk': 0.1  # Example - would come from simulation
+        }
+        
+        risk_fig = chart_creator.create_risk_heatmap(risk_data)
+        st.plotly_chart(risk_fig, use_container_width=True)
+        
+        # Confidence intervals in styled cards
+        st.markdown("---")
+        st.subheader("📊 Confidence Intervals")
         
         confidence_intervals = simulation_data['confidence_intervals']
         
         col1, col2 = st.columns(2)
         
         with col1:
-            st.markdown("**ROI Confidence Intervals**")
             roi_ci = confidence_intervals['roi']
+            roi_content = ""
             for conf_level, interval in roi_ci.items():
-                st.write(f"{conf_level}: {interval['lower']:.1f}% to {interval['upper']:.1f}%")
+                roi_content += f"<p><strong>{conf_level}:</strong> {interval['lower']:.1f}% to {interval['upper']:.1f}%</p>"
+            
+            st.markdown(create_styled_card(roi_content, "ROI Confidence Intervals"), unsafe_allow_html=True)
         
         with col2:
-            st.markdown("**Value Generation Confidence Intervals**")
             value_ci = confidence_intervals['value_generated']
+            value_content = ""
             for conf_level, interval in value_ci.items():
-                st.write(f"{conf_level}: ${interval['lower']:,.0f} to ${interval['upper']:,.0f}")
+                value_content += f"<p><strong>{conf_level}:</strong> ${interval['lower']:,.0f} to ${interval['upper']:,.0f}</p>"
+            
+            st.markdown(create_styled_card(value_content, "Value Generation Confidence Intervals"), unsafe_allow_html=True)
 
 def show_strategic_planning():
     st.header("🎯 Strategic AI Planning")
