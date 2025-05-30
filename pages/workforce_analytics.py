@@ -532,7 +532,7 @@ def show_experience_optimization(optimizer: ExperienceOptimizer,
                 color='Impact Category',
                 title="Predicted Experience Impact by Dimension",
                 color_discrete_map={'Positive': 'green', 'Negative': 'red', 'Neutral': 'gray'})
-    fig.update_xaxis(tickangle=45)
+    fig.update_layout(xaxis_tickangle=45)
     st.plotly_chart(fig, use_container_width=True)
     
     # Optimization Strategies
