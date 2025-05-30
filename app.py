@@ -142,6 +142,11 @@ def main():
         st.session_state.selected_page = "Performance Analysis"
         st.rerun()
     
+    if st.sidebar.button("👥 Workforce Analytics", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Workforce Analytics" else "secondary"):
+        st.session_state.selected_page = "Workforce Analytics"
+        st.rerun()
+    
     st.sidebar.markdown("---")
     
     # Outputs Section
@@ -231,6 +236,9 @@ def main():
     elif page == "Performance Analysis":
         from pages.performance_analysis import show_performance_analysis
         show_performance_analysis(category_manager)
+    elif page == "Workforce Analytics":
+        from pages.workforce_analytics import show_workforce_analytics
+        show_workforce_analytics()
     elif page == "AI Assistant":
         from pages.ai_assistant import show_ai_assistant
         show_ai_assistant()
