@@ -157,7 +157,7 @@ class LearningPersonaAnalyzer:
             time_availability = {"Entry": "Moderate", "Mid": "Limited", "Senior": "Limited", "Executive": "Limited"}.get(role_level, "Moderate")
         
         # Determine learning style and motivation factors
-        learning_style, motivation_factors = self._determine_learning_style_and_motivation(role_level)
+        learning_style, motivation_factors = self._determine_learning_preferences(role_level)[:2]
         
         persona = LearningPersona(
             persona_id=persona_id,
