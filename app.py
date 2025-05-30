@@ -1295,19 +1295,21 @@ def show_executive_summary():
         
         priority_data = []
         for func, pred in st.session_state.predictions.items():
-            initiative = st.session_state.ai_initiatives[func]
-            
-            # Calculate priority score based on ROI and risk
-            roi_score = min(pred['roi'] / 100, 1.0) * 50
-            risk_score = (100 - (initiative['technical_risk'] + initiative['adoption_risk']) / 2) / 100 * 50
-            priority_score = roi_score + risk_score
-            
-            priority_data.append({
-                'Function': func,
-                'Priority Score': priority_score,
-                'ROI': pred['roi'],
-                'Risk Level': (initiative['technical_risk'] + initiative['adoption_risk']) / 2
-            })
+            if func in aggregated_initiatives:
+                initiative = aggregated_initiatives[func]
+                
+                # Calculate priority score based on ROI and risk (use default risk values for aggregated data)
+                roi_score = min(pred['roi'] / 100, 1.0) * 50
+                # Use moderate risk assumption for aggregated initiatives
+                risk_score = (100 - 30) / 100 * 50  # Assume 30% average risk
+                priority_score = roi_score + risk_score
+                
+                priority_data.append({
+                    'Function': func,
+                    'Priority Score': priority_score,
+                    'ROI': pred['roi'],
+                    'Risk Level': 30  # Use default risk level for aggregated data
+                })
         
         priority_df = pd.DataFrame(priority_data).sort_values('Priority Score', ascending=False)
         
