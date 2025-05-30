@@ -616,6 +616,273 @@ class PredictiveWorkforceAnalyzer:
             "ideation_support": "High" if "Generative" in ai_type else "Medium",
             "experimentation_capability": "Enhanced" if multiplier > 1 else "Maintained"
         }
+    
+    def _calculate_implementation_costs(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any], timeline_months: int) -> Dict[str, Any]:
+        """Calculate implementation costs"""
+        base_investment = ai_initiative.get('investment', 100000)
+        headcount = profile.current_headcount
+        
+        # Training costs
+        training_cost = headcount * 2000  # $2000 per employee
+        
+        # Change management costs
+        change_mgmt_cost = base_investment * 0.15  # 15% of investment
+        
+        # System integration costs
+        integration_cost = base_investment * 0.25  # 25% of investment
+        
+        return {
+            "technology_investment": base_investment,
+            "training_costs": training_cost,
+            "change_management": change_mgmt_cost,
+            "system_integration": integration_cost,
+            "total_implementation": base_investment + training_cost + change_mgmt_cost + integration_cost
+        }
+    
+    def _calculate_ongoing_cost_changes(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculate ongoing cost changes"""
+        automation_level = ai_initiative.get('automation_level', 30) / 100
+        current_cost = profile.current_headcount * profile.cost_per_employee
+        
+        # Labor cost savings from automation
+        labor_savings = current_cost * automation_level * 0.3  # 30% of automation level
+        
+        # AI system maintenance costs
+        maintenance_cost = ai_initiative.get('investment', 100000) * 0.15  # 15% annually
+        
+        return {
+            "annual_labor_savings": labor_savings,
+            "ai_maintenance_costs": maintenance_cost,
+            "net_ongoing_savings": labor_savings - maintenance_cost,
+            "cost_reduction_percentage": (labor_savings / current_cost) * 100
+        }
+    
+    def _calculate_efficiency_gains(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any], timeline_months: int) -> Dict[str, Any]:
+        """Calculate efficiency gains"""
+        productivity_improvement = profile.productivity_index * 0.2  # 20% improvement
+        revenue_per_employee = profile.current_headcount > 0 and (
+            sum(baseline.get('revenue', 0) for baseline in [profile.__dict__]) / profile.current_headcount) or 80000
+        
+        # Calculate value generation
+        annual_value_gain = productivity_improvement * revenue_per_employee * profile.current_headcount / 100
+        
+        return {
+            "productivity_improvement_percent": productivity_improvement,
+            "annual_value_generation": annual_value_gain,
+            "cumulative_value": annual_value_gain * (timeline_months / 12),
+            "efficiency_metrics": {
+                "process_speed_improvement": f"{ai_initiative.get('automation_level', 30) * 0.5:.1f}%",
+                "error_reduction": f"{ai_initiative.get('automation_level', 30) * 0.3:.1f}%",
+                "quality_improvement": f"{ai_initiative.get('automation_level', 30) * 0.2:.1f}%"
+            }
+        }
+    
+    def _calculate_workforce_roi(self, implementation_costs: Dict[str, Any], ongoing_changes: Dict[str, Any], 
+                                efficiency_gains: Dict[str, Any], timeline_months: int) -> Dict[str, Any]:
+        """Calculate workforce ROI"""
+        total_investment = implementation_costs["total_implementation"]
+        annual_savings = ongoing_changes["net_ongoing_savings"]
+        annual_value = efficiency_gains["annual_value_generation"]
+        
+        total_annual_benefit = annual_savings + annual_value
+        timeline_years = timeline_months / 12
+        total_benefit = total_annual_benefit * timeline_years
+        
+        roi = ((total_benefit - total_investment) / total_investment) * 100 if total_investment > 0 else 0
+        
+        return {
+            "total_investment": total_investment,
+            "annual_benefit": total_annual_benefit,
+            "total_benefit": total_benefit,
+            "roi_percentage": roi,
+            "break_even_months": (total_investment / (total_annual_benefit / 12)) if total_annual_benefit > 0 else 999
+        }
+    
+    def _calculate_payback_period(self, implementation_costs: Dict[str, Any], efficiency_gains: Dict[str, Any]) -> float:
+        """Calculate payback period in months"""
+        total_investment = implementation_costs["total_implementation"]
+        monthly_benefit = efficiency_gains["annual_value_generation"] / 12
+        
+        return total_investment / monthly_benefit if monthly_benefit > 0 else 999
+    
+    def _assess_change_resistance_risk(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any]) -> Dict[str, Any]:
+        """Assess change resistance risk"""
+        engagement_score = profile.engagement_score
+        automation_level = ai_initiative.get('automation_level', 30)
+        
+        # Higher automation and lower engagement = higher risk
+        risk_score = (100 - engagement_score) + automation_level
+        risk_score = min(100, max(0, risk_score))
+        
+        return {
+            "score": risk_score,
+            "level": "High" if risk_score > 70 else "Medium" if risk_score > 40 else "Low",
+            "factors": ["Low engagement", "High automation impact", "Limited change communication"]
+        }
+    
+    def _assess_skill_gap_risk(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any]) -> Dict[str, Any]:
+        """Assess skill gap risk"""
+        ai_readiness = profile.skill_levels.get("AI/ML Knowledge", 30)
+        digital_literacy = profile.skill_levels.get("Digital Literacy", 65)
+        
+        risk_score = 100 - ((ai_readiness + digital_literacy) / 2)
+        
+        return {
+            "score": risk_score,
+            "level": "High" if risk_score > 60 else "Medium" if risk_score > 30 else "Low",
+            "factors": ["Limited AI knowledge", "Digital skill gaps", "Training capacity constraints"]
+        }
+    
+    def _assess_retention_risk(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any]) -> Dict[str, Any]:
+        """Assess retention risk"""
+        baseline_retention = profile.retention_rate
+        automation_level = ai_initiative.get('automation_level', 30)
+        
+        # Higher automation may increase turnover risk
+        risk_score = 100 - baseline_retention + (automation_level * 0.3)
+        risk_score = min(100, max(0, risk_score))
+        
+        return {
+            "score": risk_score,
+            "level": "High" if risk_score > 50 else "Medium" if risk_score > 25 else "Low",
+            "factors": ["Job security concerns", "Skills obsolescence fear", "Limited retraining options"]
+        }
+    
+    def _assess_performance_disruption_risk(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any]) -> Dict[str, Any]:
+        """Assess performance disruption risk"""
+        complexity = ai_initiative.get('complexity', 'Medium')
+        timeline = ai_initiative.get('timeline', '12 months')
+        
+        complexity_scores = {"Low": 20, "Medium": 50, "High": 80}
+        timeline_factor = 12 / max(int(timeline.split()[0]), 6) if timeline else 1  # Shorter timeline = higher risk
+        
+        risk_score = complexity_scores.get(complexity, 50) * timeline_factor
+        risk_score = min(100, max(0, risk_score))
+        
+        return {
+            "score": risk_score,
+            "level": "High" if risk_score > 60 else "Medium" if risk_score > 30 else "Low",
+            "factors": ["Learning curve impact", "Workflow disruption", "Productivity dip during transition"]
+        }
+    
+    def _assess_cultural_alignment_risk(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any]) -> Dict[str, Any]:
+        """Assess cultural alignment risk"""
+        engagement_score = profile.engagement_score
+        ai_type = ai_initiative.get('ai_type', 'Automation')
+        
+        # Some AI types are more culturally disruptive
+        cultural_impact = {"Automation": 70, "Augmentation": 30, "Generative AI": 40}.get(ai_type, 50)
+        
+        risk_score = cultural_impact - (engagement_score * 0.5)
+        risk_score = min(100, max(0, risk_score))
+        
+        return {
+            "score": risk_score,
+            "level": "High" if risk_score > 50 else "Medium" if risk_score > 25 else "Low",
+            "factors": ["Technology adoption culture", "Innovation readiness", "Change management maturity"]
+        }
+    
+    def _generate_risk_mitigation_strategies(self, risks: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate risk mitigation strategies"""
+        strategies = []
+        
+        for risk_type, risk_data in risks.items():
+            if risk_data["level"] in ["High", "Medium"]:
+                strategy = {
+                    "risk_type": risk_type,
+                    "mitigation_actions": [],
+                    "timeline": "Immediate" if risk_data["level"] == "High" else "Short-term",
+                    "priority": "Critical" if risk_data["level"] == "High" else "Important"
+                }
+                
+                if risk_type == "change_resistance":
+                    strategy["mitigation_actions"] = [
+                        "Implement comprehensive change communication plan",
+                        "Establish change champion network",
+                        "Provide clear vision and benefits messaging"
+                    ]
+                elif risk_type == "skill_gap":
+                    strategy["mitigation_actions"] = [
+                        "Launch intensive training programs",
+                        "Partner with external training providers",
+                        "Implement mentorship programs"
+                    ]
+                elif risk_type == "retention":
+                    strategy["mitigation_actions"] = [
+                        "Offer career development pathways",
+                        "Implement retention bonuses",
+                        "Create internal mobility opportunities"
+                    ]
+                
+                strategies.append(strategy)
+        
+        return strategies
+    
+    def _categorize_risk_level(self, overall_risk: float) -> str:
+        """Categorize overall risk level"""
+        if overall_risk > 70:
+            return "High Risk"
+        elif overall_risk > 40:
+            return "Medium Risk"
+        else:
+            return "Low Risk"
+    
+    def _define_risk_monitoring_metrics(self, risks: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Define risk monitoring metrics"""
+        metrics = [
+            {"metric": "Employee Engagement Score", "frequency": "Monthly", "target": "> 75"},
+            {"metric": "Training Completion Rate", "frequency": "Weekly", "target": "> 80%"},
+            {"metric": "Voluntary Turnover Rate", "frequency": "Monthly", "target": "< 10%"},
+            {"metric": "Performance Metrics", "frequency": "Bi-weekly", "target": "Within 5% of baseline"},
+            {"metric": "Change Readiness Survey", "frequency": "Quarterly", "target": "> 70% positive"}
+        ]
+        
+        return metrics
+    
+    def _define_transformation_phases(self, ai_initiative: Dict[str, Any], timeline_months: int) -> Dict[str, Any]:
+        """Define transformation phases"""
+        phase_duration = timeline_months // 4  # 4 phases
+        
+        return {
+            "Phase 1 - Foundation": {"duration": phase_duration, "focus": "Assessment and Planning"},
+            "Phase 2 - Pilot": {"duration": phase_duration, "focus": "Limited Implementation and Testing"},
+            "Phase 3 - Rollout": {"duration": phase_duration, "focus": "Department-wide Implementation"},
+            "Phase 4 - Optimization": {"duration": phase_duration, "focus": "Fine-tuning and Scaling"}
+        }
+    
+    def _calculate_phase_workforce_changes(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any], phase_info: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculate workforce changes for a phase"""
+        return {
+            "headcount_change": 0,  # Simplified for demo
+            "role_transitions": 1,
+            "training_participants": profile.current_headcount // 4
+        }
+    
+    def _calculate_phase_skill_development(self, profile: WorkforceProfile, phase_info: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculate skill development for a phase"""
+        return {
+            "skills_addressed": 2,
+            "training_hours": 40,
+            "competency_improvement": 15
+        }
+    
+    def _calculate_phase_cost_impact(self, profile: WorkforceProfile, ai_initiative: Dict[str, Any], phase_info: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculate cost impact for a phase"""
+        total_investment = ai_initiative.get('investment', 100000)
+        phase_cost = total_investment // 4  # Spread across 4 phases
+        
+        return {
+            "phase_cost": phase_cost,
+            "cumulative_savings": 0  # Simplified
+        }
+    
+    def _identify_phase_risks(self, phase_info: Dict[str, Any]) -> List[str]:
+        """Identify risks for a phase"""
+        return ["Implementation delays", "User adoption challenges", "Integration issues"]
+    
+    def _define_phase_success_metrics(self, phase_info: Dict[str, Any]) -> List[str]:
+        """Define success metrics for a phase"""
+        return ["On-time delivery", "Budget adherence", "User satisfaction > 75%"]
 
 class HumanAIIntegrationArchitect:
     """Design human-AI integration architectures"""
