@@ -10,154 +10,208 @@ class CategoryManager:
         self.default_categories = {
             # Technology Industry
             "IT & Technology": [
-                "Infrastructure & Cloud Services",
-                "Software Development",
-                "DevOps & IT Operations",
-                "Cybersecurity",
-                "Data Engineering & Analytics",
-                "Enterprise Systems"
+                "Infrastructure Planning and Management",
+                "Cloud Services and Architecture",
+                "Network Administration and Security",
+                "System Administration and Monitoring",
+                "Enterprise Application Management",
+                "IT Service Management and Support",
+                "Technology Strategy and Governance",
+                "Vendor and License Management",
+                "IT Asset and Configuration Management"
             ],
             "Data & Analytics": [
-                "Data Engineering",
-                "Business Intelligence",
-                "Machine Learning & AI",
-                "Data Governance",
-                "Analytics & Reporting",
-                "Data Science"
+                "Data Architecture and Engineering",
+                "Business Intelligence and Reporting",
+                "Advanced Analytics and Machine Learning",
+                "Data Governance and Quality Management",
+                "Data Integration and ETL Processes",
+                "Real-time Analytics and Streaming",
+                "Data Visualization and Dashboards",
+                "Data Privacy and Security",
+                "Analytics Strategy and ROI"
             ],
             "Product Development": [
-                "Product Strategy",
-                "Software Engineering",
-                "Quality Assurance",
-                "User Experience Design",
-                "Product Management",
-                "Release Management"
+                "Product Strategy and Roadmap Planning",
+                "Software Engineering and Development",
+                "Quality Assurance and Testing",
+                "User Experience and Interface Design",
+                "Product Management and Lifecycle",
+                "Release Management and Deployment",
+                "Technical Documentation and Standards",
+                "Product Performance and Analytics",
+                "Innovation and Research"
             ],
             "Customer Support": [
-                "Technical Support",
-                "Customer Success",
-                "Knowledge Management",
-                "Escalation Management",
-                "Self-Service Platforms",
-                "Support Analytics"
+                "Technical Support and Troubleshooting",
+                "Customer Success and Onboarding",
+                "Knowledge Base and Documentation",
+                "Escalation and Case Management",
+                "Self-Service Portal and Automation",
+                "Support Analytics and Performance",
+                "Training and Certification Programs",
+                "Community and User Engagement",
+                "Support Process Optimization"
             ],
             
             # Retail Industry
             "Store Operations": [
+                "Store Staffing and Scheduling",
                 "Inventory Management",
-                "Point of Sale Systems",
-                "Staff Scheduling",
-                "Loss Prevention",
-                "Customer Service",
-                "Store Analytics"
+                "Merchandising Execution",
+                "Point of Sale Operations",
+                "Customer Experience and Service",
+                "Loss Prevention and Security",
+                "Compliance and Store Audits",
+                "Store Communications",
+                "Facilities and Maintenance"
             ],
             "E-commerce": [
-                "Online Platform Management",
-                "Digital Marketing",
-                "Order Fulfillment",
-                "Customer Experience",
-                "Product Catalog Management",
-                "Payment Processing"
+                "Website and Mobile Platform Operations",
+                "Digital Product Catalog Management",
+                "Online Order Processing and Fulfillment",
+                "Customer Account Management",
+                "Payment Gateway and Security",
+                "Digital Marketing and SEO",
+                "Customer Reviews and Ratings",
+                "Returns and Refund Processing",
+                "Site Performance and Analytics"
             ],
             "Supply Chain & Logistics": [
-                "Warehouse Management",
-                "Transportation Planning",
-                "Vendor Management",
-                "Demand Forecasting",
-                "Distribution Centers",
-                "Last-Mile Delivery"
+                "Demand Planning and Forecasting",
+                "Vendor and Supplier Management",
+                "Warehouse Operations and Management",
+                "Transportation and Distribution",
+                "Inventory Optimization",
+                "Last-Mile Delivery Solutions",
+                "Cross-Docking and Consolidation",
+                "Supply Chain Visibility and Tracking",
+                "Logistics Cost Management"
             ],
             "Merchandising": [
-                "Product Planning",
-                "Pricing Strategy",
-                "Category Management",
-                "Seasonal Planning",
-                "Visual Merchandising",
-                "Vendor Relations"
+                "Category Planning and Management",
+                "Product Assortment Planning",
+                "Pricing Strategy and Optimization",
+                "Seasonal and Promotional Planning",
+                "Visual Merchandising and Display",
+                "Space Planning and Allocation",
+                "Product Performance Analysis",
+                "Vendor Negotiations and Relations",
+                "Private Label Development"
             ],
             "Customer Experience": [
-                "Customer Journey Mapping",
-                "Loyalty Programs",
-                "Customer Feedback",
-                "Personalization",
-                "Omnichannel Experience",
-                "Customer Analytics"
+                "Customer Journey Design and Optimization",
+                "Loyalty Program Management",
+                "Customer Feedback and Voice Programs",
+                "Personalization and Recommendation Engines",
+                "Omnichannel Experience Coordination",
+                "Customer Service Excellence",
+                "Digital Experience Optimization",
+                "Customer Retention Strategies",
+                "Experience Analytics and Insights"
             ],
             "Marketing & Promotions": [
-                "Campaign Management",
-                "Digital Marketing",
-                "Brand Management",
-                "Promotional Planning",
-                "Social Media Marketing",
-                "Marketing Analytics"
+                "Campaign Planning and Execution",
+                "Digital and Social Media Marketing",
+                "Brand Management and Positioning",
+                "Promotional Strategy and Tactics",
+                "Customer Segmentation and Targeting",
+                "Marketing Analytics and ROI",
+                "Content Creation and Management",
+                "Influencer and Partnership Marketing",
+                "Local and Regional Marketing"
             ],
             
             # Manufacturing Industry
             "Production & Assembly": [
-                "Production Planning",
-                "Assembly Line Operations",
-                "Equipment Maintenance",
-                "Quality Control",
-                "Workflow Optimization",
-                "Safety Management"
+                "Production Planning and Scheduling",
+                "Assembly Line Management and Operations",
+                "Workflow Design and Optimization",
+                "Material Requirements Planning (MRP)",
+                "Production Quality Monitoring",
+                "Equipment Operation and Control",
+                "Capacity Planning and Utilization",
+                "Work Order Management",
+                "Production Cost Control"
             ],
             "Quality Control": [
-                "Inspection Processes",
-                "Testing & Validation",
-                "Quality Metrics",
-                "Defect Analysis",
-                "Compliance Monitoring",
-                "Continuous Improvement"
+                "Inspection Planning and Execution",
+                "Statistical Process Control",
+                "Quality Testing and Validation",
+                "Defect Detection and Analysis",
+                "Corrective and Preventive Actions",
+                "Quality Documentation and Records",
+                "Supplier Quality Management",
+                "Customer Quality Requirements",
+                "Continuous Quality Improvement"
             ],
             "Plant Operations": [
-                "Facility Management",
-                "Equipment Monitoring",
-                "Energy Management",
-                "Environmental Compliance",
-                "Maintenance Scheduling",
-                "Operational Analytics"
+                "Facility and Equipment Management",
+                "Utilities and Energy Management",
+                "Environmental Health and Safety",
+                "Operational Performance Monitoring",
+                "Plant Maintenance Coordination",
+                "Production Support Services",
+                "Resource Allocation and Planning",
+                "Operational Cost Management",
+                "Plant Communication and Coordination"
             ],
             "R&D & Engineering": [
-                "Product Design",
-                "Process Engineering",
-                "Materials Research",
-                "Prototype Development",
-                "Testing & Validation",
-                "Innovation Management"
+                "Product Design and Development",
+                "Process Engineering and Optimization",
+                "Materials Research and Selection",
+                "Prototype Development and Testing",
+                "Design for Manufacturing (DFM)",
+                "Engineering Documentation and Standards",
+                "Innovation and Technology Development",
+                "Product Testing and Validation",
+                "Engineering Change Management"
             ],
             "Maintenance & Facilities": [
-                "Preventive Maintenance",
-                "Equipment Repair",
-                "Facility Management",
-                "Asset Management",
-                "Maintenance Scheduling",
-                "Safety Compliance"
+                "Preventive Maintenance Planning",
+                "Equipment Repair and Troubleshooting",
+                "Facility Infrastructure Management",
+                "Asset Lifecycle Management",
+                "Maintenance Scheduling and Coordination",
+                "Spare Parts Inventory Management",
+                "Maintenance Cost Control",
+                "Equipment Performance Monitoring",
+                "Facility Safety and Security"
             ],
             "Safety & Compliance": [
-                "Safety Protocols",
-                "Regulatory Compliance",
-                "Incident Management",
-                "Environmental Health",
-                "Training & Certification",
-                "Audit & Inspection"
+                "Workplace Safety Programs and Protocols",
+                "Regulatory Compliance Management",
+                "Incident Investigation and Reporting",
+                "Environmental Health and Safety Training",
+                "Safety Audits and Inspections",
+                "Risk Assessment and Mitigation",
+                "Emergency Response Planning",
+                "Safety Performance Metrics",
+                "Compliance Documentation and Reporting"
             ],
             
             # Healthcare Industry
             "Patient Care": [
-                "Clinical Workflows",
-                "Patient Monitoring",
-                "Treatment Planning",
-                "Care Coordination",
-                "Patient Communication",
-                "Health Records Management"
+                "Patient Assessment and Monitoring",
+                "Treatment Planning and Coordination",
+                "Medication Administration and Management",
+                "Patient Education and Communication",
+                "Care Documentation and Records",
+                "Patient Safety and Quality Measures",
+                "Discharge Planning and Follow-up",
+                "Interdisciplinary Care Coordination",
+                "Patient Experience and Satisfaction"
             ],
             "Clinical Operations": [
-                "Scheduling & Appointments",
-                "Clinical Documentation",
-                "Medical Equipment Management",
-                "Clinical Decision Support",
-                "Care Quality Metrics",
-                "Regulatory Compliance"
+                "Patient Scheduling and Appointments",
+                "Clinical Workflow Management",
+                "Medical Equipment and Resource Management",
+                "Clinical Decision Support Systems",
+                "Quality Metrics and Performance Monitoring",
+                "Regulatory Compliance and Reporting",
+                "Clinical Staff Coordination",
+                "Patient Flow and Capacity Management",
+                "Clinical Protocol and Guideline Management"
             ],
             "Medical Records": [
                 "Electronic Health Records",
@@ -210,60 +264,81 @@ class CategoryManager:
             
             # Life Sciences Industry
             "R&D & Discovery": [
-                "Drug Discovery",
-                "Clinical Research",
-                "Data Analysis",
-                "Regulatory Documentation",
-                "Collaboration Management",
-                "Intellectual Property"
+                "Target Identification and Validation",
+                "Lead Compound Discovery and Optimization",
+                "Preclinical Research and Development",
+                "Biomarker Discovery and Development",
+                "Research Data Management and Analysis",
+                "Laboratory Information Management",
+                "Intellectual Property Management",
+                "Scientific Literature and Intelligence",
+                "Research Collaboration and Partnerships"
             ],
             "Clinical Trials": [
-                "Protocol Management",
-                "Patient Recruitment",
-                "Data Collection",
-                "Regulatory Reporting",
-                "Site Management",
-                "Safety Monitoring"
+                "Protocol Design and Development",
+                "Clinical Trial Management and Operations",
+                "Patient Recruitment and Retention",
+                "Clinical Data Management and Monitoring",
+                "Regulatory Submissions and Reporting",
+                "Site Management and Training",
+                "Safety Monitoring and Pharmacovigilance",
+                "Clinical Trial Supply Management",
+                "Clinical Quality Assurance"
             ],
             "Regulatory Affairs": [
-                "Regulatory Submissions",
-                "Compliance Monitoring",
-                "Documentation Management",
-                "Agency Interactions",
-                "Product Labeling",
-                "Post-Market Surveillance"
+                "Regulatory Strategy and Planning",
+                "Regulatory Submissions and Filings",
+                "Regulatory Compliance and Monitoring",
+                "Agency Interactions and Communications",
+                "Product Labeling and Documentation",
+                "Post-Market Surveillance and Reporting",
+                "Global Regulatory Intelligence",
+                "Regulatory Change Management",
+                "Regulatory Training and Education"
             ],
             "Manufacturing & Production": [
-                "Process Development",
-                "Production Planning",
-                "Quality Control",
-                "Batch Records",
-                "Equipment Validation",
-                "Supply Chain Management"
+                "Process Development and Scale-up",
+                "Production Planning and Scheduling",
+                "Manufacturing Execution and Control",
+                "Quality Control and Testing",
+                "Batch Record Management",
+                "Equipment Validation and Qualification",
+                "Supply Chain and Materials Management",
+                "Manufacturing Technology Transfer",
+                "Production Cost Management"
             ],
             "Quality Assurance": [
-                "Quality Systems",
-                "Validation & Verification",
-                "Audit Management",
-                "Deviation Investigation",
-                "Documentation Control",
-                "Training Management"
+                "Quality Management Systems",
+                "Validation and Verification Programs",
+                "Quality Audit and Inspection Management",
+                "Deviation Investigation and CAPA",
+                "Document Control and Management",
+                "Quality Training and Competency",
+                "Supplier Quality Management",
+                "Quality Risk Management",
+                "Continuous Improvement Programs"
             ],
             "Medical Affairs": [
-                "Scientific Communications",
-                "Medical Information",
-                "Clinical Evidence Generation",
-                "KOL Management",
-                "Medical Education",
-                "Safety Surveillance"
+                "Medical Strategy and Planning",
+                "Scientific Communications and Publications",
+                "Medical Information and Inquiry Management",
+                "Clinical Evidence Generation and RWE",
+                "Key Opinion Leader Management",
+                "Medical Education and Training",
+                "Safety Surveillance and Risk Management",
+                "Medical Review and Approval",
+                "Health Economics and Outcomes Research"
             ],
             "Commercial Operations": [
-                "Sales Force Effectiveness",
-                "Marketing Analytics",
-                "Market Access",
-                "Customer Engagement",
-                "Channel Management",
-                "Launch Planning"
+                "Sales Strategy and Planning",
+                "Sales Force Effectiveness and Training",
+                "Marketing Strategy and Campaign Management",
+                "Market Access and Pricing Strategy",
+                "Customer Relationship Management",
+                "Digital Marketing and Omnichannel",
+                "Product Launch and Lifecycle Management",
+                "Commercial Analytics and Insights",
+                "Channel and Distribution Management"
             ],
             "Supply Chain": [
                 "Demand Planning",
