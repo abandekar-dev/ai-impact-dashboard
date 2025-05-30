@@ -296,11 +296,11 @@ def show_dynamic_curricula(persona_analysis: dict, curriculum_builder: DynamicCu
     elif generation_type == "Department-Specific Curriculum":
         if department_personas:
             dept_options = list(department_personas.keys())
-            selected_dept = st.selectbox("Select Department", dept_options)
+            selected_dept = st.selectbox("Select Department", dept_options, key="dept_curriculum_select")
             
             if selected_dept in department_personas:
                 role_options = [p.role_level for p in department_personas[selected_dept]]
-                selected_role = st.selectbox("Select Role Level", role_options)
+                selected_role = st.selectbox("Select Role Level", role_options, key="role_curriculum_select")
                 
                 persona = next(p for p in department_personas[selected_dept] if p.role_level == selected_role)
         else:
