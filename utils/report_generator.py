@@ -136,7 +136,7 @@ class ReportGenerator:
             })
         
         # Recommendation 3: Optimize investment allocation
-        total_investment = sum(ai_initiatives[f]['investment'] for f in predictions.keys())
+        total_investment = sum(ai_initiatives[f]['investment'] for f in predictions.keys() if f in ai_initiatives)
         if total_investment > 1000000:  # Large investment
             recommendations.append({
                 'title': 'Consider Phased Implementation',
