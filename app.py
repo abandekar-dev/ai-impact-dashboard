@@ -104,8 +104,8 @@ def auto_save_data():
 auto_save_data()
 
 def main():
-    st.title("🎯 AI Impact Predictive Dashboard")
-    st.markdown("**Executive Dashboard for Predictive Modeling of AI Implementation Impact**")
+    st.title("🎯 Analytics and Insights Engine")
+    st.markdown("**Executive Platform for Strategic AI Implementation and Workforce Transformation Analytics**")
     
     # Sidebar navigation with grouped buttons
     st.sidebar.title("Navigation")
@@ -311,7 +311,7 @@ def show_overview():
     st.markdown("""
     <h1 style="text-align: center; color: #2c3e50; font-size: 3rem; font-weight: 700; 
                text-shadow: 2px 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem;">
-        📊 AI Strategic Dashboard
+        📊 Analytics and Insights Engine
     </h1>
     """, unsafe_allow_html=True)
     

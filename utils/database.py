@@ -64,7 +64,7 @@ class Prediction(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class DatabaseManager:
-    """Database manager for AI Impact Dashboard"""
+    """Database manager for Analytics and Insights Engine"""
     
     def __init__(self):
         self.database_url = os.getenv('DATABASE_URL')
@@ -80,7 +80,7 @@ class DatabaseManager:
             max_overflow=10,
             connect_args={
                 "connect_timeout": 10,
-                "application_name": "ai_dashboard"
+                "application_name": "analytics_insights_engine"
             }
         )
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
