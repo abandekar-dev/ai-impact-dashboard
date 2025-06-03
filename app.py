@@ -179,6 +179,11 @@ def main():
         st.session_state.selected_page = "Benchmarking & Optimization"
         st.rerun()
     
+    if st.sidebar.button("🔬 AI Workflow Integration Research", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "AI Workflow Integration" else "secondary"):
+        st.session_state.selected_page = "AI Workflow Integration"
+        st.rerun()
+    
     if st.sidebar.button("🎲 Monte Carlo Simulation", use_container_width=True,
                         type="primary" if st.session_state.selected_page == "Monte Carlo Simulation" else "secondary"):
         st.session_state.selected_page = "Monte Carlo Simulation"
@@ -283,6 +288,9 @@ def main():
     elif page == "AI Learning & Upskilling Personas":
         from pages.learning_personas import show_learning_personas
         show_learning_personas()
+    elif page == "AI Workflow Integration":
+        from pages.ai_workflow_integration import show_ai_workflow_integration
+        show_ai_workflow_integration()
     elif page == "AI Assistant":
         from pages.ai_assistant import show_ai_assistant
         show_ai_assistant()
