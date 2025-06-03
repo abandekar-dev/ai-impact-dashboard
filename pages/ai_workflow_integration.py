@@ -20,9 +20,21 @@ def show_ai_workflow_integration():
         st.warning("Configure baseline data for enterprise functions first to begin workflow integration analysis.")
         return
     
-    # Department selection
-    departments = list(st.session_state.baseline_data.keys())
-    selected_dept = st.selectbox("Select Department for AI Workflow Integration", departments)
+    # Show selected industry context
+    selected_industry = st.session_state.get('selected_industry', 'Technology')
+    st.info(f"🏢 Analyzing AI workflow integration for {selected_industry} industry functions")
+    
+    # Function selection (industry-specific)
+    configured_functions = list(st.session_state.baseline_data.keys())
+    if not configured_functions:
+        st.warning("No functions configured yet. Please configure functions in the Enhanced Function Analysis section.")
+        return
+    
+    selected_dept = st.selectbox(
+        f"Select {selected_industry} Function for AI Workflow Integration", 
+        configured_functions,
+        help=f"Choose from your configured {selected_industry} industry functions"
+    )
     
     if not selected_dept:
         return
@@ -83,11 +95,22 @@ def show_workflow_design_prototyping(department: str, baseline_data: Dict, ai_in
     
     with col1:
         st.markdown("**Current Workflow State**")
-        st.markdown(f"**Department:** {department}")
+        selected_industry = st.session_state.get('selected_industry', 'Technology')
+        st.markdown(f"**Industry:** {selected_industry}")
+        st.markdown(f"**Function:** {department}")
         st.markdown(f"**Current Productivity:** {baseline_data.get('productivity', 0):.1f}%")
         st.markdown(f"**Headcount:** {baseline_data.get('headcount', 0):,}")
         st.markdown(f"**Annual Revenue:** ${baseline_data.get('revenue', 0):,.0f}")
         st.markdown(f"**Annual Costs:** ${baseline_data.get('costs', 0):,.0f}")
+        
+        # Show configured categories for this function
+        if f'categories_{department}' in st.session_state:
+            categories = st.session_state[f'categories_{department}']
+            st.markdown(f"**Configured Categories:** {len(categories)}")
+            for cat_name in list(categories.keys())[:3]:  # Show first 3 categories
+                st.markdown(f"• {cat_name}")
+            if len(categories) > 3:
+                st.markdown(f"• ... and {len(categories) - 3} more")
     
     with col2:
         st.markdown("**AI Integration Profile**")
@@ -104,27 +127,43 @@ def show_workflow_design_prototyping(department: str, baseline_data: Dict, ai_in
     st.markdown("---")
     st.subheader("🎨 Workflow Integration Design Matrix")
     
-    # Create integration patterns for each AI initiative
+    # Create integration patterns for each AI initiative with category context
     integration_patterns = []
+    
+    # Get category information for context
+    categories_info = {}
+    if f'categories_{department}' in st.session_state:
+        categories = st.session_state[f'categories_{department}']
+        for category_name, category_data in categories.items():
+            initiatives = category_data.get('ai_initiatives', {})
+            for init_id in initiatives.keys():
+                categories_info[init_id] = category_name
     
     for init in ai_initiatives:
         # Calculate integration complexity based on automation level and investment
-        complexity_score = (init['automation_level'] / 100) * 0.6 + (init['investment'] / total_investment) * 0.4
+        if total_investment > 0:
+            complexity_score = (init['automation_level'] / 100) * 0.6 + (init['investment'] / total_investment) * 0.4
+        else:
+            complexity_score = init['automation_level'] / 100
         
-        # Determine integration pattern
+        # Determine integration pattern based on industry and function context
         if complexity_score > 0.7:
             pattern = "Deep Integration"
-            description = "Fundamental workflow redesign with AI at core"
+            description = f"Fundamental {department} workflow redesign with AI at core"
         elif complexity_score > 0.4:
             pattern = "Augmented Workflow"
-            description = "AI enhances existing processes"
+            description = f"AI enhances existing {department} processes"
         else:
             pattern = "Parallel Processing"
-            description = "AI operates alongside current workflow"
+            description = f"AI operates alongside current {department} workflow"
+        
+        # Get category context
+        category = categories_info.get(init['id'], 'Uncategorized')
         
         integration_patterns.append({
             'Initiative': init['name'],
             'AI Type': init['ai_type'],
+            'Category': category,
             'Integration Pattern': pattern,
             'Complexity Score': complexity_score,
             'Description': description,
