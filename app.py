@@ -1603,11 +1603,17 @@ def show_executive_summary():
                 'baseline': st.session_state.baseline_data[function_name]
             }
     
-    summary_data = report_generator.generate_executive_summary(
-        st.session_state.baseline_data,
-        aggregated_initiatives,
-        st.session_state.predictions
-    )
+    # Create summary data from actual configured initiatives
+    summary_data = {
+        'total_investment': total_enterprise_investment,
+        'total_initiatives': total_initiatives_count,
+        'configured_functions': list(aggregated_initiatives.keys()),
+        'baseline_totals': {
+            'revenue': sum(data['baseline']['revenue'] for data in aggregated_initiatives.values()),
+            'costs': sum(data['baseline']['costs'] for data in aggregated_initiatives.values()),
+            'headcount': sum(data['baseline']['headcount'] for data in aggregated_initiatives.values())
+        }
+    }
     
     # Executive KPIs using actual configured data
     st.subheader("🎯 Key Performance Indicators")
@@ -1640,20 +1646,48 @@ def show_executive_summary():
         st.metric("Total Headcount", f"{total_baseline_headcount:,.0f}")
         st.caption("Current workforce")
     
-    # Strategic overview
+    # Strategic overview using actual configured data
     st.markdown("---")
     st.subheader("🎯 Strategic Overview")
     
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        # Portfolio overview chart
-        visualizer = DashboardVisualizer()
-        fig = visualizer.create_portfolio_overview(st.session_state.predictions)
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col2:
-        st.markdown("**Implementation Priority Matrix**")
+    if aggregated_initiatives:
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            st.markdown("**Configured AI Initiatives by Function**")
+            
+            # Display actual initiatives from your configuration
+            for function_name, function_data in aggregated_initiatives.items():
+                with st.expander(f"📊 {function_name} - {len(function_data['initiatives'])} initiatives"):
+                    st.markdown(f"**Total Investment:** ${function_data['investment']:,.0f}")
+                    st.markdown(f"**Baseline Revenue:** ${function_data['baseline']['revenue']:,.0f}")
+                    st.markdown(f"**Current Headcount:** {function_data['baseline']['headcount']:,}")
+                    
+                    if function_data['initiatives']:
+                        st.markdown("**AI Initiatives:**")
+                        for init in function_data['initiatives']:
+                            st.markdown(f"• {init['name']} ({init['ai_type']}) - ${init['investment']:,.0f} in {init['category']}")
+                    else:
+                        st.info("No AI initiatives configured yet")
+        
+        with col2:
+            st.markdown("**Implementation Summary**")
+            st.metric("Functions Configured", len(aggregated_initiatives))
+            st.metric("Total Initiatives", total_initiatives_count)
+            
+            # Show breakdown by AI type from actual data
+            ai_types = {}
+            for function_data in aggregated_initiatives.values():
+                for init in function_data['initiatives']:
+                    ai_type = init['ai_type']
+                    ai_types[ai_type] = ai_types.get(ai_type, 0) + 1
+            
+            if ai_types:
+                st.markdown("**AI Types Distribution:**")
+                for ai_type, count in ai_types.items():
+                    st.markdown(f"• {ai_type}: {count} initiatives")
+    else:
+        st.info("Configure AI initiatives in Function Analysis to see strategic overview")
         
         priority_data = []
         for func, pred in st.session_state.predictions.items():
