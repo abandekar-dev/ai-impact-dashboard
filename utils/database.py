@@ -7,6 +7,20 @@ from datetime import datetime
 import json
 from typing import Dict, List, Optional
 
+# Global database instance
+_database_instance = None
+
+def get_database_connection():
+    """Get the global database connection instance"""
+    global _database_instance
+    if _database_instance is None:
+        try:
+            _database_instance = DatabaseManager()
+        except Exception as e:
+            print(f"Database connection error: {e}")
+            return None
+    return _database_instance
+
 Base = declarative_base()
 
 class EnterpriseFunction(Base):
