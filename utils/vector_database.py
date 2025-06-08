@@ -156,7 +156,7 @@ class VectorDatabase:
             st.error(f"Error storing initiative embedding: {e}")
             return False
     
-    def find_similar_initiatives(self, query_text: str, industry: str = None, 
+    def find_similar_initiatives(self, query_text: str, industry: str = "", 
                                limit: int = 5) -> List[Dict[str, Any]]:
         """Find similar AI initiatives using semantic search"""
         if not self.vector_enabled:

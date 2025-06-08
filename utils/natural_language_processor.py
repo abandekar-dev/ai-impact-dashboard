@@ -9,7 +9,13 @@ class NaturalLanguageProcessor:
     """Natural language processing for AI initiative configuration"""
     
     def __init__(self):
-        self.openai_client = openai.OpenAI(api_key=st.secrets.get("OPENAI_API_KEY"))
+        # Use environment variable for OpenAI API key
+        import os
+        api_key = os.getenv("OPENAI_API_KEY")
+        if api_key:
+            self.openai_client = openai.OpenAI(api_key=api_key)
+        else:
+            self.openai_client = None
         
         # Industry-specific AI types mapping
         self.industry_ai_types = {
@@ -26,6 +32,10 @@ class NaturalLanguageProcessor:
     
     def parse_initiative_description(self, description: str, industry: str, function_name: str) -> Dict[str, Any]:
         """Parse natural language description into structured AI initiative configuration"""
+        
+        if not self.openai_client:
+            st.warning("OpenAI API key not configured. Using rule-based parsing.")
+            return self._rule_based_parsing(description, industry, function_name)
         
         industry_types = self.industry_ai_types.get(industry, self.industry_ai_types['Technology'])
         
@@ -68,7 +78,7 @@ class NaturalLanguageProcessor:
                 temperature=0.7
             )
             
-            result = json.loads(response.choices[0].message.content)
+            result = json.loads(response.choices[0].message.content or "{}")
             
             # Validate and clean the result
             cleaned_result = self._validate_and_clean_config(result, industry_types)
@@ -76,11 +86,14 @@ class NaturalLanguageProcessor:
             return cleaned_result
             
         except Exception as e:
-            st.error(f"Error parsing initiative description: {str(e)}")
-            return self._generate_default_config(description, industry, function_name)
+            st.warning(f"AI parsing failed, using rule-based approach: {str(e)}")
+            return self._rule_based_parsing(description, industry, function_name)
     
     def suggest_initiative_improvements(self, initiative_config: Dict[str, Any], industry: str, function_name: str) -> List[str]:
         """Suggest improvements to an existing AI initiative configuration"""
+        
+        if not self.openai_client:
+            return self._rule_based_improvements(initiative_config, industry, function_name)
         
         prompt = f"""
         Analyze this AI initiative configuration for a {industry} company's {function_name} function and suggest 3-5 specific improvements:
@@ -116,19 +129,17 @@ class NaturalLanguageProcessor:
                 temperature=0.8
             )
             
-            result = json.loads(response.choices[0].message.content)
+            result = json.loads(response.choices[0].message.content or "{}")
             return result.get('suggestions', [])
             
         except Exception as e:
-            return [
-                "Consider phased implementation to reduce risk",
-                "Validate ROI assumptions with pilot testing",
-                "Ensure adequate change management planning",
-                "Review industry benchmarks for similar initiatives"
-            ]
+            return self._rule_based_improvements(initiative_config, industry, function_name)
     
     def generate_category_suggestions(self, function_name: str, industry: str, existing_categories: List[str]) -> List[str]:
         """Generate AI category suggestions based on function and industry"""
+        
+        if not self.openai_client:
+            return self._rule_based_categories(function_name, industry, existing_categories)
         
         prompt = f"""
         For a {industry} company's {function_name} function, suggest 5-7 AI initiative categories that would be most valuable.
@@ -145,31 +156,56 @@ class NaturalLanguageProcessor:
         """
         
         try:
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": f"You are an AI strategy consultant specializing in {industry} industry transformations."
-                    },
-                    {"role": "user", "content": prompt}
-                ],
-                response_format={"type": "json_object"},
-                temperature=0.7
-            )
+            if self.openai_client:
+                response = self.openai_client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": f"You are an AI strategy consultant specializing in {industry} industry transformations."
+                        },
+                        {"role": "user", "content": prompt}
+                    ],
+                    response_format={"type": "json_object"},
+                    temperature=0.7
+                )
+                
+                content = response.choices[0].message.content
+                if content:
+                    result = json.loads(content)
+                    return list(result.keys()) if result else self._rule_based_categories(function_name, industry, existing_categories)
             
-            result = json.loads(response.choices[0].message.content)
-            return list(result.keys())
+            return self._rule_based_categories(function_name, industry, existing_categories)
             
         except Exception as e:
-            # Fallback categories based on common patterns
-            return [
-                "Process Automation",
-                "Data Analytics & Insights",
-                "Customer Experience Enhancement",
-                "Operational Efficiency",
-                "Risk Management"
-            ]
+            return self._rule_based_categories(function_name, industry, existing_categories)
+    
+    def _rule_based_categories(self, function_name: str, industry: str, existing_categories: List[str]) -> List[str]:
+        """Generate categories using rule-based logic"""
+        base_categories = [
+            "Process Automation",
+            "Data Analytics & Insights", 
+            "Customer Experience Enhancement",
+            "Operational Efficiency",
+            "Risk Management"
+        ]
+        
+        # Add industry-specific categories
+        industry_categories = {
+            'Healthcare': ["Clinical Decision Support", "Patient Care Optimization"],
+            'Financial Services': ["Fraud Detection", "Algorithmic Trading"],
+            'Retail': ["Inventory Optimization", "Personalization Engine"],
+            'Manufacturing': ["Predictive Maintenance", "Quality Control"],
+            'Technology': ["Code Generation", "Performance Optimization"]
+        }
+        
+        if industry in industry_categories:
+            base_categories.extend(industry_categories[industry])
+        
+        # Filter out existing categories
+        new_categories = [cat for cat in base_categories if cat not in existing_categories]
+        
+        return new_categories[:7]
     
     def _validate_and_clean_config(self, config: Dict[str, Any], valid_ai_types: List[str]) -> Dict[str, Any]:
         """Validate and clean the parsed configuration"""
@@ -194,8 +230,8 @@ class NaturalLanguageProcessor:
         cleaned['workforce_reduction'] = self._clean_percentage(config.get('workforce_reduction'), max_val=50)
         
         # Validate categorical fields
-        cleaned['timeline'] = self._validate_timeline(config.get('timeline'))
-        cleaned['complexity'] = self._validate_complexity(config.get('complexity'))
+        cleaned['timeline'] = self._validate_timeline(config.get('timeline', '6-12 months'))
+        cleaned['complexity'] = self._validate_complexity(config.get('complexity', 'Medium'))
         
         # Keep text fields as-is
         cleaned['description'] = str(config.get('description', ''))
@@ -218,6 +254,115 @@ class NaturalLanguageProcessor:
             return max(min_val, min(max_val, value))
         except (ValueError, TypeError):
             return min_val
+    
+    def _rule_based_parsing(self, description: str, industry: str, function_name: str) -> Dict[str, Any]:
+        """Rule-based parsing when OpenAI API is not available"""
+        
+        industry_types = self.industry_ai_types.get(industry, self.industry_ai_types['Technology'])
+        description_lower = description.lower()
+        
+        # Extract AI type based on keywords
+        ai_type = industry_types[0]  # Default
+        for ai_type_option in industry_types:
+            if any(word in description_lower for word in ai_type_option.lower().split()):
+                ai_type = ai_type_option
+                break
+        
+        # Estimate investment based on keywords
+        investment = 100000  # Default
+        if any(word in description_lower for word in ['large', 'enterprise', 'comprehensive']):
+            investment = 500000
+        elif any(word in description_lower for word in ['pilot', 'small', 'basic']):
+            investment = 50000
+        elif any(word in description_lower for word in ['medium', 'standard']):
+            investment = 200000
+        
+        # Estimate automation level
+        automation = 30  # Default
+        if any(word in description_lower for word in ['automate', 'automation', 'replace']):
+            automation = 70
+        elif any(word in description_lower for word in ['assist', 'support', 'enhance']):
+            automation = 40
+        
+        # Estimate productivity gain
+        productivity = 20  # Default
+        if any(word in description_lower for word in ['dramatically', 'significantly', 'major']):
+            productivity = 50
+        elif any(word in description_lower for word in ['improve', 'enhance', 'optimize']):
+            productivity = 30
+        
+        return {
+            'name': f"{function_name} AI Initiative",
+            'ai_type': ai_type,
+            'investment': investment,
+            'automation_level': automation,
+            'productivity_gain': productivity,
+            'workforce_reduction': max(0, automation // 10),
+            'timeline': '6-12 months',
+            'complexity': 'Medium',
+            'description': description,
+            'key_benefits': [
+                'Improved operational efficiency',
+                'Enhanced decision-making capabilities',
+                'Reduced manual workload',
+                'Better resource utilization'
+            ],
+            'implementation_steps': [
+                'Assess current processes and requirements',
+                'Design and prototype AI solution',
+                'Conduct pilot implementation',
+                'Scale to full deployment',
+                'Monitor and optimize performance'
+            ]
+        }
+    
+    def _rule_based_improvements(self, initiative_config: Dict[str, Any], industry: str, function_name: str) -> List[str]:
+        """Generate improvement suggestions using rule-based logic"""
+        
+        suggestions = []
+        investment = initiative_config.get('investment', 0)
+        automation = initiative_config.get('automation_level', 0)
+        productivity = initiative_config.get('productivity_gain', 0)
+        
+        # Investment-based suggestions
+        if investment > 500000:
+            suggestions.append("Consider phased implementation to reduce initial investment risk")
+        elif investment < 50000:
+            suggestions.append("Ensure adequate budget allocation for comprehensive implementation")
+        
+        # Automation-based suggestions
+        if automation > 80:
+            suggestions.append("Plan comprehensive change management for high automation levels")
+        elif automation < 20:
+            suggestions.append("Explore opportunities for higher automation to maximize ROI")
+        
+        # Productivity-based suggestions
+        if productivity > 50:
+            suggestions.append("Validate ambitious productivity targets with pilot testing")
+        elif productivity < 15:
+            suggestions.append("Consider more impactful AI applications to increase productivity gains")
+        
+        # Industry-specific suggestions
+        industry_suggestions = {
+            'Healthcare': "Ensure compliance with HIPAA and medical device regulations",
+            'Financial Services': "Address regulatory requirements and risk management protocols",
+            'Manufacturing': "Focus on safety protocols and quality control integration",
+            'Retail': "Consider seasonal variations and customer experience impact",
+            'Technology': "Leverage existing technical infrastructure and expertise"
+        }
+        
+        if industry in industry_suggestions:
+            suggestions.append(industry_suggestions[industry])
+        
+        # Ensure we have at least 3 suggestions
+        while len(suggestions) < 3:
+            suggestions.extend([
+                "Establish clear success metrics and monitoring framework",
+                "Plan adequate training and upskilling for affected employees",
+                "Consider integration with existing systems and workflows"
+            ])
+        
+        return suggestions[:5]  # Return top 5
     
     def _clean_percentage(self, value: Any, max_val: float = 100) -> float:
         """Clean and validate percentage values"""
