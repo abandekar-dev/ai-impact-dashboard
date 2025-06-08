@@ -3,6 +3,8 @@ import pandas as pd
 from typing import Dict, List
 from utils.category_manager import CategoryManager
 from utils.predictive_engine import PredictiveEngine
+from utils.natural_language_processor import NaturalLanguageProcessor, CrossFunctionAnalyzer
+from utils.vector_database import VectorDatabase, SemanticAnalyzer
 from datetime import datetime
 
 def show_enhanced_function_analysis(category_manager, db=None):
@@ -194,7 +196,7 @@ def show_enhanced_function_analysis(category_manager, db=None):
             st.metric("Most Common AI Type", "None")
     
     # Category management
-    tab1, tab2, tab3 = st.tabs(["📋 Manage Categories", "🤖 AI Initiatives", "📊 Category Analysis"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 Manage Categories", "🤖 AI Initiatives", "📊 Category Analysis", "🔗 Cross-Function Dependencies"])
     
     with tab1:
         st.subheader("Category Management")
@@ -241,6 +243,168 @@ def show_enhanced_function_analysis(category_manager, db=None):
         if not categories:
             st.warning("Please create at least one category first.")
             return
+        
+        # Initialize natural language processor
+        nlp = NaturalLanguageProcessor()
+        
+        # Natural language initiative configuration
+        with st.expander("🤖 Natural Language Initiative Configuration", expanded=True):
+            st.markdown("**Describe your AI initiative in plain language:**")
+            
+            initiative_description = st.text_area(
+                "Initiative Description",
+                placeholder="Example: We want to automate our customer support ticket routing using AI to improve response times by analyzing incoming emails and routing them to the right department based on urgency and topic",
+                height=100
+            )
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                category_names = list(categories.keys())
+                target_category = st.selectbox("Target Category", category_names)
+            
+            with col2:
+                if st.button("🚀 Generate AI Initiative", type="primary") and initiative_description:
+                    with st.spinner("Analyzing description and generating configuration..."):
+                        try:
+                            # Parse the description using NLP
+                            parsed_config = nlp.parse_initiative_description(
+                                initiative_description, 
+                                st.session_state.get('selected_industry', 'Technology'),
+                                selected_function
+                            )
+                            
+                            # Store the parsed configuration in session state for review
+                            st.session_state['parsed_initiative'] = parsed_config
+                            st.session_state['parsed_category'] = target_category
+                            st.success("AI initiative configuration generated! Review below.")
+                            
+                        except Exception as e:
+                            st.error(f"Error generating configuration: {str(e)}")
+        
+        # Display and edit parsed configuration
+        if 'parsed_initiative' in st.session_state:
+            st.markdown("---")
+            st.subheader("📋 Review Generated Configuration")
+            
+            parsed_config = st.session_state['parsed_initiative']
+            target_category = st.session_state.get('parsed_category', category_names[0])
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("**Generated Configuration:**")
+                edited_name = st.text_input("Initiative Name", value=parsed_config.get('name', ''))
+                edited_ai_type = st.selectbox("AI Type", 
+                    options=nlp.industry_ai_types.get(st.session_state.get('selected_industry', 'Technology'), []),
+                    index=0 if parsed_config.get('ai_type') not in nlp.industry_ai_types.get(st.session_state.get('selected_industry', 'Technology'), []) 
+                    else nlp.industry_ai_types.get(st.session_state.get('selected_industry', 'Technology'), []).index(parsed_config.get('ai_type'))
+                )
+                edited_investment = st.number_input("Investment ($)", value=parsed_config.get('investment', 0), min_value=0)
+                edited_automation = st.slider("Automation Level (%)", 0, 100, value=int(parsed_config.get('automation_level', 0)))
+                edited_productivity = st.slider("Productivity Gain (%)", 0, 100, value=int(parsed_config.get('productivity_gain', 0)))
+            
+            with col2:
+                st.markdown("**Additional Details:**")
+                edited_workforce_reduction = st.slider("Workforce Reduction (%)", 0, 50, value=int(parsed_config.get('workforce_reduction', 0)))
+                edited_timeline = st.selectbox("Timeline", 
+                    options=['3-6 months', '6-12 months', '12+ months'],
+                    index=['3-6 months', '6-12 months', '12+ months'].index(parsed_config.get('timeline', '6-12 months'))
+                )
+                edited_complexity = st.selectbox("Complexity", 
+                    options=['Low', 'Medium', 'High'],
+                    index=['Low', 'Medium', 'High'].index(parsed_config.get('complexity', 'Medium'))
+                )
+                edited_description = st.text_area("Description", value=parsed_config.get('description', ''), height=100)
+            
+            # Show benefits and implementation steps
+            st.markdown("**Key Benefits:**")
+            benefits = parsed_config.get('key_benefits', [])
+            if isinstance(benefits, list):
+                for benefit in benefits:
+                    st.markdown(f"• {benefit}")
+            
+            st.markdown("**Implementation Steps:**")
+            steps = parsed_config.get('implementation_steps', [])
+            if isinstance(steps, list):
+                for i, step in enumerate(steps, 1):
+                    st.markdown(f"{i}. {step}")
+            
+            # Improvement suggestions
+            with st.expander("💡 AI-Generated Improvement Suggestions"):
+                if st.button("Get Suggestions"):
+                    suggestions = nlp.suggest_initiative_improvements(
+                        {
+                            'name': edited_name,
+                            'ai_type': edited_ai_type,
+                            'investment': edited_investment,
+                            'automation_level': edited_automation,
+                            'productivity_gain': edited_productivity
+                        },
+                        st.session_state.get('selected_industry', 'Technology'),
+                        selected_function
+                    )
+                    
+                    for suggestion in suggestions:
+                        st.markdown(f"• {suggestion}")
+            
+            # Save configuration
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                if st.button("💾 Save Initiative", type="primary"):
+                    final_config = {
+                        'name': edited_name,
+                        'ai_type': edited_ai_type,
+                        'investment': edited_investment,
+                        'automation_level': edited_automation,
+                        'productivity_gain': edited_productivity,
+                        'workforce_reduction': edited_workforce_reduction,
+                        'timeline': edited_timeline,
+                        'complexity': edited_complexity,
+                        'description': edited_description,
+                        'key_benefits': parsed_config.get('key_benefits', []),
+                        'implementation_steps': parsed_config.get('implementation_steps', [])
+                    }
+                    
+                    initiative_id = category_manager.add_ai_initiative(
+                        selected_function, target_category, edited_name, final_config
+                    )
+                    
+                    if initiative_id:
+                        st.success(f"Initiative '{edited_name}' saved successfully!")
+                        
+                        # Store in vector database if available
+                        if db:
+                            try:
+                                vector_db = VectorDatabase(db)
+                                vector_db.store_initiative_embedding(selected_function, initiative_id, final_config)
+                            except Exception:
+                                pass  # Vector DB is optional
+                        
+                        # Clear parsed configuration
+                        del st.session_state['parsed_initiative']
+                        if 'parsed_category' in st.session_state:
+                            del st.session_state['parsed_category']
+                        st.rerun()
+                    else:
+                        st.error("Failed to save initiative.")
+            
+            with col2:
+                if st.button("🔄 Regenerate"):
+                    # Clear and regenerate
+                    del st.session_state['parsed_initiative']
+                    st.rerun()
+            
+            with col3:
+                if st.button("❌ Cancel"):
+                    del st.session_state['parsed_initiative']
+                    if 'parsed_category' in st.session_state:
+                        del st.session_state['parsed_category']
+                    st.rerun()
+        
+        st.markdown("---")
+        
+        # Manual initiative configuration (existing functionality)
+        st.subheader("📝 Manual Initiative Configuration")
         
         # Select category for initiative
         category_names = list(categories.keys())
