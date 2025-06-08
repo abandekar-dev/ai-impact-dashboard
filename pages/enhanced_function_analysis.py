@@ -659,3 +659,177 @@ def show_enhanced_function_analysis(category_manager, db=None):
                     st.rerun()
                 else:
                     st.error("Please save function baseline first.")
+    
+    with tab4:
+        st.subheader("🔗 Cross-Function Dependencies")
+        
+        # Initialize cross-function analyzer
+        cross_analyzer = CrossFunctionAnalyzer()
+        
+        # Check if there are multiple functions to analyze
+        if len(st.session_state.baseline_data) < 2:
+            st.info("Configure at least 2 functions to analyze cross-function dependencies.")
+            return
+        
+        # Run dependency analysis
+        categories_data = {key: value for key, value in st.session_state.__dict__.items() if key.startswith('categories_')}
+        dependency_analysis = cross_analyzer.analyze_function_dependencies(
+            st.session_state.baseline_data,
+            categories_data
+        )
+        
+        # Display dependency matrix
+        st.markdown("#### Function Dependency Matrix")
+        
+        dependencies = dependency_analysis['dependencies']
+        if dependencies:
+            # Create dependency visualization
+            functions = list(st.session_state.baseline_data.keys())
+            
+            # Dependency strength matrix
+            matrix_data = []
+            for func1 in functions:
+                row = {'Function': func1}
+                for func2 in functions:
+                    if func1 == func2:
+                        row[func2] = 1.0
+                    else:
+                        # Find dependency strength
+                        strength = 0
+                        func1_deps = dependencies.get(func1, [])
+                        for dep in func1_deps:
+                            if dep['target_function'] == func2:
+                                strength = dep['dependency_strength']
+                                break
+                        row[func2] = strength
+                matrix_data.append(row)
+            
+            df_matrix = pd.DataFrame(matrix_data)
+            st.dataframe(df_matrix.set_index('Function').style.background_gradient(cmap='RdYlBu_r'), use_container_width=True)
+            
+            # Dependency details
+            st.markdown("#### Dependency Details")
+            
+            for func_name, func_deps in dependencies.items():
+                if func_deps:
+                    with st.expander(f"📊 {func_name} Dependencies"):
+                        for dep in func_deps:
+                            strength = dep['dependency_strength']
+                            dep_type = dep['dependency_type']
+                            target = dep['target_function']
+                            
+                            # Color code by strength
+                            if strength > 0.7:
+                                color = "🔴"
+                            elif strength > 0.5:
+                                color = "🟡"
+                            else:
+                                color = "🟢"
+                            
+                            st.markdown(f"{color} **{target}** - {dep_type} dependency ({strength:.2f})")
+        
+        # Implementation sequence recommendation
+        st.markdown("#### Recommended Implementation Sequence")
+        
+        sequence = dependency_analysis['implementation_sequence']
+        if sequence:
+            for i, func in enumerate(sequence, 1):
+                st.markdown(f"{i}. **{func}**")
+                
+                # Show reasoning
+                func_deps = dependencies.get(func, [])
+                if func_deps:
+                    incoming = sum(1 for other_func in dependencies.values() 
+                                 for dep in other_func if dep['target_function'] == func)
+                    outgoing = len(func_deps)
+                    
+                    if i <= 3:  # First few functions
+                        reason = f"High foundation value - {incoming} functions depend on this"
+                    else:
+                        reason = f"Builds on established functions - depends on {outgoing} others"
+                    
+                    st.caption(reason)
+        
+        # Optimization opportunities
+        st.markdown("#### Cross-Function Optimization Opportunities")
+        
+        opportunities = dependency_analysis['optimization_opportunities']
+        if opportunities:
+            for opp in opportunities[:5]:  # Show top 5
+                with st.expander(f"💡 {opp['type']}"):
+                    st.markdown(f"**Functions:** {', '.join(opp['functions'])}")
+                    st.markdown(f"**Description:** {opp['description']}")
+                    
+                    if 'potential_savings' in opp:
+                        st.markdown(f"**Potential Savings:** {opp['potential_savings']}")
+                    if 'potential_benefit' in opp:
+                        st.markdown(f"**Benefit:** {opp['potential_benefit']}")
+        else:
+            st.info("No specific optimization opportunities identified. Consider adding more AI initiatives to reveal synergies.")
+        
+        # Impact matrix visualization
+        st.markdown("#### AI Implementation Impact Matrix")
+        
+        impact_matrix = dependency_analysis['impact_matrix']
+        if impact_matrix:
+            import plotly.graph_objects as go
+            
+            functions = list(impact_matrix.keys())
+            z_values = [[impact_matrix[func1][func2] for func2 in functions] for func1 in functions]
+            
+            fig = go.Figure(data=go.Heatmap(
+                z=z_values,
+                x=functions,
+                y=functions,
+                colorscale='RdYlBu_r',
+                colorbar=dict(title="Impact Strength"),
+                text=[[f"{impact_matrix[func1][func2]:.2f}" for func2 in functions] for func1 in functions],
+                texttemplate="%{text}",
+                textfont={"size": 10}
+            ))
+            
+            fig.update_layout(
+                title="Cross-Function AI Implementation Impact",
+                xaxis_title="Implementing Function",
+                yaxis_title="Affected Function",
+                height=500
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+            
+            st.caption("Higher values indicate stronger impact when the implementing function deploys AI on the affected function.")
+        
+        # Semantic clustering analysis
+        if db:
+            try:
+                vector_db = VectorDatabase(db)
+                semantic_analyzer = SemanticAnalyzer(vector_db)
+                
+                st.markdown("#### Semantic Initiative Clustering")
+                
+                cluster_analysis = semantic_analyzer.analyze_initiative_clusters(
+                    st.session_state.baseline_data,
+                    categories_data
+                )
+                
+                clusters = cluster_analysis['clusters']
+                insights = cluster_analysis['insights']
+                
+                if clusters:
+                    for cluster in clusters:
+                        with st.expander(f"🎯 Cluster: {cluster['theme']} ({len(cluster['initiatives'])} initiatives)"):
+                            st.markdown(f"**Functions:** {', '.join(cluster['functions'])}")
+                            st.markdown(f"**AI Types:** {', '.join(cluster['ai_types'])}")
+                            
+                            st.markdown("**Initiatives:**")
+                            for init in cluster['initiatives']:
+                                init_data = init['initiative_data']
+                                st.markdown(f"• {init_data.get('name', 'Unnamed')} ({init['function_name']})")
+                
+                if insights:
+                    st.markdown("**Clustering Insights:**")
+                    for insight in insights:
+                        st.markdown(f"• {insight}")
+                        
+            except Exception as e:
+                st.info("Advanced semantic clustering requires vector database setup.")
