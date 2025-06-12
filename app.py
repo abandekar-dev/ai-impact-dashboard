@@ -179,6 +179,11 @@ def main():
         st.session_state.selected_page = "Benchmarking & Optimization"
         st.rerun()
     
+    if st.sidebar.button("📊 Comparative Analysis", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Comparative Analysis" else "secondary"):
+        st.session_state.selected_page = "Comparative Analysis"
+        st.rerun()
+    
     if st.sidebar.button("🔬 AI Workflow Integration Research", use_container_width=True,
                         type="primary" if st.session_state.selected_page == "AI Workflow Integration" else "secondary"):
         st.session_state.selected_page = "AI Workflow Integration"
@@ -291,6 +296,9 @@ def main():
     elif page == "AI Workflow Integration":
         from pages.ai_workflow_integration import show_ai_workflow_integration
         show_ai_workflow_integration()
+    elif page == "Comparative Analysis":
+        from pages.comparative_analysis import show_comparative_analysis
+        show_comparative_analysis()
     elif page == "AI Assistant":
         from pages.ai_assistant import show_ai_assistant
         show_ai_assistant()
