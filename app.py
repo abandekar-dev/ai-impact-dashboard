@@ -184,6 +184,11 @@ def main():
         st.session_state.selected_page = "Comparative Analysis"
         st.rerun()
     
+    if st.sidebar.button("🔧 Build vs Buy Analysis", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Build Buy Analysis" else "secondary"):
+        st.session_state.selected_page = "Build Buy Analysis"
+        st.rerun()
+    
     if st.sidebar.button("🔬 AI Workflow Integration Research", use_container_width=True,
                         type="primary" if st.session_state.selected_page == "AI Workflow Integration" else "secondary"):
         st.session_state.selected_page = "AI Workflow Integration"
@@ -299,6 +304,9 @@ def main():
     elif page == "Comparative Analysis":
         from pages.comparative_analysis import show_comparative_analysis
         show_comparative_analysis()
+    elif page == "Build Buy Analysis":
+        from pages.build_buy_analysis import show_build_buy_analysis
+        show_build_buy_analysis()
     elif page == "AI Assistant":
         from pages.ai_assistant import show_ai_assistant
         show_ai_assistant()
