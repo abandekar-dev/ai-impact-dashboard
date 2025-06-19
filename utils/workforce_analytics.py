@@ -346,28 +346,28 @@ class PredictiveWorkforceAnalyzer:
         """Get skill importance changes based on AI type"""
         
         base_transformations = {
-            "Programming": 20,
-            "Data Analysis": 25,
-            "AI/ML Knowledge": 40,
-            "Problem Solving": 15,
-            "Critical Thinking": 20,
-            "Creativity": 25,
-            "Communication": 10,
-            "Leadership": 15,
-            "Digital Literacy": 30,
-            "Process Automation": 35
+            "Programming": 20.0,
+            "Data Analysis": 25.0,
+            "AI/ML Knowledge": 40.0,
+            "Problem Solving": 15.0,
+            "Critical Thinking": 20.0,
+            "Creativity": 25.0,
+            "Communication": 10.0,
+            "Leadership": 15.0,
+            "Digital Literacy": 30.0,
+            "Process Automation": 35.0
         }
         
         # Adjust based on AI type
         if ai_type == "Generative AI":
-            base_transformations["Creativity"] += 20
-            base_transformations["Critical Thinking"] += 15
+            base_transformations["Creativity"] += 20.0
+            base_transformations["Critical Thinking"] += 15.0
         elif ai_type == "Predictive Analytics":
-            base_transformations["Data Analysis"] += 15
-            base_transformations["Statistical Knowledge"] = 30
+            base_transformations["Data Analysis"] += 15.0
+            base_transformations["Statistical Knowledge"] = 30.0
         elif ai_type == "Process Automation":
-            base_transformations["Process Automation"] += 20
-            base_transformations["Systems Thinking"] = 25
+            base_transformations["Process Automation"] += 20.0
+            base_transformations["Systems Thinking"] = 25.0
         
         return base_transformations
     
