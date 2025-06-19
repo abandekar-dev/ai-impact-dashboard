@@ -4,9 +4,15 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
-    "anthropic>=0.52.1",
-    "openai>=1.82.1",
+    "anthropic>=0.54.0",
+    "matplotlib>=3.10.3",
+    "numpy>=2.3.0",
+    "openai>=1.88.0",
+    "pandas>=2.3.0",
+    "plotly>=6.1.2",
     "psycopg2-binary>=2.9.10",
+    "scikit-learn>=1.7.0",
     "sqlalchemy>=2.0.41",
+    "streamlit>=1.46.0",
     "trafilatura>=2.0.0",
 ]
