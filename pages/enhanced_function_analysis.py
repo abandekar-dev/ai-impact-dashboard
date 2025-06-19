@@ -299,7 +299,7 @@ def show_enhanced_function_analysis(category_manager, db=None):
                     index=0 if parsed_config.get('ai_type') not in nlp.industry_ai_types.get(st.session_state.get('selected_industry', 'Technology'), []) 
                     else nlp.industry_ai_types.get(st.session_state.get('selected_industry', 'Technology'), []).index(parsed_config.get('ai_type'))
                 )
-                edited_investment = st.number_input("Investment ($)", value=int(parsed_config.get('investment', 0)), min_value=0)
+                edited_investment = st.number_input("Investment ($)", value=parsed_config.get('investment', 0), min_value=0)
                 edited_automation = st.slider("Automation Level (%)", 0, 100, value=int(parsed_config.get('automation_level', 0)))
                 edited_productivity = st.slider("Productivity Gain (%)", 0, 100, value=int(parsed_config.get('productivity_gain', 0)))
             

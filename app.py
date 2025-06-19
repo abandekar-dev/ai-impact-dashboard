@@ -1,2295 +1,1953 @@
 import streamlit as st
-import json
-import os
+import pandas as pd
+import numpy as np
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
-import time
-import uuid
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
-# Configure Streamlit page
+# Import utility modules
+from utils.data_models import EnterpriseFunction, AIInitiative
+from utils.predictive_engine import PredictiveEngine
+from utils.visualization import DashboardVisualizer
+from utils.report_generator import ReportGenerator
+from utils.database import DatabaseManager
+from utils.benchmarking import IndustryBenchmarking, SensitivityAnalysis, ScenarioOptimization
+from utils.session_manager import SessionManager
+from utils.monte_carlo import MonteCarloSimulator, ScenarioModeler
+from utils.strategic_scenarios import StrategicScenarioPlanner
+from utils.category_manager import CategoryManager
+
+# Page configuration
 st.set_page_config(
-    page_title="AI Strategic Workforce Modeling Platform",
-    page_icon="🤖",
+    page_title="AI Impact Predictive Dashboard",
+    page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Database and Utilities
-class DatabaseManager:
-    """Manages database operations with graceful fallbacks"""
-    
-    def __init__(self):
-        self.connected = self._test_connection()
-    
-    def _test_connection(self) -> bool:
-        try:
-            import psycopg2
-            db_url = os.environ.get('DATABASE_URL')
-            if not db_url:
-                return False
-            conn = psycopg2.connect(db_url)
-            conn.close()
-            return True
-        except:
-            return False
-    
-    def save_function_data(self, function_name: str, data: Dict):
-        """Save function data with session state fallback"""
-        if not hasattr(st.session_state, 'function_data'):
-            st.session_state.function_data = {}
-        st.session_state.function_data[function_name] = data
-        
-        if self.connected:
-            try:
-                import psycopg2
-                conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
-                cur = conn.cursor()
-                cur.execute("""
-                    INSERT INTO function_analysis (function_name, data, updated_at)
-                    VALUES (%s, %s, %s)
-                    ON CONFLICT (function_name) 
-                    DO UPDATE SET data = EXCLUDED.data, updated_at = EXCLUDED.updated_at
-                """, (function_name, json.dumps(data), datetime.now()))
-                conn.commit()
-                conn.close()
-            except:
-                pass  # Fallback to session state
-    
-    def get_function_data(self, function_name: str) -> Dict:
-        """Get function data with session state fallback"""
-        if self.connected:
-            try:
-                import psycopg2
-                conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
-                cur = conn.cursor()
-                cur.execute("SELECT data FROM function_analysis WHERE function_name = %s", (function_name,))
-                result = cur.fetchone()
-                conn.close()
-                if result:
-                    return json.loads(result[0])
-            except:
-                pass
-        
-        # Fallback to session state
-        if hasattr(st.session_state, 'function_data'):
-            return st.session_state.function_data.get(function_name, {})
-        return {}
-
-class NaturalLanguageProcessor:
-    """Natural language processing for AI initiative configuration"""
-    
-    def __init__(self):
-        self.openai_available = self._check_openai()
-    
-    def _check_openai(self) -> bool:
-        try:
-            import openai
-            api_key = os.environ.get('OPENAI_API_KEY')
-            return bool(api_key)
-        except:
-            return False
-    
-    def parse_initiative_description(self, description: str, industry: str, function_name: str) -> Dict[str, Any]:
-        """Parse natural language description into structured AI initiative configuration"""
-        
-        if self.openai_available:
-            try:
-                import openai
-                client = openai.OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
-                
-                response = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[{
-                        "role": "system",
-                        "content": f"""You are an AI strategy consultant. Parse the user's description into a structured AI initiative configuration for {industry} industry, {function_name} function.
-
-Return JSON with these fields:
-- ai_type: one of ["Process Automation", "Predictive Analytics", "Natural Language Processing", "Computer Vision", "Recommendation Systems", "Robotic Process Automation", "Machine Learning", "Deep Learning"]
-- complexity: "Low", "Medium", or "High"
-- timeline_months: integer between 3-24
-- implementation_cost: integer (thousands USD)
-- confidence_level: float between 0.7-0.95
-- expected_productivity_gain: float between 0.05-0.50
-- risk_factors: array of strings
-- success_metrics: array of strings"""
-                    }, {
-                        "role": "user",
-                        "content": f"Parse this AI initiative: {description}"
-                    }],
-                    response_format={"type": "json_object"}
-                )
-                
-                return json.loads(response.choices[0].message.content)
-            except:
-                pass
-        
-        # Intelligent fallback based on keywords
-        return self._rule_based_parsing(description, industry, function_name)
-    
-    def _rule_based_parsing(self, description: str, industry: str, function_name: str) -> Dict[str, Any]:
-        """Rule-based parsing fallback"""
-        desc_lower = description.lower()
-        
-        # AI type detection
-        ai_type_map = {
-            "chatbot|chat|conversation|nlp|language": "Natural Language Processing",
-            "automat|process|workflow|rpa": "Process Automation", 
-            "predict|forecast|analytic|trend": "Predictive Analytics",
-            "vision|image|photo|visual|ocr": "Computer Vision",
-            "recommend|suggest|personali": "Recommendation Systems",
-            "robot|rpa|task": "Robotic Process Automation",
-            "learn|model|algorithm": "Machine Learning",
-            "deep|neural|ai": "Deep Learning"
-        }
-        
-        ai_type = "Process Automation"
-        for keywords, ai_tech in ai_type_map.items():
-            if any(keyword in desc_lower for keyword in keywords.split("|")):
-                ai_type = ai_tech
-                break
-        
-        # Industry-specific adjustments
-        industry_factors = {
-            "Technology": {"cost_multiplier": 1.2, "timeline_factor": 0.9},
-            "Healthcare": {"cost_multiplier": 1.5, "timeline_factor": 1.3},
-            "Financial Services": {"cost_multiplier": 1.4, "timeline_factor": 1.2},
-            "Manufacturing": {"cost_multiplier": 1.1, "timeline_factor": 1.1},
-            "Retail": {"cost_multiplier": 0.9, "timeline_factor": 0.8}
-        }
-        
-        factors = industry_factors.get(industry, {"cost_multiplier": 1.0, "timeline_factor": 1.0})
-        
-        # Complexity assessment
-        complexity_indicators = {
-            "simple|basic|easy": "Low",
-            "complex|advanced|sophisticated|enterprise": "High",
-            "": "Medium"  # default
-        }
-        
-        complexity = "Medium"
-        for keywords, level in complexity_indicators.items():
-            if keywords and any(keyword in desc_lower for keyword in keywords.split("|")):
-                complexity = level
-                break
-        
-        # Generate configuration
-        base_cost = {"Low": 50, "Medium": 150, "High": 300}[complexity]
-        base_timeline = {"Low": 6, "Medium": 12, "High": 18}[complexity]
-        
-        return {
-            "ai_type": ai_type,
-            "complexity": complexity,
-            "timeline_months": int(base_timeline * factors["timeline_factor"]),
-            "implementation_cost": int(base_cost * factors["cost_multiplier"]),
-            "confidence_level": 0.85,
-            "expected_productivity_gain": 0.15 + (0.1 if complexity == "High" else 0),
-            "risk_factors": self._generate_risk_factors(ai_type, complexity, industry),
-            "success_metrics": self._generate_success_metrics(function_name, ai_type)
-        }
-    
-    def _generate_risk_factors(self, ai_type: str, complexity: str, industry: str) -> List[str]:
-        """Generate relevant risk factors"""
-        risks = {
-            "Natural Language Processing": ["Data quality issues", "Language complexity", "User adoption"],
-            "Process Automation": ["Integration complexity", "Change resistance", "Process dependencies"],
-            "Predictive Analytics": ["Data availability", "Model accuracy", "Business volatility"],
-            "Computer Vision": ["Image quality requirements", "Hardware dependencies", "Accuracy expectations"],
-            "Recommendation Systems": ["Data sparsity", "Cold start problem", "Privacy concerns"],
-            "Machine Learning": ["Training data quality", "Model interpretability", "Performance drift"],
-            "Deep Learning": ["Computational requirements", "Black box decisions", "Training complexity"]
-        }
-        
-        base_risks = risks.get(ai_type, ["Implementation complexity", "User adoption", "Technical challenges"])
-        
-        if complexity == "High":
-            base_risks.append("Resource constraints")
-        if industry in ["Healthcare", "Financial Services"]:
-            base_risks.append("Regulatory compliance")
-            
-        return base_risks[:4]  # Limit to 4 risks
-    
-    def _generate_success_metrics(self, function_name: str, ai_type: str) -> List[str]:
-        """Generate relevant success metrics"""
-        function_metrics = {
-            "Sales": ["Revenue increase", "Lead conversion rate", "Sales cycle time"],
-            "Marketing": ["Campaign ROI", "Customer acquisition cost", "Engagement rates"],
-            "Operations": ["Process efficiency", "Error reduction", "Cost savings"],
-            "Support": ["Response time", "Resolution rate", "Customer satisfaction"],
-            "HR": ["Recruitment time", "Employee satisfaction", "Turnover reduction"],
-            "Finance": ["Processing accuracy", "Compliance rate", "Cost reduction"],
-            "IT": ["System uptime", "Security incidents", "User satisfaction"],
-            "Legal": ["Document processing time", "Compliance accuracy", "Risk reduction"],
-            "R&D": ["Innovation speed", "Project success rate", "Time to market"]
-        }
-        
-        return function_metrics.get(function_name, ["Efficiency improvement", "Cost reduction", "User satisfaction"])
-
-class CrossFunctionAnalyzer:
-    """Analyzes dependencies and relationships between enterprise functions"""
-    
-    def __init__(self):
-        self.dependency_matrix = self._build_dependency_matrix()
-    
-    def _build_dependency_matrix(self) -> Dict[str, Dict[str, float]]:
-        """Build function dependency relationships"""
-        return {
-            "Sales": {"Marketing": 0.8, "Support": 0.6, "Finance": 0.5, "Operations": 0.4},
-            "Marketing": {"Sales": 0.9, "IT": 0.7, "Operations": 0.3, "Finance": 0.4},
-            "Operations": {"IT": 0.8, "Finance": 0.7, "Support": 0.5, "HR": 0.4},
-            "Support": {"IT": 0.7, "Sales": 0.6, "Operations": 0.5, "HR": 0.3},
-            "HR": {"IT": 0.6, "Finance": 0.5, "Operations": 0.4, "Legal": 0.3},
-            "Finance": {"IT": 0.8, "Operations": 0.6, "HR": 0.5, "Legal": 0.4},
-            "IT": {"Operations": 0.9, "Finance": 0.7, "HR": 0.6, "Support": 0.8},
-            "Legal": {"Finance": 0.6, "HR": 0.5, "Operations": 0.4, "IT": 0.3},
-            "R&D": {"IT": 0.7, "Operations": 0.4, "Marketing": 0.5, "Finance": 0.3}
-        }
-    
-    def analyze_dependencies(self, functions: List[str]) -> Dict[str, Any]:
-        """Analyze dependencies between selected functions"""
-        dependencies = {}
-        impact_scores = {}
-        
-        for func in functions:
-            dependencies[func] = {}
-            impact_scores[func] = 0
-            
-            for other_func in functions:
-                if func != other_func:
-                    dependency_score = self.dependency_matrix.get(func, {}).get(other_func, 0.1)
-                    dependencies[func][other_func] = dependency_score
-                    impact_scores[func] += dependency_score
-        
-        # Generate implementation sequence
-        sequence = sorted(functions, key=lambda f: impact_scores[f], reverse=True)
-        
-        return {
-            "dependencies": dependencies,
-            "impact_scores": impact_scores,
-            "implementation_sequence": sequence,
-            "optimization_opportunities": self._find_optimization_opportunities(dependencies)
-        }
-    
-    def _find_optimization_opportunities(self, dependencies: Dict) -> List[Dict]:
-        """Find optimization opportunities across functions"""
-        opportunities = []
-        
-        # High dependency pairs
-        for func, deps in dependencies.items():
-            for dep_func, score in deps.items():
-                if score > 0.7:
-                    opportunities.append({
-                        "type": "Integration Opportunity",
-                        "functions": [func, dep_func],
-                        "potential_benefit": "Shared AI infrastructure",
-                        "estimated_savings": f"{int(score * 20)}%"
-                    })
-        
-        return opportunities
-
-class CategoryManager:
-    """Manages categories and AI initiatives within enterprise functions"""
-    
-    def __init__(self):
-        self.db = DatabaseManager()
-    
-    def get_default_categories(self, function_name: str) -> List[str]:
-        """Get default categories for a given function"""
-        categories = {
-            "Sales": ["Lead Generation", "Customer Relationship Management", "Sales Analytics", "Proposal Automation"],
-            "Marketing": ["Campaign Management", "Content Creation", "Customer Segmentation", "Performance Analytics"],
-            "Operations": ["Process Optimization", "Supply Chain", "Quality Control", "Resource Planning"],
-            "Support": ["Customer Service", "Technical Support", "Knowledge Management", "Issue Resolution"],
-            "HR": ["Recruitment", "Employee Engagement", "Performance Management", "Learning & Development"],
-            "Finance": ["Financial Planning", "Risk Management", "Compliance", "Reporting & Analytics"],
-            "IT": ["Infrastructure", "Security", "Application Development", "Data Management"],
-            "Legal": ["Contract Management", "Compliance Monitoring", "Risk Assessment", "Document Review"],
-            "R&D": ["Research Analytics", "Innovation Management", "Product Development", "Testing & Validation"]
-        }
-        return categories.get(function_name, ["General Operations", "Analytics", "Automation", "Optimization"])
-    
-    def initialize_function_categories(self, function_name: str) -> None:
-        """Initialize categories for a function if not already present"""
-        if f"{function_name}_categories" not in st.session_state:
-            categories = self.get_default_categories(function_name)
-            st.session_state[f"{function_name}_categories"] = {
-                cat: {"description": f"{cat} initiatives for {function_name}", "initiatives": {}}
-                for cat in categories
-            }
-    
-    def add_ai_initiative(self, function_name: str, category_name: str, 
-                         initiative_name: str, initiative_data: Dict) -> str:
-        """Add an AI initiative to a category"""
-        self.initialize_function_categories(function_name)
-        
-        initiative_id = str(uuid.uuid4())
-        initiative_data["id"] = initiative_id
-        initiative_data["created_at"] = datetime.now().isoformat()
-        
-        if category_name not in st.session_state[f"{function_name}_categories"]:
-            st.session_state[f"{function_name}_categories"][category_name] = {
-                "description": f"{category_name} initiatives",
-                "initiatives": {}
-            }
-        
-        st.session_state[f"{function_name}_categories"][category_name]["initiatives"][initiative_id] = {
-            "name": initiative_name,
-            "data": initiative_data
-        }
-        
-        # Save to database
-        self.db.save_function_data(function_name, st.session_state[f"{function_name}_categories"])
-        
-        return initiative_id
-    
-    def get_ai_initiatives(self, function_name: str, category_name: str = None) -> Dict:
-        """Get AI initiatives for a category or all categories in a function"""
-        self.initialize_function_categories(function_name)
-        
-        if category_name:
-            return st.session_state[f"{function_name}_categories"].get(category_name, {}).get("initiatives", {})
-        else:
-            all_initiatives = {}
-            for cat_name, cat_data in st.session_state[f"{function_name}_categories"].items():
-                all_initiatives[cat_name] = cat_data.get("initiatives", {})
-            return all_initiatives
-    
-    def get_function_summary(self, function_name: str) -> Dict:
-        """Get summary statistics for a function"""
-        self.initialize_function_categories(function_name)
-        
-        total_initiatives = 0
-        total_cost = 0
-        ai_types = {}
-        
-        for category_data in st.session_state[f"{function_name}_categories"].values():
-            for initiative in category_data.get("initiatives", {}).values():
-                total_initiatives += 1
-                total_cost += initiative["data"].get("implementation_cost", 0)
-                ai_type = initiative["data"].get("ai_type", "Unknown")
-                ai_types[ai_type] = ai_types.get(ai_type, 0) + 1
-        
-        return {
-            "total_initiatives": total_initiatives,
-            "total_cost": total_cost,
-            "ai_type_distribution": ai_types,
-            "categories": len(st.session_state[f"{function_name}_categories"])
-        }
-
-# Main Application
+# Initialize database manager
+@st.cache_resource
 def init_database():
-    """Initialize database tables if needed"""
     try:
-        import psycopg2
-        db_url = os.environ.get('DATABASE_URL')
-        if not db_url:
-            return False
-            
-        conn = psycopg2.connect(db_url)
-        cur = conn.cursor()
-        
-        # Create function_analysis table
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS function_analysis (
-                function_name VARCHAR(255) PRIMARY KEY,
-                data JSONB,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        """)
-        
-        conn.commit()
-        conn.close()
-        return True
-    except:
-        return False
+        return DatabaseManager()
+    except Exception as e:
+        st.error(f"Database connection failed: {e}")
+        return None
 
+db = init_database()
+
+# Initialize session manager
+session_manager = SessionManager(db) if db else None
+
+# Initialize session state
+if 'ai_initiatives' not in st.session_state:
+    st.session_state.ai_initiatives = {}
+if 'baseline_data' not in st.session_state:
+    st.session_state.baseline_data = {}
+if 'predictions' not in st.session_state:
+    st.session_state.predictions = {}
+if 'data_loaded' not in st.session_state:
+    st.session_state.data_loaded = False
+
+# Initialize category manager
+category_manager = CategoryManager()
+
+# Load data from database on first run
+if db and not st.session_state.data_loaded:
+    try:
+        data = db.load_all_data()
+        st.session_state.baseline_data = data['baseline_data']
+        st.session_state.ai_initiatives = data['ai_initiatives']
+        st.session_state.predictions = data['predictions']
+        st.session_state.data_loaded = True
+    except Exception as e:
+        print(f"Database load failed, using local session storage: {e}")
+        st.session_state.data_loaded = True
+
+# Auto-save mechanism to preserve data across page navigation
 def auto_save_data():
     """Automatically save data to prevent loss during navigation"""
-    if hasattr(st.session_state, 'function_data'):
-        db = DatabaseManager()
-        for func_name, data in st.session_state.function_data.items():
-            db.save_function_data(func_name, data)
+    if 'last_save_timestamp' not in st.session_state:
+        st.session_state.last_save_timestamp = 0
+    
+    import time
+    current_time = time.time()
+    
+    # Auto-save every 30 seconds if data has changed
+    if current_time - st.session_state.last_save_timestamp > 30:
+        try:
+            # Save to local session storage as backup
+            if not hasattr(st.session_state, 'local_backup'):
+                st.session_state.local_backup = {}
+            
+            st.session_state.local_backup = {
+                'baseline_data': dict(st.session_state.baseline_data),
+                'ai_initiatives': dict(st.session_state.ai_initiatives),
+                'predictions': dict(st.session_state.predictions),
+                'timestamp': current_time
+            }
+            
+            # Try to save to database if available
+            if db:
+                try:
+                    for func_name, baseline in st.session_state.baseline_data.items():
+                        db.save_function_baseline(func_name, baseline)
+                except Exception:
+                    pass  # Silent fail, data is still preserved locally
+                    
+            st.session_state.last_save_timestamp = current_time
+        except Exception:
+            pass  # Continue even if auto-save fails
+
+# Call auto-save
+auto_save_data()
 
 def main():
-    """Main application entry point"""
+    st.title("🎯 Analytics and Insights Engine")
+    st.markdown("**Executive Platform for Strategic AI Implementation and Workforce Transformation Analytics**")
     
-    # Initialize database
-    db_connected = init_database()
+    # Sidebar navigation with grouped buttons
+    st.sidebar.title("Navigation")
     
-    # Initialize session state
-    if 'current_page' not in st.session_state:
-        st.session_state.current_page = 'Overview'
+    # Initialize session state for page selection
+    if 'selected_page' not in st.session_state:
+        st.session_state.selected_page = "Overview"
     
-    # Sidebar navigation
-    st.sidebar.title("🤖 AI Strategic Platform")
+    # Overview (always visible)
+    if st.sidebar.button("🏠 Overview", use_container_width=True, 
+                        type="primary" if st.session_state.selected_page == "Overview" else "secondary"):
+        st.session_state.selected_page = "Overview"
+        st.rerun()
+    
     st.sidebar.markdown("---")
     
-    # Database status
-    if db_connected:
-        st.sidebar.success("🔗 Database Connected")
-    else:
-        st.sidebar.warning("📱 Session Mode")
+    # Inputs Section
+    st.sidebar.markdown("### 📥 Inputs")
+    if st.sidebar.button("🏢 Input by Department/Business", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Function Analysis" else "secondary"):
+        st.session_state.selected_page = "Function Analysis"
+        st.rerun()
     
-    # Navigation
-    pages = {
-        "📊 Overview": show_overview,
-        "🎯 Function Analysis": show_function_analysis,
-        "🎲 Monte Carlo Simulation": show_monte_carlo_simulation,
-        "📈 Strategic Planning": show_strategic_planning,
-        "⚖️ Scenario Comparison": show_scenario_comparison,
-        "⏰ Temporal Analysis": show_temporal_analysis,
-        "📋 Executive Summary": show_executive_summary,
-        "🔧 Benchmarking & Optimization": show_benchmarking_optimization
-    }
+    if st.sidebar.button("🎯 Corporate Objectives & KPIs", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Corporate Objectives" else "secondary"):
+        st.session_state.selected_page = "Corporate Objectives"
+        st.rerun()
     
-    selected_page = st.sidebar.selectbox(
-        "Navigate to",
-        list(pages.keys()),
-        index=list(pages.keys()).index(f"📊 {st.session_state.current_page}") if f"📊 {st.session_state.current_page}" in pages else 0
-    )
+    if st.sidebar.button("💰 Budget & Resource Constraints", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Budget Resources" else "secondary"):
+        st.session_state.selected_page = "Budget Resources"
+        st.rerun()
     
-    st.session_state.current_page = selected_page.split(" ", 1)[1]
+    if st.sidebar.button("🔄 Change Management Readiness", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Change Management" else "secondary"):
+        st.session_state.selected_page = "Change Management"
+        st.rerun()
     
-    # Auto-save data
-    auto_save_data()
+    if st.sidebar.button("🔗 Enterprise Data Integration", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Enterprise Integration" else "secondary"):
+        st.session_state.selected_page = "Enterprise Integration"
+        st.rerun()
     
-    # Display selected page
-    pages[selected_page]()
+    st.sidebar.markdown("---")
+    
+    # Analyses Section
+    st.sidebar.markdown("### 🔬 Analyses")
+    
+    if st.sidebar.button("🎯 Strategic Planning", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Strategic Planning" else "secondary"):
+        st.session_state.selected_page = "Strategic Planning"
+        st.rerun()
+    
+    if st.sidebar.button("👥 Workforce Analytics", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Workforce Analytics" else "secondary"):
+        st.session_state.selected_page = "Workforce Analytics"
+        st.rerun()
+    
+    if st.sidebar.button("🎓 AI Learning & Upskilling Personas", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "AI Learning & Upskilling Personas" else "secondary"):
+        st.session_state.selected_page = "AI Learning & Upskilling Personas"
+        st.rerun()
+    
+    if st.sidebar.button("📊 Performance Analysis", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Performance Analysis" else "secondary"):
+        st.session_state.selected_page = "Performance Analysis"
+        st.rerun()
+    
+    if st.sidebar.button("⚖️ Benchmarking & Optimization", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Benchmarking & Optimization" else "secondary"):
+        st.session_state.selected_page = "Benchmarking & Optimization"
+        st.rerun()
+    
+    if st.sidebar.button("🔬 AI Workflow Integration Research", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "AI Workflow Integration" else "secondary"):
+        st.session_state.selected_page = "AI Workflow Integration"
+        st.rerun()
+    
+    if st.sidebar.button("🎲 Monte Carlo Simulation", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Monte Carlo Simulation" else "secondary"):
+        st.session_state.selected_page = "Monte Carlo Simulation"
+        st.rerun()
+    
+    st.sidebar.markdown("---")
+    
+    # Outputs Section
+    st.sidebar.markdown("### 📤 Outputs")
+    if st.sidebar.button("🤖 AI Strategic Assistant", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "AI Assistant" else "secondary"):
+        st.session_state.selected_page = "AI Assistant"
+        st.rerun()
+    
+    if st.sidebar.button("📋 Executive Summary", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Executive Summary" else "secondary"):
+        st.session_state.selected_page = "Executive Summary"
+        st.rerun()
+    
+    # Use the selected page
+    page = st.session_state.selected_page
+    
+    # Session Management Sidebar
+    if session_manager:
+        st.sidebar.markdown("---")
+        st.sidebar.subheader("💾 Session Management")
+        
+        # Create new session button
+        if st.sidebar.button("🆕 Create New Session", use_container_width=True, type="secondary"):
+            if session_manager.create_new_session():
+                st.success("New session created! All data cleared.")
+                st.rerun()
+            else:
+                st.error("Failed to create new session")
+        
+        # Save current session
+        with st.sidebar.expander("Save Current Session"):
+            session_name = st.text_input("Session Name", key="save_session_name")
+            session_desc = st.text_area("Description (optional)", key="save_session_desc")
+            
+            if st.button("💾 Save Session") and session_name:
+                if session_manager.save_session(session_name, session_desc):
+                    st.success(f"Session '{session_name}' saved!")
+                else:
+                    st.error("Failed to save session")
+        
+        # Load saved session
+        with st.sidebar.expander("Load Saved Session"):
+            saved_sessions = session_manager.get_saved_sessions()
+            
+            if saved_sessions:
+                session_options = [f"{s['name']} ({s['updated_at'].strftime('%Y-%m-%d %H:%M') if hasattr(s['updated_at'], 'strftime') else s['updated_at']})" for s in saved_sessions]
+                selected_session = st.selectbox("Select Session", [""] + session_options, key="load_session_select")
+                
+                if selected_session and st.button("📂 Load Session"):
+                    session_name = selected_session.split(" (")[0]
+                    if session_manager.load_session(session_name):
+                        st.success(f"Session '{session_name}' loaded!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to load session")
+                
+                # Display session info
+                if saved_sessions:
+                    st.markdown("**Saved Sessions:**")
+                    for session in saved_sessions[:3]:
+                        st.write(f"• {session['name']}")
+                        st.caption(session['description'])
+            else:
+                st.write("No saved sessions found")
+    
+    # Main content based on page selection
+    if page == "Overview":
+        show_overview()
+    elif page == "Function Analysis":
+        from pages.enhanced_function_analysis import show_enhanced_function_analysis
+        show_enhanced_function_analysis(category_manager, db)
+    elif page == "Corporate Objectives":
+        from pages.corporate_objectives import show_corporate_objectives
+        show_corporate_objectives()
+    elif page == "Budget Resources":
+        from pages.budget_resources import show_budget_resources
+        show_budget_resources()
+    elif page == "Change Management":
+        from pages.change_management import show_change_management
+        show_change_management()
+    elif page == "Enterprise Integration":
+        from pages.enterprise_integrations import show_enterprise_integrations
+        show_enterprise_integrations()
+    elif page == "Monte Carlo Simulation":
+        show_monte_carlo_simulation()
+    elif page == "Strategic Planning":
+        show_strategic_planning()
+    elif page == "Benchmarking & Optimization":
+        show_benchmarking_optimization()
+    elif page == "Performance Analysis":
+        from pages.performance_analysis import show_performance_analysis
+        show_performance_analysis(category_manager)
+    elif page == "Workforce Analytics":
+        from pages.workforce_analytics import show_workforce_analytics
+        show_workforce_analytics()
+    elif page == "AI Learning & Upskilling Personas":
+        from pages.learning_personas import show_learning_personas
+        show_learning_personas()
+    elif page == "AI Workflow Integration":
+        from pages.ai_workflow_integration import show_ai_workflow_integration
+        show_ai_workflow_integration()
+    elif page == "AI Assistant":
+        from pages.ai_assistant import show_ai_assistant
+        show_ai_assistant()
+    elif page == "Executive Summary":
+        show_executive_summary()
 
 def show_overview():
-    """Main overview page with system status and quick actions"""
-    st.title("🤖 AI Strategic Workforce Modeling Platform")
-    st.markdown("### Transform your enterprise with intelligent AI strategic planning")
+    # Add modern background styling
+    st.markdown("""
+    <style>
+    .main > div {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+    .block-container {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        margin-top: 2rem;
+        padding: 2rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     
-    # System status
+    st.markdown("""
+    <h1 style="text-align: center; color: #2c3e50; font-size: 3rem; font-weight: 700; 
+               text-shadow: 2px 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        📊 Analytics and Insights Engine
+    </h1>
+    """, unsafe_allow_html=True)
+    
+    # Modern metrics cards with gradient styling
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("Database Status", "Connected" if DatabaseManager().connected else "Session Mode")
+        active_functions = len(st.session_state.baseline_data)
+        from utils.chart_styling import create_styled_metric_card
+        st.markdown(create_styled_metric_card(
+            f"{active_functions}", 
+            "Active Functions",
+            "aurora"
+        ), unsafe_allow_html=True)
     
     with col2:
-        nlp = NaturalLanguageProcessor()
-        st.metric("AI Services", "Available" if nlp.openai_available else "Offline Mode")
+        total_revenue = sum(data.get('annual_revenue', 0) for data in st.session_state.baseline_data.values())
+        st.markdown(create_styled_metric_card(
+            f"${total_revenue:,.0f}", 
+            "Total Revenue",
+            "forest"
+        ), unsafe_allow_html=True)
     
     with col3:
-        # Count total functions configured
-        total_functions = len([key for key in st.session_state.keys() if key.endswith('_categories')])
-        st.metric("Functions Configured", total_functions)
+        total_headcount = sum(data.get('headcount', 0) for data in st.session_state.baseline_data.values())
+        st.markdown(create_styled_metric_card(
+            f"{total_headcount:,}", 
+            "Total Headcount",
+            "coral"
+        ), unsafe_allow_html=True)
     
     with col4:
-        # Count total initiatives
-        total_initiatives = 0
-        for key in st.session_state.keys():
-            if key.endswith('_categories'):
-                for category_data in st.session_state[key].values():
-                    total_initiatives += len(category_data.get('initiatives', {}))
-        st.metric("AI Initiatives", total_initiatives)
+        if st.session_state.predictions:
+            avg_roi = np.mean([p.get('roi', 0) for p in st.session_state.predictions.values()])
+            roi_display = f"{avg_roi:.1f}%"
+        else:
+            roi_display = "N/A"
+        st.markdown(create_styled_metric_card(
+            roi_display, 
+            "Projected ROI",
+            "sunset"
+        ), unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Enhanced function status in styled cards
+    st.markdown("""
+    <div style="background: white; padding: 2rem; border-radius: 12px; 
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb;">
+    """, unsafe_allow_html=True)
+    
+    st.subheader("🚀 Function Configuration Status")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**Enterprise Functions:**")
+        functions = ["HR & Talent Management", "Finance & Accounting", "Operations & Supply Chain", 
+                    "Sales & Marketing", "IT & Technology", "Customer Service", "Legal & Compliance", "R&D",
+                    "Manufacturing & Production", "Quality Assurance", "Business Development", "Strategy & Planning",
+                    "Risk Management", "Procurement", "Facilities Management", "Data & Analytics"]
+        
+        for func in functions:
+            if func in st.session_state.baseline_data:
+                st.markdown(f"""
+                <div style="background: #f0f9ff; padding: 0.75rem; border-radius: 8px; 
+                            margin: 0.25rem 0; border-left: 4px solid #10b981;">
+                    ✅ {func} - Configured
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div style="background: #f9fafb; padding: 0.75rem; border-radius: 8px; 
+                            margin: 0.25rem 0; border-left: 4px solid #d1d5db;">
+                    ⚪ {func} - Not configured
+                </div>
+                """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("**Quick Start Guide:**")
+        steps = [
+            "Navigate to **Function Analysis** to configure departments",
+            "Set baseline metrics and AI implementation parameters", 
+            "Use **Strategic Planning** to evaluate scenarios",
+            "Review **Workforce Analytics** for impact assessment",
+            "Generate **Executive Summary** for stakeholder presentations"
+        ]
+        
+        for i, step in enumerate(steps, 1):
+            st.markdown(f"""
+            <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; 
+                        margin: 0.5rem 0; border-left: 4px solid #3b82f6;">
+                <strong>{i}.</strong> {step}
+            </div>
+            """, unsafe_allow_html=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Performance visualization if data exists
+    if len(st.session_state.baseline_data) > 0:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("""
+        <div style="background: white; padding: 2rem; border-radius: 12px; 
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb;">
+        """, unsafe_allow_html=True)
+        
+        st.subheader("📈 Performance Overview")
+        
+        # Create enhanced performance visualization
+        functions = []
+        productivity = []
+        satisfaction = []
+        
+        for func_name, data in st.session_state.baseline_data.items():
+            functions.append(func_name)
+            productivity.append(data.get('current_productivity', 0))
+            satisfaction.append(data.get('performance_satisfaction', 0))
+        
+        fig = go.Figure()
+        
+        # Enhanced bar chart with modern styling
+        fig.add_trace(go.Bar(
+            name='Current Productivity', 
+            x=functions, 
+            y=productivity,
+            marker_color='rgba(99, 102, 241, 0.8)',
+            marker_line_color='rgba(99, 102, 241, 1.0)',
+            marker_line_width=2,
+            text=[f'{p}%' for p in productivity],
+            textposition='outside'
+        ))
+        
+        fig.add_trace(go.Bar(
+            name='Performance Satisfaction', 
+            x=functions, 
+            y=satisfaction,
+            marker_color='rgba(16, 185, 129, 0.8)',
+            marker_line_color='rgba(16, 185, 129, 1.0)',
+            marker_line_width=2,
+            text=[f'{s}%' for s in satisfaction],
+            textposition='outside'
+        ))
+        
+        fig.update_layout(
+            title={
+                'text': "Current Performance Metrics by Function",
+                'x': 0.5,
+                'xanchor': 'center',
+                'font': {'size': 18, 'family': 'Arial, sans-serif', 'color': '#1f2937'}
+            },
+            xaxis_title="Business Functions",
+            yaxis_title="Performance Score (0-100)",
+            barmode='group',
+            height=450,
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font={'family': 'Arial, sans-serif', 'color': '#374151'},
+            legend={
+                'orientation': 'h',
+                'yanchor': 'bottom',
+                'y': 1.02,
+                'xanchor': 'right',
+                'x': 1,
+                'bgcolor': 'rgba(255,255,255,0.8)'
+            },
+            margin={'t': 60, 'b': 40, 'l': 40, 'r': 40}
+        )
+        
+        fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)', tickangle=45)
+        fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)')
+        
+        st.plotly_chart(fig, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+def show_function_analysis():
+    st.header("🏢 Function Analysis")
+    
+    # Function selector
+    functions = ["HR & Talent Management", "Finance & Accounting", "Operations & Supply Chain", 
+                "Sales & Marketing", "IT & Technology", "Customer Service", "Legal & Compliance", "R&D",
+                "Manufacturing & Production", "Quality Assurance", "Business Development", "Strategy & Planning",
+                "Risk Management", "Procurement", "Facilities Management", "Data & Analytics"]
+    
+    selected_function = st.selectbox("Select Enterprise Function", functions)
     
     st.markdown("---")
     
-    # Quick Start Guide
-    st.subheader("🚀 Quick Start Guide")
-    
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([1, 1])
     
     with col1:
-        st.markdown("""
-        **Phase 1 Optimizations Active:**
-        - ✅ Natural Language Configuration
-        - ✅ Cross-Function Dependency Analysis  
-        - ✅ Industry-Specific Intelligence
-        - ✅ Vector Database Integration
-        """)
+        st.subheader("📋 Baseline Metrics")
+        
+        # Current metrics input
+        current_productivity = st.number_input("Current Productivity Index (0-100)", 
+                                             min_value=0.0, max_value=100.0, value=75.0, step=0.1)
+        current_headcount = st.number_input("Current Headcount", min_value=1, value=100, step=1)
+        current_revenue = st.number_input("Annual Revenue Contribution ($)", 
+                                        min_value=0, value=1000000, step=10000)
+        current_costs = st.number_input("Annual Operating Costs ($)", 
+                                      min_value=0, value=500000, step=10000)
+        current_satisfaction = st.number_input("Performance Satisfaction (0-100)", 
+                                             min_value=0.0, max_value=100.0, value=80.0, step=0.1)
     
     with col2:
-        st.markdown("""
-        **Getting Started:**
-        1. Navigate to **Function Analysis** 
-        2. Select your industry and function
-        3. Describe your AI initiatives in plain English
-        4. Review generated configurations and dependencies
-        """)
-    
-    # Architecture Overview
-    st.subheader("🏗️ System Architecture")
-    
-    if os.path.exists("ai_platform_architecture.png"):
-        st.image("ai_platform_architecture.png", caption="AI Strategic Platform Architecture", use_column_width=True)
-    else:
-        st.info("Architecture diagram available - click to generate visual overview")
-        if st.button("Generate Architecture Diagram"):
-            # Placeholder for architecture generation
-            st.success("Architecture diagram would be generated here")
-    
-    # Recent Activity
-    st.subheader("📈 Recent Activity")
-    
-    if total_initiatives > 0:
-        st.success(f"System is active with {total_initiatives} AI initiatives across {total_functions} functions")
+        st.subheader("🤖 AI Initiative Configuration")
         
-        # Show recent initiatives
-        recent_initiatives = []
-        for key in st.session_state.keys():
-            if key.endswith('_categories'):
-                function_name = key.replace('_categories', '')
-                for category_name, category_data in st.session_state[key].items():
-                    for initiative_id, initiative in category_data.get('initiatives', {}).items():
-                        recent_initiatives.append({
-                            'function': function_name,
-                            'category': category_name,
-                            'name': initiative['name'],
-                            'ai_type': initiative['data'].get('ai_type', 'Unknown'),
-                            'created': initiative['data'].get('created_at', 'Unknown')
-                        })
+        ai_type = st.selectbox("AI Implementation Type", 
+                              ["Automation", "Augmentation", "Analytics", "Hybrid"])
+        implementation_complexity = st.selectbox("Implementation Complexity", 
+                                                ["Low", "Medium", "High"])
+        investment_amount = st.number_input("Total Investment ($)", 
+                                          min_value=0, value=100000, step=5000)
+        implementation_timeline = st.selectbox("Implementation Timeline", 
+                                             ["3 months", "6 months", "12 months", "18 months", "24 months"])
+        change_management = st.selectbox("Change Management Approach", 
+                                       ["Gradual", "Phased", "Big Bang"])
+    
+    st.markdown("---")
+    
+    # Advanced parameters
+    with st.expander("🔧 Advanced Parameters"):
+        col1, col2, col3 = st.columns(3)
         
-        if recent_initiatives:
-            # Sort by creation date and show last 5
-            recent_initiatives.sort(key=lambda x: x['created'], reverse=True)
-            
-            st.markdown("**Recent AI Initiatives:**")
-            for initiative in recent_initiatives[:5]:
-                st.markdown(f"• **{initiative['name']}** ({initiative['ai_type']}) - {initiative['function']}")
-    else:
-        st.info("Start by configuring your first AI initiative in the Function Analysis section")
-
-def show_function_analysis():
-    """Enhanced function analysis with natural language AI initiative creation"""
-    st.title("🎯 Enhanced Function Analysis")
-    st.markdown("Configure AI initiatives using natural language descriptions")
-    
-    # Initialize managers
-    category_manager = CategoryManager()
-    nlp_processor = NaturalLanguageProcessor()
-    cross_analyzer = CrossFunctionAnalyzer()
-    
-    # Industry and Function Selection
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        industries = [
-            "Technology", "Healthcare", "Financial Services", "Manufacturing", 
-            "Retail", "Life Sciences", "Energy & Utilities", "Education", "Government"
-        ]
-        selected_industry = st.selectbox("Select Industry", industries)
-    
-    with col2:
-        functions = [
-            "Sales", "Marketing", "Operations", "Support", "HR", 
-            "Finance", "IT", "Legal", "R&D"
-        ]
-        selected_function = st.selectbox("Select Function", functions)
-    
-    # Initialize categories for selected function
-    category_manager.initialize_function_categories(selected_function)
-    
-    # Tabs for different analysis views
-    tab1, tab2, tab3 = st.tabs(["AI Initiative Creation", "Function Overview", "Cross-Function Dependencies"])
-    
-    with tab1:
-        st.subheader("🤖 Create AI Initiative")
+        with col1:
+            st.markdown("**Risk Factors**")
+            technical_risk = st.slider("Technical Risk (0-100)", 0, 100, 30)
+            adoption_risk = st.slider("User Adoption Risk (0-100)", 0, 100, 40)
+            integration_risk = st.slider("Integration Risk (0-100)", 0, 100, 35)
+            regulatory_risk = st.slider("Regulatory Risk (0-100)", 0, 100, 25)
+            competitive_risk = st.slider("Competitive Risk (0-100)", 0, 100, 20)
+            data_risk = st.slider("Data Quality Risk (0-100)", 0, 100, 30)
         
-        # Natural Language Input
-        st.markdown("**Describe your AI initiative in plain English:**")
-        initiative_description = st.text_area(
-            "Initiative Description",
-            placeholder="E.g., 'Implement a chatbot to handle customer support inquiries and reduce response time'",
-            height=100
-        )
+        with col2:
+            st.markdown("**Expected Improvements**")
+            automation_level = st.slider("Automation Level (%)", 0, 100, 50)
+            accuracy_improvement = st.slider("Accuracy Improvement (%)", 0, 100, 25)
+            speed_improvement = st.slider("Speed Improvement (%)", 0, 100, 40)
         
-        initiative_name = st.text_input(
-            "Initiative Name",
-            placeholder="E.g., Customer Support Chatbot"
-        )
-        
-        categories = category_manager.get_default_categories(selected_function)
-        selected_category = st.selectbox("Category", categories)
-        
-        if st.button("🔮 Generate AI Configuration", type="primary"):
-            if initiative_description and initiative_name:
-                with st.spinner("Analyzing initiative and generating configuration..."):
-                    # Parse the description
-                    config = nlp_processor.parse_initiative_description(
-                        initiative_description, selected_industry, selected_function
-                    )
-                    
-                    # Display generated configuration
-                    st.success("✅ AI Initiative Configuration Generated!")
-                    
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        st.markdown("**Generated Configuration:**")
-                        st.json(config)
-                    
-                    with col2:
-                        st.markdown("**Key Metrics:**")
-                        st.metric("AI Type", config.get('ai_type', 'Unknown'))
-                        st.metric("Complexity", config.get('complexity', 'Unknown'))
-                        st.metric("Timeline", f"{config.get('timeline_months', 0)} months")
-                        st.metric("Cost", f"${config.get('implementation_cost', 0):,}k")
-                        st.metric("Productivity Gain", f"{config.get('expected_productivity_gain', 0):.1%}")
-                    
-                    # Save initiative
-                    if st.button("💾 Save Initiative"):
-                        initiative_id = category_manager.add_ai_initiative(
-                            selected_function, selected_category, initiative_name, config
-                        )
-                        st.success(f"Initiative '{initiative_name}' saved successfully!")
-                        st.rerun()
-            else:
-                st.error("Please provide both initiative description and name")
+        with col3:
+            st.markdown("**Workforce Impact**")
+            workforce_reduction = st.slider("Workforce Reduction (%)", 0, 50, 10)
+            upskilling_required = st.slider("Upskilling Required (%)", 0, 100, 60)
+            new_roles_created = st.slider("New Roles Created (%)", 0, 30, 5)
     
-    with tab2:
-        st.subheader("📊 Function Overview")
+    # Save configuration
+    if st.button("💾 Save Configuration & Run Predictions", type="primary"):
+        # Store baseline data
+        baseline_data = {
+            'productivity': current_productivity,
+            'headcount': int(current_headcount),
+            'revenue': current_revenue,
+            'costs': current_costs,
+            'satisfaction': current_satisfaction
+        }
+        st.session_state.baseline_data[selected_function] = baseline_data
         
-        # Function summary
-        summary = category_manager.get_function_summary(selected_function)
+        # Store AI initiative data
+        initiative_data = {
+            'ai_type': ai_type,
+            'complexity': implementation_complexity,
+            'investment': investment_amount,
+            'timeline': implementation_timeline,
+            'change_management': change_management,
+            'technical_risk': technical_risk,
+            'adoption_risk': adoption_risk,
+            'integration_risk': integration_risk,
+            'regulatory_risk': regulatory_risk,
+            'competitive_risk': competitive_risk,
+            'data_risk': data_risk,
+            'automation_level': automation_level,
+            'accuracy_improvement': accuracy_improvement,
+            'speed_improvement': speed_improvement,
+            'workforce_reduction': workforce_reduction,
+            'upskilling_required': upskilling_required,
+            'new_roles_created': new_roles_created
+        }
+        st.session_state.ai_initiatives[selected_function] = {
+            'type': ai_type,
+            'complexity': implementation_complexity,
+            'investment': investment_amount,
+            'timeline': implementation_timeline,
+            'change_management': change_management,
+            'technical_risk': technical_risk,
+            'adoption_risk': adoption_risk,
+            'integration_risk': integration_risk,
+            'regulatory_risk': regulatory_risk,
+            'competitive_risk': competitive_risk,
+            'data_risk': data_risk,
+            'automation_level': automation_level,
+            'accuracy_improvement': accuracy_improvement,
+            'speed_improvement': speed_improvement,
+            'workforce_reduction': workforce_reduction,
+            'upskilling_required': upskilling_required,
+            'new_roles_created': new_roles_created
+        }
+        
+        # Save to database if available
+        if db:
+            db.save_function_baseline(selected_function, baseline_data)
+            db.save_ai_initiative(selected_function, initiative_data)
+        
+        # Run predictions
+        engine = PredictiveEngine()
+        predictions = engine.predict_impact(baseline_data, initiative_data)
+        st.session_state.predictions[selected_function] = predictions
+        
+        # Save predictions to database if available
+        if db:
+            db.save_prediction(selected_function, predictions)
+        
+        st.success("✅ Configuration saved and predictions generated!")
+        st.rerun()
+    
+    # Display predictions if available
+    if selected_function in st.session_state.predictions:
+        st.markdown("---")
+        st.subheader("📈 Prediction Results")
+        
+        predictions = st.session_state.predictions[selected_function]
         
         col1, col2, col3, col4 = st.columns(4)
+        
         with col1:
-            st.metric("Total Initiatives", summary['total_initiatives'])
+            st.metric("Productivity Gain", f"{predictions['productivity_gain']:.1f}%")
         with col2:
-            st.metric("Total Investment", f"${summary['total_cost']:,}k")
+            st.metric("ROI", f"{predictions['roi']:.1f}%")
         with col3:
-            st.metric("Categories", summary['categories'])
+            st.metric("Value Generated", f"${predictions['value_generated']:,.0f}")
         with col4:
-            avg_cost = summary['total_cost'] / max(summary['total_initiatives'], 1)
-            st.metric("Avg Cost per Initiative", f"${avg_cost:,.0f}k")
+            st.metric("Payback Period", f"{predictions['payback_period']:.1f} months")
         
-        # AI Type Distribution
-        if summary['ai_type_distribution']:
-            st.markdown("**AI Type Distribution:**")
+        # Model confidence and quality indicators (if available)
+        if 'confidence_metrics' in predictions:
+            st.markdown("---")
+            st.subheader("🎯 Prediction Quality & Confidence")
             
-            # Create a simple bar chart data
-            ai_types = list(summary['ai_type_distribution'].keys())
-            counts = list(summary['ai_type_distribution'].values())
+            confidence = predictions['confidence_metrics']
             
-            chart_data = {ai_type: count for ai_type, count in zip(ai_types, counts)}
-            st.bar_chart(chart_data)
-        
-        # Category Details
-        st.markdown("**Category Breakdown:**")
-        
-        categories_data = st.session_state.get(f"{selected_function}_categories", {})
-        for category_name, category_data in categories_data.items():
-            initiatives = category_data.get('initiatives', {})
-            
-            if initiatives:
-                with st.expander(f"{category_name} ({len(initiatives)} initiatives)"):
-                    for initiative_id, initiative in initiatives.items():
-                        st.markdown(f"**{initiative['name']}**")
-                        col1, col2, col3 = st.columns(3)
-                        
-                        with col1:
-                            st.write(f"Type: {initiative['data'].get('ai_type', 'Unknown')}")
-                        with col2:
-                            st.write(f"Cost: ${initiative['data'].get('implementation_cost', 0)}k")
-                        with col3:
-                            st.write(f"Timeline: {initiative['data'].get('timeline_months', 0)} months")
-                        
-                        st.markdown("---")
-    
-    with tab3:
-        st.subheader("🔗 Cross-Function Dependencies")
-        
-        # Get all configured functions
-        configured_functions = []
-        for key in st.session_state.keys():
-            if key.endswith('_categories'):
-                func_name = key.replace('_categories', '')
-                if st.session_state[key]:  # Has initiatives
-                    configured_functions.append(func_name)
-        
-        if len(configured_functions) >= 2:
-            # Analyze dependencies
-            dependency_analysis = cross_analyzer.analyze_dependencies(configured_functions)
-            
-            st.markdown("**Implementation Sequence Recommendation:**")
-            sequence = dependency_analysis['implementation_sequence']
-            
-            for i, func in enumerate(sequence, 1):
-                impact_score = dependency_analysis['impact_scores'][func]
-                st.markdown(f"{i}. **{func}** (Impact Score: {impact_score:.2f})")
-            
-            # Dependency Matrix
-            st.markdown("**Function Dependency Matrix:**")
-            
-            # Create dependency matrix display
-            matrix_data = []
-            for func in configured_functions:
-                row = [func]  # Function name as first column
-                for other_func in configured_functions:
-                    if func == other_func:
-                        row.append("-")
-                    else:
-                        dependency_score = dependency_analysis['dependencies'][func].get(other_func, 0)
-                        row.append(f"{dependency_score:.2f}")
-                matrix_data.append(row)
-            
-            # Display matrix without pandas
-            # Create header
-            st.write("| " + " | ".join(['Function'] + configured_functions) + " |")
-            st.write("|" + "---|" * (len(configured_functions) + 1))
-            
-            # Display data rows
-            for row in matrix_data:
-                st.write("| " + " | ".join(row) + " |")
-            
-            # Optimization Opportunities
-            opportunities = dependency_analysis['optimization_opportunities']
-            if opportunities:
-                st.markdown("**Optimization Opportunities:**")
-                for opp in opportunities:
-                    st.info(f"**{opp['type']}**: {' + '.join(opp['functions'])} - {opp['potential_benefit']} (Est. savings: {opp['estimated_savings']})")
-        
-        else:
-            st.info("Configure AI initiatives in at least 2 functions to see cross-function dependency analysis")
-
-def show_monte_carlo_simulation():
-    """Monte Carlo simulation for risk and uncertainty modeling"""
-    st.title("🎲 Monte Carlo Simulation")
-    st.markdown("Advanced risk modeling and uncertainty analysis for AI implementations")
-    
-    # Check if we have any configured initiatives
-    all_initiatives = []
-    for key in st.session_state.keys():
-        if key.endswith('_categories'):
-            function_name = key.replace('_categories', '')
-            for category_data in st.session_state[key].values():
-                for initiative in category_data.get('initiatives', {}).values():
-                    all_initiatives.append({
-                        'function': function_name,
-                        'name': initiative['name'],
-                        'data': initiative['data']
-                    })
-    
-    if not all_initiatives:
-        st.warning("⚠️ No AI initiatives configured. Please configure initiatives in Function Analysis first.")
-        return
-    
-    # Initiative Selection
-    st.subheader("🎯 Select Initiative for Simulation")
-    
-    initiative_names = [f"{init['function']} - {init['name']}" for init in all_initiatives]
-    selected_initiative_name = st.selectbox("Choose Initiative", initiative_names)
-    
-    if selected_initiative_name:
-        # Find selected initiative
-        selected_initiative = None
-        for init in all_initiatives:
-            if f"{init['function']} - {init['name']}" == selected_initiative_name:
-                selected_initiative = init
-                break
-        
-        if selected_initiative:
-            # Simulation Parameters
-            st.subheader("⚙️ Simulation Parameters")
-            
-            col1, col2 = st.columns(2)
-            
+            col1, col2, col3 = st.columns(3)
             with col1:
-                num_simulations = st.slider("Number of Simulations", 1000, 10000, 5000)
-                confidence_level = st.slider("Confidence Level", 0.8, 0.99, 0.95)
+                confidence_color = "green" if confidence['overall_confidence'] > 0.8 else "orange" if confidence['overall_confidence'] > 0.6 else "red"
+                st.metric(
+                    "Overall Confidence", 
+                    f"{confidence['overall_confidence']:.1%}",
+                    help="Higher confidence indicates more reliable predictions"
+                )
+                st.markdown(f"**Quality Level:** :{confidence_color}[{confidence['confidence_level']}]")
             
             with col2:
-                cost_variance = st.slider("Cost Variance (%)", 5, 50, 20)
-                timeline_variance = st.slider("Timeline Variance (%)", 10, 60, 30)
+                st.metric("Data Quality", f"{confidence['data_quality']:.1%}")
+                st.metric("Feature Reliability", f"{confidence['feature_reliability']:.1%}")
             
-            # Run Simulation
-            if st.button("🚀 Run Monte Carlo Simulation", type="primary"):
-                with st.spinner("Running simulation..."):
-                    results = run_monte_carlo_simulation(
-                        selected_initiative['data'], 
-                        num_simulations,
-                        cost_variance / 100,
-                        timeline_variance / 100
-                    )
-                
-                # Display Results
-                st.subheader("📊 Simulation Results")
-                
-                # Key Metrics
-                col1, col2, col3, col4 = st.columns(4)
-                
-                with col1:
-                    st.metric(
-                        "Expected Cost", 
-                        f"${results['cost_stats']['mean']:,.0f}k",
-                        f"±${results['cost_stats']['std']:,.0f}k"
-                    )
-                
-                with col2:
-                    st.metric(
-                        "Expected Timeline", 
-                        f"{results['timeline_stats']['mean']:.1f} months",
-                        f"±{results['timeline_stats']['std']:.1f} months"
-                    )
-                
-                with col3:
-                    success_rate = results['success_probability'] * 100
-                    st.metric("Success Probability", f"{success_rate:.1f}%")
-                
-                with col4:
-                    roi_mean = results['roi_stats']['mean'] * 100
-                    st.metric("Expected ROI", f"{roi_mean:.1f}%")
-                
-                # Risk Analysis
-                st.subheader("⚠️ Risk Analysis")
-                
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.markdown("**Cost Risk Profile:**")
-                    st.write(f"• Best case: ${results['cost_stats']['min']:,.0f}k")
-                    st.write(f"• Worst case: ${results['cost_stats']['max']:,.0f}k")
-                    st.write(f"• {confidence_level*100:.0f}% Confidence Interval: ${results['cost_stats']['ci_lower']:,.0f}k - ${results['cost_stats']['ci_upper']:,.0f}k")
-                
-                with col2:
-                    st.markdown("**Timeline Risk Profile:**")
-                    st.write(f"• Best case: {results['timeline_stats']['min']:.1f} months")
-                    st.write(f"• Worst case: {results['timeline_stats']['max']:.1f} months")
-                    st.write(f"• {confidence_level*100:.0f}% Confidence Interval: {results['timeline_stats']['ci_lower']:.1f} - {results['timeline_stats']['ci_upper']:.1f} months")
-                
-                # Recommendations
-                st.subheader("💡 Risk Mitigation Recommendations")
-                
-                recommendations = generate_risk_recommendations(results, selected_initiative['data'])
-                
-                for i, rec in enumerate(recommendations, 1):
-                    st.markdown(f"{i}. **{rec['category']}**: {rec['recommendation']}")
-
-def run_monte_carlo_simulation(initiative_data: Dict, num_simulations: int, 
-                              cost_variance: float, timeline_variance: float) -> Dict:
-    """Run Monte Carlo simulation for an AI initiative"""
-    import random
-    import statistics
-    
-    # Base values
-    base_cost = initiative_data.get('implementation_cost', 100)
-    base_timeline = initiative_data.get('timeline_months', 12)
-    expected_gain = initiative_data.get('expected_productivity_gain', 0.15)
-    
-    # Simulation arrays
-    costs = []
-    timelines = []
-    rois = []
-    success_outcomes = []
-    
-    for _ in range(num_simulations):
-        # Generate random variations
-        cost_multiplier = random.gauss(1.0, cost_variance)
-        timeline_multiplier = random.gauss(1.0, timeline_variance)
+            with col3:
+                st.metric("Model Stability", f"{confidence['model_stability']:.1%}")
+                if 'prediction_quality' in predictions:
+                    quality_color = "green" if predictions['prediction_quality'] == "High" else "orange" if predictions['prediction_quality'] == "Medium" else "red"
+                    st.markdown(f"**Prediction Quality:** :{quality_color}[{predictions['prediction_quality']}]")
         
-        # Ensure positive values
-        cost_multiplier = max(0.5, cost_multiplier)
-        timeline_multiplier = max(0.5, timeline_multiplier)
-        
-        # Calculate values
-        sim_cost = base_cost * cost_multiplier
-        sim_timeline = base_timeline * timeline_multiplier
-        
-        # ROI calculation (simplified)
-        annual_benefit = base_cost * expected_gain * 12 / base_timeline
-        roi = (annual_benefit - sim_cost) / sim_cost
-        
-        # Success probability (decreases with cost and timeline overruns)
-        success_prob = max(0.1, 1.0 - (cost_multiplier - 1.0) * 0.5 - (timeline_multiplier - 1.0) * 0.3)
-        success = random.random() < success_prob
-        
-        costs.append(sim_cost)
-        timelines.append(sim_timeline)
-        rois.append(roi)
-        success_outcomes.append(success)
-    
-    # Calculate statistics
-    def calc_stats(values):
-        return {
-            'mean': statistics.mean(values),
-            'median': statistics.median(values),
-            'std': statistics.stdev(values),
-            'min': min(values),
-            'max': max(values),
-            'ci_lower': sorted(values)[int(0.025 * len(values))],
-            'ci_upper': sorted(values)[int(0.975 * len(values))]
-        }
-    
-    return {
-        'cost_stats': calc_stats(costs),
-        'timeline_stats': calc_stats(timelines),
-        'roi_stats': calc_stats(rois),
-        'success_probability': sum(success_outcomes) / len(success_outcomes),
-        'simulation_count': num_simulations
-    }
-
-def generate_risk_recommendations(results: Dict, initiative_data: Dict) -> List[Dict]:
-    """Generate risk mitigation recommendations based on simulation results"""
-    recommendations = []
-    
-    # Cost risk
-    cost_variance = results['cost_stats']['std'] / results['cost_stats']['mean']
-    if cost_variance > 0.3:
-        recommendations.append({
-            'category': 'Cost Management',
-            'recommendation': 'High cost variance detected. Consider breaking down the initiative into smaller phases with fixed-price contracts.'
-        })
-    
-    # Timeline risk
-    timeline_variance = results['timeline_stats']['std'] / results['timeline_stats']['mean']
-    if timeline_variance > 0.25:
-        recommendations.append({
-            'category': 'Timeline Management',
-            'recommendation': 'Significant timeline uncertainty. Implement agile methodology with regular checkpoints and scope reviews.'
-        })
-    
-    # Success probability
-    if results['success_probability'] < 0.7:
-        recommendations.append({
-            'category': 'Success Optimization',
-            'recommendation': 'Low success probability. Consider pilot testing, additional training, or simplified initial scope.'
-        })
-    
-    # ROI risk
-    roi_risk = results['roi_stats']['ci_lower']
-    if roi_risk < 0:
-        recommendations.append({
-            'category': 'ROI Protection',
-            'recommendation': 'Negative ROI risk detected. Establish clear success metrics and consider performance-based vendor agreements.'
-        })
-    
-    # Complexity-based recommendations
-    complexity = initiative_data.get('complexity', 'Medium')
-    if complexity == 'High':
-        recommendations.append({
-            'category': 'Complexity Management',
-            'recommendation': 'High complexity initiative. Ensure dedicated project management and technical expertise are available.'
-        })
-    
-    return recommendations
-
-def show_strategic_planning():
-    """Strategic planning and roadmap development"""
-    st.title("📈 Strategic Planning & Roadmap")
-    st.markdown("Develop comprehensive AI implementation roadmaps across your enterprise")
-    
-    # Get all configured functions and initiatives
-    function_data = {}
-    total_investment = 0
-    total_timeline = 0
-    
-    for key in st.session_state.keys():
-        if key.endswith('_categories'):
-            function_name = key.replace('_categories', '')
-            initiatives = []
-            function_cost = 0
+        # Enhanced Workforce Impact Analysis
+        if 'workforce_impact' in predictions:
+            st.markdown("---")
+            st.subheader("👥 Comprehensive Workforce Impact Analysis")
             
-            for category_data in st.session_state[key].values():
-                for initiative in category_data.get('initiatives', {}).values():
-                    initiatives.append(initiative)
-                    function_cost += initiative['data'].get('implementation_cost', 0)
-                    total_investment += initiative['data'].get('implementation_cost', 0)
+            workforce = predictions['workforce_impact']
             
-            if initiatives:
-                function_data[function_name] = {
-                    'initiatives': initiatives,
-                    'total_cost': function_cost,
-                    'initiative_count': len(initiatives)
-                }
+            # Basic Workforce Metrics
+            st.markdown("#### 📊 Workforce Changes")
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.metric("Current Headcount", f"{workforce.get('current_headcount', 0):,}")
+                st.metric("Positions Eliminated", f"{workforce.get('reduced_positions', 0):,}")
+            
+            with col2:
+                st.metric("New Positions Created", f"{workforce.get('new_positions', 0):,}")
+                st.metric("Employees to Upskill", f"{workforce.get('upskilling_count', 0):,}")
+            
+            with col3:
+                net_change = workforce.get('net_change', 0)
+                st.metric("Net Headcount Change", f"{net_change:+,}")
+                st.metric("Final Headcount", f"{workforce.get('final_headcount', 0):,}")
+            
+            with col4:
+                pct_change = workforce.get('percentage_change', 0)
+                st.metric("Percentage Change", f"{pct_change:+.1f}%")
+                avg_salary = workforce.get('avg_salary_estimate', 0)
+                st.metric("Est. Avg Salary", f"${avg_salary:,.0f}")
+            
+            # Financial Impact of Workforce Changes
+            st.markdown("#### 💰 Financial Impact")
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                savings = workforce.get('reduction_savings', 0)
+                st.metric("Reduction Savings", f"${savings:,.0f}", help="Annual savings from position eliminations")
+                upskill_cost = workforce.get('upskilling_cost', 0)
+                st.metric("Upskilling Investment", f"${upskill_cost:,.0f}", help="Cost to train existing employees")
+            
+            with col2:
+                hire_cost = workforce.get('new_hire_cost', 0)
+                st.metric("New Hire Costs", f"${hire_cost:,.0f}", help="Annual cost for new positions")
+                recruit_cost = workforce.get('recruitment_cost', 0)
+                st.metric("Recruitment Costs", f"${recruit_cost:,.0f}", help="One-time recruitment expenses")
+            
+            with col3:
+                net_cost = workforce.get('net_cost_impact', 0)
+                cost_color = "red" if net_cost > 0 else "green"
+                st.metric("Net Cost Impact", f"${net_cost:,.0f}", 
+                         help="Total financial impact (positive = cost, negative = savings)")
+                if net_cost > 0:
+                    st.markdown(f":{cost_color}[Additional Investment Required]")
+                else:
+                    st.markdown(f":{cost_color}[Net Savings Achieved]")
+            
+            # Timeline and Transition Management
+            st.markdown("#### ⏱️ Implementation Timeline & Transition")
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                impl_timeline = workforce.get('implementation_timeline_months', 0)
+                st.metric("Implementation Period", f"{impl_timeline} months")
+                transition_months = workforce.get('transition_period_months', 0)
+                st.metric("Transition Period", f"{transition_months} months")
+            
+            with col2:
+                training_duration = workforce.get('training_duration_months', 0)
+                st.metric("Training Duration", f"{training_duration:.1f} months")
+                productivity_loss = workforce.get('transition_productivity_loss_percent', 0)
+                st.metric("Transition Productivity Loss", f"{productivity_loss:.1f}%")
+            
+            with col3:
+                skill_gap = workforce.get('skill_gap_severity', 'Medium')
+                gap_color = "red" if skill_gap == "High" else "orange" if skill_gap == "Medium" else "green"
+                st.markdown(f"**Skill Gap Severity:** :{gap_color}[{skill_gap}]")
+                
+                resistance = workforce.get('change_resistance_level', 'Medium')
+                resist_color = "red" if resistance == "High" else "orange" if resistance == "Medium" else "green"
+                st.markdown(f"**Change Resistance:** :{resist_color}[{resistance}]")
+                
+                retention_risk = workforce.get('retention_risk_percent', 0)
+                st.metric("Retention Risk", f"{retention_risk:.1f}%")
+            
+            # Role Transformation Analysis
+            st.markdown("#### 🔄 Role Transformation Breakdown")
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                eliminated = workforce.get('roles_eliminated', 0)
+                st.metric("Roles Eliminated", f"{eliminated:,}", help="Positions completely removed")
+            
+            with col2:
+                transformed = workforce.get('roles_transformed', 0)
+                st.metric("Roles Transformed", f"{transformed:,}", help="Existing roles with major changes")
+            
+            with col3:
+                augmented = workforce.get('roles_augmented', 0)
+                st.metric("Roles Augmented", f"{augmented:,}", help="Roles enhanced with AI assistance")
+            
+            with col4:
+                created = workforce.get('roles_created', 0)
+                st.metric("New Roles Created", f"{created:,}", help="Entirely new positions")
+            
+            # Strategic Workforce Metrics
+            st.markdown("#### 🚀 Strategic Workforce Capabilities")
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                agility = workforce.get('workforce_agility_score', 0)
+                agility_color = "green" if agility > 70 else "orange" if agility > 40 else "red"
+                st.metric("Workforce Agility", f"{agility:.0f}/100")
+                st.markdown(f":{agility_color}[{agility:.0f}/100 - Adaptability to change]")
+                
+                collaboration = workforce.get('human_ai_collaboration_index', 0)
+                collab_color = "green" if collaboration > 70 else "orange" if collaboration > 40 else "red"
+                st.metric("Human-AI Collaboration", f"{collaboration:.0f}/100")
+                st.markdown(f":{collab_color}[{collaboration:.0f}/100 - Integration effectiveness]")
+            
+            with col2:
+                future_ready = workforce.get('future_readiness_score', 0)
+                ready_color = "green" if future_ready > 70 else "orange" if future_ready > 40 else "red"
+                st.metric("Future Readiness", f"{future_ready:.0f}/100")
+                st.markdown(f":{ready_color}[{future_ready:.0f}/100 - Preparedness for future]")
+                
+                digital_literacy = workforce.get('digital_literacy_improvement', 0)
+                st.metric("Digital Literacy Gain", f"{digital_literacy:.0f}/100")
+            
+            with col3:
+                automation_ready = workforce.get('process_automation_readiness', 0)
+                auto_color = "green" if automation_ready > 70 else "orange" if automation_ready > 40 else "red"
+                st.metric("Automation Readiness", f"{automation_ready:.0f}/100")
+                st.markdown(f":{auto_color}[{automation_ready:.0f}/100 - Process automation capability]")
+                
+                adaptability = workforce.get('change_adaptability_score', 0)
+                adapt_color = "green" if adaptability > 70 else "orange" if adaptability > 40 else "red"
+                st.metric("Change Adaptability", f"{adaptability:.0f}/100")
+                st.markdown(f":{adapt_color}[{adaptability:.0f}/100 - Organizational flexibility]")
+        
+        # Visualization
+        visualizer = DashboardVisualizer()
+        fig = visualizer.create_impact_summary(predictions, selected_function)
+        st.plotly_chart(fig, use_container_width=True)
+
+def show_monte_carlo_simulation():
+    st.header("🎲 Monte Carlo Simulation")
+    st.markdown("**Probabilistic Analysis with Uncertainty Quantification**")
     
-    if not function_data:
-        st.warning("⚠️ No AI initiatives configured. Please configure initiatives in Function Analysis first.")
+    if len(st.session_state.predictions) < 1:
+        st.warning("⚠️ Please configure at least one function in Function Analysis first.")
         return
     
-    # Strategic Overview
-    st.subheader("🎯 Strategic Overview")
+    # Function selection for simulation
+    configured_functions = list(st.session_state.predictions.keys())
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.metric("Total Functions", len(function_data))
+        selected_function = st.selectbox("Select Function for Monte Carlo Analysis", configured_functions)
+    
     with col2:
-        total_initiatives = sum(data['initiative_count'] for data in function_data.values())
-        st.metric("Total Initiatives", total_initiatives)
-    with col3:
-        st.metric("Total Investment", f"${total_investment:,}k")
-    with col4:
-        avg_initiative_cost = total_investment / max(total_initiatives, 1)
-        st.metric("Avg Initiative Cost", f"${avg_initiative_cost:,.0f}k")
+        n_simulations = st.selectbox("Number of Simulations", [500, 1000, 2500, 5000], index=1)
     
-    # Investment by Function
-    st.subheader("💰 Investment Distribution")
+    if selected_function not in st.session_state.baseline_data or selected_function not in st.session_state.ai_initiatives:
+        st.error("Missing baseline data or AI initiative configuration for the selected function.")
+        return
     
-    # Create investment chart data
-    function_names = list(function_data.keys())
-    function_costs = [data['total_cost'] for data in function_data.values()]
+    # Uncertainty parameter configuration
+    st.markdown("---")
+    st.subheader("⚙️ Uncertainty Parameters")
+    st.markdown("Configure uncertainty ranges for key variables to model realistic variation in outcomes.")
     
-    chart_data = {name: cost for name, cost in zip(function_names, function_costs)}
-    st.bar_chart(chart_data)
-    
-    # Implementation Roadmap
-    st.subheader("🗓️ Implementation Roadmap")
-    
-    # Phase Planning
-    phase_strategy = st.selectbox(
-        "Roadmap Strategy",
-        ["Quick Wins First", "Strategic Impact First", "Risk-Balanced", "Cost-Optimized"]
-    )
-    
-    if st.button("🚀 Generate Roadmap", type="primary"):
-        roadmap = generate_implementation_roadmap(function_data, phase_strategy)
+    with st.expander("📊 Parameter Uncertainty Settings", expanded=True):
+        col1, col2, col3 = st.columns(3)
         
-        st.success("✅ Implementation Roadmap Generated!")
+        with col1:
+            st.markdown("**Investment & Financial**")
+            investment_std = st.slider("Investment Uncertainty (%)", 5, 30, 15, 
+                                     help="Standard deviation as % of base investment")
+            market_volatility = st.slider("Market Conditions Volatility (%)", 5, 25, 12,
+                                        help="Market condition variation affecting revenue")
         
-        # Display roadmap phases
-        for phase_num, phase in enumerate(roadmap['phases'], 1):
-            with st.expander(f"Phase {phase_num}: {phase['name']} ({phase['duration']} months)"):
-                st.markdown(f"**Investment**: ${phase['total_cost']:,}k")
-                st.markdown(f"**Expected ROI**: {phase['expected_roi']:.1%}")
-                st.markdown(f"**Risk Level**: {phase['risk_level']}")
+        with col2:
+            st.markdown("**Technical Performance**")
+            automation_std = st.slider("Automation Level Uncertainty (%)", 10, 40, 20,
+                                     help="Variation in achieved automation level")
+            accuracy_std = st.slider("Accuracy Improvement Uncertainty (%)", 15, 40, 25,
+                                   help="Variation in accuracy improvements")
+            speed_std = st.slider("Speed Improvement Uncertainty (%)", 10, 30, 20,
+                                help="Variation in speed improvements")
+        
+        with col3:
+            st.markdown("**Risk Factors**")
+            risk_distribution = st.selectbox("Risk Distribution Type", ["Beta", "Normal"], 
+                                           help="Statistical distribution for risk modeling")
+            baseline_uncertainty = st.slider("Baseline Productivity Uncertainty (%)", 5, 20, 10,
+                                            help="Variation in baseline productivity measurements")
+    
+    # Custom uncertainty parameters
+    uncertainty_params = {
+        'investment': {'distribution': 'normal', 'std_pct': investment_std / 100},
+        'productivity_baseline': {'distribution': 'normal', 'std_pct': baseline_uncertainty / 100},
+        'automation_level': {'distribution': 'normal', 'std_pct': automation_std / 100},
+        'accuracy_improvement': {'distribution': 'normal', 'std_pct': accuracy_std / 100},
+        'speed_improvement': {'distribution': 'normal', 'std_pct': speed_std / 100},
+        'market_conditions': {'distribution': 'normal', 'std_pct': market_volatility / 100},
+    }
+    
+    if risk_distribution == "Beta":
+        uncertainty_params.update({
+            'technical_risk': {'distribution': 'beta', 'alpha': 2, 'beta': 5},
+            'adoption_risk': {'distribution': 'beta', 'alpha': 2, 'beta': 4},
+            'integration_risk': {'distribution': 'beta', 'alpha': 3, 'beta': 4},
+        })
+    else:
+        uncertainty_params.update({
+            'technical_risk': {'distribution': 'normal', 'std_pct': 0.3},
+            'adoption_risk': {'distribution': 'normal', 'std_pct': 0.3},
+            'integration_risk': {'distribution': 'normal', 'std_pct': 0.25},
+        })
+    
+    # Run simulation button
+    if st.button("🚀 Run Monte Carlo Simulation", type="primary"):
+        with st.spinner(f"Running {n_simulations:,} simulations..."):
+            try:
+                # Initialize Monte Carlo simulator
+                simulator = MonteCarloSimulator(n_simulations=n_simulations)
                 
-                st.markdown("**Initiatives:**")
-                for initiative in phase['initiatives']:
-                    st.markdown(f"• **{initiative['name']}** ({initiative['function']}) - ${initiative['cost']:,}k")
+                # Get baseline data and AI initiative
+                baseline_data = st.session_state.baseline_data[selected_function]
+                ai_initiative = st.session_state.ai_initiatives[selected_function]
                 
-                if phase['dependencies']:
-                    st.markdown("**Dependencies:**")
-                    for dep in phase['dependencies']:
-                        st.markdown(f"• {dep}")
+                # Run simulation
+                simulation_results = simulator.run_simulation(
+                    baseline_data, ai_initiative, uncertainty_params
+                )
+                
+                # Store results in session state
+                st.session_state[f'monte_carlo_{selected_function}'] = simulation_results
+                
+                st.success(f"✅ Simulation completed! {n_simulations:,} scenarios analyzed.")
+                
+            except Exception as e:
+                st.error(f"Simulation failed: {str(e)}")
+                return
+    
+    # Display results if available
+    if f'monte_carlo_{selected_function}' in st.session_state:
+        simulation_data = st.session_state[f'monte_carlo_{selected_function}']
         
-        # Roadmap Summary
-        st.subheader("📊 Roadmap Summary")
+        st.markdown("---")
+        st.subheader("📊 Simulation Results")
+        
+        # Summary statistics
+        summary_stats = simulation_data['summary_statistics']
+        
+        # Enhanced key metrics overview with styled cards
+        col1, col2, col3, col4 = st.columns(4)
+        
+        roi_stats = summary_stats['roi']
+        value_stats = summary_stats['value_generated']
+        productivity_stats = summary_stats['productivity_gain']
+        payback_stats = summary_stats['payback_period']
+        
+        with col1:
+            from utils.chart_styling import create_styled_metric_card
+            st.markdown(create_styled_metric_card(
+                f"{roi_stats['mean']:.1f}%", 
+                "Expected ROI",
+                "ocean"
+            ), unsafe_allow_html=True)
+            st.caption(f"Range: {roi_stats['min']:.1f}% to {roi_stats['max']:.1f}%")
+        
+        with col2:
+            st.markdown(create_styled_metric_card(
+                f"${value_stats['mean']:,.0f}", 
+                "Expected Value",
+                "mint"
+            ), unsafe_allow_html=True)
+            st.caption(f"Range: ${value_stats['min']:,.0f} to ${value_stats['max']:,.0f}")
+        
+        with col3:
+            st.markdown(create_styled_metric_card(
+                f"{productivity_stats['mean']:.1f}%", 
+                "Productivity Gain",
+                "purple"
+            ), unsafe_allow_html=True)
+            st.caption(f"Std Dev: {productivity_stats['std']:.1f}%")
+        
+        with col4:
+            st.markdown(create_styled_metric_card(
+                f"{payback_stats['mean']:.1f}mo", 
+                "Expected Payback",
+                "coral"
+            ), unsafe_allow_html=True)
+            st.caption(f"Std Dev: {payback_stats['std']:.1f} months")
+        
+        # Risk metrics
+        st.markdown("---")
+        st.subheader("⚠️ Risk Analysis")
+        
+        risk_metrics = simulation_data['risk_metrics']
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown("**Success Probabilities**")
+            st.metric("Probability of Positive ROI", f"{risk_metrics['probability_positive_roi']:.1%}")
+            st.metric("Probability ROI > 15%", f"{risk_metrics['probability_roi_above_15']:.1%}")
+            st.metric("Probability ROI > 25%", f"{risk_metrics['probability_roi_above_25']:.1%}")
+        
+        with col2:
+            st.markdown("**Payback Risk**")
+            st.metric("Probability Payback < 24 months", f"{risk_metrics['probability_payback_under_24_months']:.1%}")
+            st.metric("Probability Payback < 36 months", f"{risk_metrics['probability_payback_under_36_months']:.1%}")
+        
+        with col3:
+            st.markdown("**Value at Risk**")
+            st.metric("5% Value at Risk", f"${risk_metrics['value_at_risk_5']:,.0f}",
+                     help="Value exceeded in 95% of scenarios")
+            st.metric("10% Value at Risk", f"${risk_metrics['value_at_risk_10']:,.0f}",
+                     help="Value exceeded in 90% of scenarios")
+            prob_loss = risk_metrics['probability_of_loss']
+            loss_color = "red" if prob_loss > 0.1 else "orange" if prob_loss > 0.05 else "green"
+            st.metric("Probability of Loss", f"{prob_loss:.1%}")
+            st.markdown(f":{loss_color}[Loss probability: {prob_loss:.1%}]")
+        
+        # Enhanced visualizations
+        st.markdown("---")
+        st.subheader("📈 Distribution Analysis")
+        
+        # Create distribution charts
+        from utils.chart_styling import EnhancedCharts, create_styled_card
+        chart_creator = EnhancedCharts()
         
         col1, col2 = st.columns(2)
         
         with col1:
-            st.markdown("**Timeline Overview:**")
-            total_duration = roadmap['total_duration']
-            st.write(f"• Total Duration: {total_duration} months")
-            st.write(f"• Phases: {len(roadmap['phases'])}")
-            st.write(f"• Parallel Execution Possible: {roadmap['parallel_opportunities']}")
+            # ROI distribution chart
+            roi_data = simulation_data.get('raw_results', {}).get('roi', [])
+            if roi_data:
+                roi_fig = chart_creator.create_distribution_chart(
+                    roi_data, "ROI Distribution", "blue"
+                )
+                st.plotly_chart(roi_fig, use_container_width=True)
         
         with col2:
-            st.markdown("**Financial Overview:**")
-            st.write(f"• Total Investment: ${roadmap['total_investment']:,}k")
-            st.write(f"• Expected 3-Year ROI: {roadmap['expected_roi']:.1%}")
-            st.write(f"• Payback Period: {roadmap['payback_months']} months")
-    
-    # Risk Assessment
-    st.subheader("⚠️ Strategic Risk Assessment")
-    
-    risks = assess_strategic_risks(function_data)
-    
-    for risk in risks:
-        st.warning(f"**{risk['type']}**: {risk['description']} (Impact: {risk['impact']})")
-
-def generate_implementation_roadmap(function_data: Dict, strategy: str) -> Dict:
-    """Generate implementation roadmap based on strategy"""
-    
-    # Collect all initiatives with metadata
-    all_initiatives = []
-    for function_name, data in function_data.items():
-        for initiative in data['initiatives']:
-            all_initiatives.append({
-                'name': initiative['name'],
-                'function': function_name,
-                'cost': initiative['data'].get('implementation_cost', 0),
-                'timeline': initiative['data'].get('timeline_months', 12),
-                'complexity': initiative['data'].get('complexity', 'Medium'),
-                'ai_type': initiative['data'].get('ai_type', 'Unknown'),
-                'expected_gain': initiative['data'].get('expected_productivity_gain', 0.15),
-                'confidence': initiative['data'].get('confidence_level', 0.8)
-            })
-    
-    # Sort initiatives based on strategy
-    if strategy == "Quick Wins First":
-        # Prioritize low cost, high confidence, short timeline
-        all_initiatives.sort(key=lambda x: (x['cost'] / 100 + x['timeline'] / 12 - x['confidence'] * 2))
-    elif strategy == "Strategic Impact First":
-        # Prioritize high expected gain, regardless of cost
-        all_initiatives.sort(key=lambda x: -x['expected_gain'])
-    elif strategy == "Risk-Balanced":
-        # Balance cost, timeline, and confidence
-        all_initiatives.sort(key=lambda x: (x['cost'] / 100 + x['timeline'] / 12) * (2 - x['confidence']))
-    else:  # Cost-Optimized
-        # Prioritize lowest cost first
-        all_initiatives.sort(key=lambda x: x['cost'])
-    
-    # Create phases
-    phases = []
-    remaining_initiatives = all_initiatives.copy()
-    phase_num = 1
-    
-    while remaining_initiatives:
-        phase_initiatives = []
-        phase_cost = 0
-        phase_duration = 0
-        max_phase_cost = 500  # Max 500k per phase
+            # Value generation distribution chart
+            value_data = simulation_data.get('raw_results', {}).get('value_generated', [])
+            if value_data:
+                value_fig = chart_creator.create_distribution_chart(
+                    value_data, "Value Generation Distribution", "green"
+                )
+                st.plotly_chart(value_fig, use_container_width=True)
         
-        # Add initiatives to current phase
-        initiatives_to_remove = []
-        for initiative in remaining_initiatives:
-            if phase_cost + initiative['cost'] <= max_phase_cost or not phase_initiatives:
-                phase_initiatives.append(initiative)
-                phase_cost += initiative['cost']
-                phase_duration = max(phase_duration, initiative['timeline'])
-                initiatives_to_remove.append(initiative)
-                
-                if len(phase_initiatives) >= 5:  # Max 5 initiatives per phase
-                    break
+        # Risk analysis visualization
+        st.markdown("---")
+        st.subheader("⚠️ Risk Assessment")
         
-        # Remove added initiatives
-        for initiative in initiatives_to_remove:
-            remaining_initiatives.remove(initiative)
-        
-        # Calculate phase metrics
-        avg_confidence = sum(init['confidence'] for init in phase_initiatives) / len(phase_initiatives)
-        total_expected_gain = sum(init['expected_gain'] for init in phase_initiatives)
-        
-        phase = {
-            'name': f"Phase {phase_num}",
-            'initiatives': phase_initiatives,
-            'total_cost': phase_cost,
-            'duration': phase_duration,
-            'expected_roi': total_expected_gain / max(phase_cost / 1000, 1),  # Simplified ROI
-            'risk_level': 'Low' if avg_confidence > 0.8 else 'Medium' if avg_confidence > 0.6 else 'High',
-            'dependencies': []  # Simplified - would analyze actual dependencies
+        risk_metrics = simulation_data['risk_metrics']
+        risk_data = {
+            'Probability of Loss': risk_metrics.get('probability_of_loss', 0),
+            'Technical Risk': 0.2,  # Example - would come from simulation
+            'Market Risk': 0.15,   # Example - would come from simulation
+            'Implementation Risk': 0.1  # Example - would come from simulation
         }
         
-        phases.append(phase)
-        phase_num += 1
-    
-    # Calculate roadmap totals
-    total_investment = sum(phase['total_cost'] for phase in phases)
-    total_duration = max(phase['duration'] for phase in phases) if phases else 0
-    expected_roi = sum(phase['expected_roi'] * phase['total_cost'] for phase in phases) / max(total_investment, 1)
-    
-    return {
-        'phases': phases,
-        'total_investment': total_investment,
-        'total_duration': total_duration,
-        'expected_roi': expected_roi,
-        'payback_months': int(total_duration * 0.6),  # Simplified calculation
-        'parallel_opportunities': len(phases) > 2
-    }
+        risk_fig = chart_creator.create_risk_heatmap(risk_data)
+        st.plotly_chart(risk_fig, use_container_width=True)
+        
+        # Confidence intervals in styled cards
+        st.markdown("---")
+        st.subheader("📊 Confidence Intervals")
+        
+        confidence_intervals = simulation_data['confidence_intervals']
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            roi_ci = confidence_intervals['roi']
+            roi_content = ""
+            for conf_level, interval in roi_ci.items():
+                roi_content += f"<p><strong>{conf_level}:</strong> {interval['lower']:.1f}% to {interval['upper']:.1f}%</p>"
+            
+            st.markdown(create_styled_card(roi_content, "ROI Confidence Intervals"), unsafe_allow_html=True)
+        
+        with col2:
+            value_ci = confidence_intervals['value_generated']
+            value_content = ""
+            for conf_level, interval in value_ci.items():
+                value_content += f"<p><strong>{conf_level}:</strong> ${interval['lower']:,.0f} to ${interval['upper']:,.0f}</p>"
+            
+            st.markdown(create_styled_card(value_content, "Value Generation Confidence Intervals"), unsafe_allow_html=True)
 
-def assess_strategic_risks(function_data: Dict) -> List[Dict]:
-    """Assess strategic risks across the AI implementation portfolio"""
-    risks = []
+def show_strategic_planning():
+    st.header("🎯 Strategic AI Planning")
+    st.markdown("**Strategic scenario analysis based on critical business questions**")
     
-    # Concentration risk
-    total_investment = sum(data['total_cost'] for data in function_data.values())
-    for function_name, data in function_data.items():
-        concentration = data['total_cost'] / total_investment
-        if concentration > 0.4:
-            risks.append({
-                'type': 'Concentration Risk',
-                'description': f'{function_name} represents {concentration:.1%} of total investment',
-                'impact': 'High'
-            })
-    
-    # Complexity risk
-    high_complexity_count = 0
-    total_initiatives = 0
-    for data in function_data.values():
-        for initiative in data['initiatives']:
-            total_initiatives += 1
-            if initiative['data'].get('complexity') == 'High':
-                high_complexity_count += 1
-    
-    if high_complexity_count / max(total_initiatives, 1) > 0.3:
-        risks.append({
-            'type': 'Complexity Risk',
-            'description': f'{high_complexity_count}/{total_initiatives} initiatives are high complexity',
-            'impact': 'Medium'
-        })
-    
-    # Budget risk
-    if total_investment > 2000:  # > $2M
-        risks.append({
-            'type': 'Budget Risk',
-            'description': f'Total investment of ${total_investment:,}k may strain resources',
-            'impact': 'Medium'
-        })
-    
-    return risks
-
-def show_scenario_comparison():
-    """Compare different AI implementation scenarios"""
-    st.title("⚖️ Scenario Comparison")
-    st.markdown("Compare different AI implementation approaches and their outcomes")
-    
-    # Get configured data
-    configured_functions = []
-    for key in st.session_state.keys():
-        if key.endswith('_categories'):
-            function_name = key.replace('_categories', '')
-            if st.session_state[key]:
-                configured_functions.append(function_name)
-    
-    if not configured_functions:
-        st.warning("⚠️ No AI initiatives configured. Please configure initiatives in Function Analysis first.")
+    if len(st.session_state.baseline_data) < 1:
+        st.warning("⚠️ Please configure at least one function in Function Analysis first.")
         return
     
-    # Scenario Configuration
-    st.subheader("📝 Scenario Configuration")
+    # Strategic planning question framework
+    st.markdown("---")
+    st.subheader("📋 Strategic Planning Framework")
     
-    col1, col2 = st.columns(2)
+    questions_framework = {
+        "Business Value": "Where will AI create real business value in the next 12 months?",
+        "Integration Depth": "Are we building AI into the business — or just layering it on top?", 
+        "Talent Readiness": "Do we have the talent to run an AI-augmented business?",
+        "Risk Governance": "What risks are we not seeing — and what's our model for responsible AI use?",
+        "Competitive Advantage": "What are we doing now that will give us an AI advantage three years from now?"
+    }
+    
+    with st.expander("🧭 Strategic Questions Framework", expanded=True):
+        for category, question in questions_framework.items():
+            st.markdown(f"**{category}:** {question}")
+    
+    # Function selection for strategic analysis
+    configured_functions = list(st.session_state.baseline_data.keys())
+    
+    col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.markdown("**Scenario A: Conservative Approach**")
-        scenario_a_functions = st.multiselect(
-            "Select Functions for Scenario A",
-            configured_functions,
-            default=configured_functions[:len(configured_functions)//2] if configured_functions else []
-        )
-        scenario_a_budget = st.slider("Budget Multiplier A", 0.5, 2.0, 0.8, 0.1)
+        selected_function = st.selectbox("Select Function for Strategic Analysis", configured_functions)
     
     with col2:
-        st.markdown("**Scenario B: Aggressive Approach**")
-        scenario_b_functions = st.multiselect(
-            "Select Functions for Scenario B",
-            configured_functions,
-            default=configured_functions
-        )
-        scenario_b_budget = st.slider("Budget Multiplier B", 0.5, 2.0, 1.2, 0.1)
+        analysis_scope = st.selectbox("Analysis Scope", 
+                                    ["Single Category", "Comprehensive Analysis"], index=1)
     
-    # Run Comparison
-    if st.button("🔍 Compare Scenarios", type="primary"):
-        if scenario_a_functions and scenario_b_functions:
-            # Calculate scenario metrics
-            scenario_a_metrics = calculate_scenario_totals(scenario_a_functions, scenario_a_budget)
-            scenario_b_metrics = calculate_scenario_totals(scenario_b_functions, scenario_b_budget)
-            
-            # Display comparison
-            st.subheader("📊 Scenario Comparison Results")
-            
-            # Create comparison table
-            comparison_data = {
-                'Metric': [
-                    'Total Investment',
-                    'Number of Initiatives', 
-                    'Expected Timeline',
-                    'Productivity Gain',
-                    'Risk Score',
-                    'ROI Estimate'
-                ],
-                'Scenario A (Conservative)': [
-                    f"${scenario_a_metrics['total_cost']:,}k",
-                    str(scenario_a_metrics['initiative_count']),
-                    f"{scenario_a_metrics['avg_timeline']:.1f} months",
-                    f"{scenario_a_metrics['productivity_gain']:.1%}",
-                    scenario_a_metrics['risk_score'],
-                    f"{scenario_a_metrics['roi_estimate']:.1%}"
-                ],
-                'Scenario B (Aggressive)': [
-                    f"${scenario_b_metrics['total_cost']:,}k",
-                    str(scenario_b_metrics['initiative_count']),
-                    f"{scenario_b_metrics['avg_timeline']:.1f} months",
-                    f"{scenario_b_metrics['productivity_gain']:.1%}",
-                    scenario_b_metrics['risk_score'],
-                    f"{scenario_b_metrics['roi_estimate']:.1%}"
-                ]
-            }
-            
-            # Display as a formatted table
-            for i, metric in enumerate(comparison_data['Metric']):
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.markdown(f"**{metric}**")
-                with col2:
-                    st.markdown(comparison_data['Scenario A (Conservative)'][i])
-                with col3:
-                    st.markdown(comparison_data['Scenario B (Aggressive)'][i])
-            
-            # Recommendations
-            st.subheader("💡 Scenario Recommendations")
-            
-            # Determine which scenario is better
-            a_score = (scenario_a_metrics['roi_estimate'] * 2 - 
-                      scenario_a_metrics['total_cost'] / 1000 + 
-                      scenario_a_metrics['productivity_gain'] * 10)
-            
-            b_score = (scenario_b_metrics['roi_estimate'] * 2 - 
-                      scenario_b_metrics['total_cost'] / 1000 + 
-                      scenario_b_metrics['productivity_gain'] * 10)
-            
-            if a_score > b_score:
-                st.success("✅ **Scenario A (Conservative)** appears to offer better risk-adjusted returns")
-                st.markdown("**Advantages:**")
-                st.markdown("• Lower investment risk")
-                st.markdown("• More manageable implementation")
-                st.markdown("• Better resource allocation")
-            elif b_score > a_score:
-                st.success("✅ **Scenario B (Aggressive)** appears to offer better overall returns")
-                st.markdown("**Advantages:**")
-                st.markdown("• Higher productivity gains")
-                st.markdown("• Faster competitive advantage")
-                st.markdown("• Greater transformation impact")
-            else:
-                st.info("⚖️ Both scenarios show similar potential - consider hybrid approach")
+    if selected_function not in st.session_state.baseline_data:
+        st.error("Missing baseline data for the selected function.")
+        return
+    
+    baseline_data = st.session_state.baseline_data[selected_function]
+    
+    # Category selection for single category analysis
+    if analysis_scope == "Single Category":
+        st.markdown("---")
+        selected_category = st.selectbox("Select Strategic Category", 
+                                       list(questions_framework.keys()))
+        
+        # Category-specific configuration
+        st.subheader(f"📊 {selected_category} Analysis")
+        st.markdown(f"**Question:** {questions_framework[selected_category]}")
+        
+        categories_to_analyze = [selected_category.lower().replace(" ", "_")]
+    else:
+        categories_to_analyze = ["business_value", "integration_depth", "talent_readiness", 
+                               "risk_governance", "competitive_advantage"]
+    
+    # Run strategic analysis using actual configured data
+    if st.button("🚀 Run Strategic Analysis", type="primary"):
+        with st.spinner("Analyzing strategic scenarios..."):
+            try:
+                # Get actual AI initiatives for this function
+                function_categories = {}
+                if f'categories_{selected_function}' in st.session_state:
+                    function_categories = st.session_state[f'categories_{selected_function}']
                 
-            # Risk Analysis
-            st.subheader("⚠️ Risk Analysis")
-            
+                # Extract actual AI initiatives data
+                actual_initiatives = []
+                total_investment = 0
+                
+                for category_name, category_data in function_categories.items():
+                    initiatives = category_data.get('ai_initiatives', {})
+                    for init_id, init_data in initiatives.items():
+                        actual_initiatives.append({
+                            'name': init_data.get('name', f'Initiative {init_id}'),
+                            'ai_type': init_data.get('ai_type', 'Unknown'),
+                            'investment': init_data.get('investment', 0),
+                            'workforce_impact': init_data.get('workforce_reduction', 0),
+                            'productivity_gain': init_data.get('productivity_gain', 0),
+                            'category': category_name
+                        })
+                        total_investment += init_data.get('investment', 0)
+                
+                # Create strategic analysis based on actual data
+                strategic_results = {
+                    'strategic_recommendations': {
+                        'investment_priorities': [
+                            f"Primary investment focus: ${total_investment:,.0f} across {len(actual_initiatives)} initiatives",
+                            f"Top categories: {', '.join(function_categories.keys()) if function_categories else 'No categories configured'}",
+                            f"Function baseline revenue: ${baseline_data.get('revenue', 0):,.0f}",
+                            f"Current headcount: {baseline_data.get('headcount', 0)} employees"
+                        ],
+                        'risk_mitigation': [
+                            f"Workforce impact: {len([i for i in actual_initiatives if i['workforce_impact'] > 0])} initiatives affect staffing",
+                            f"Implementation readiness based on {baseline_data.get('productivity', 0):.1f}% current productivity",
+                            "Monitor change management for configured initiatives"
+                        ],
+                        'short_term': [
+                            f"Deploy configured {len(actual_initiatives)} AI initiatives",
+                            f"Target productivity improvement from current {baseline_data.get('productivity', 0):.1f}%",
+                            "Implement workforce transition plans"
+                        ],
+                        'long_term': [
+                            f"Scale successful initiatives across enterprise",
+                            f"Optimize ROI from ${total_investment:,.0f} investment",
+                            "Build AI-augmented operational model"
+                        ]
+                    },
+                    'actual_data_summary': {
+                        'function': selected_function,
+                        'baseline_revenue': baseline_data.get('revenue', 0),
+                        'baseline_costs': baseline_data.get('costs', 0),
+                        'baseline_headcount': baseline_data.get('headcount', 0),
+                        'total_ai_investment': total_investment,
+                        'initiative_count': len(actual_initiatives),
+                        'categories_configured': list(function_categories.keys())
+                    }
+                }
+                
+                # Store results
+                st.session_state[f'strategic_analysis_{selected_function}'] = strategic_results
+                
+                st.success("✅ Strategic analysis completed using your configured data!")
+                
+            except Exception as e:
+                st.error(f"Strategic analysis failed: {str(e)}")
+                return
+    
+    # Display results if available
+    if f'strategic_analysis_{selected_function}' in st.session_state:
+        strategic_data = st.session_state[f'strategic_analysis_{selected_function}']
+        
+        st.markdown("---")
+        st.subheader("📊 Strategic Analysis Results")
+        
+        # Strategic recommendations overview
+        recommendations = strategic_data.get('strategic_recommendations', {})
+        
+        if recommendations:
             col1, col2 = st.columns(2)
             
             with col1:
-                st.markdown("**Scenario A Risks:**")
-                if scenario_a_metrics['total_cost'] < 200:
-                    st.success("✅ Low financial risk")
-                elif scenario_a_metrics['total_cost'] < 500:
-                    st.warning("⚠️ Moderate financial risk")
-                else:
-                    st.error("❌ High financial risk")
+                st.markdown("#### 🎯 Investment Priorities")
+                for rec in recommendations.get('investment_priorities', []):
+                    st.markdown(f"• {rec}")
                 
-                if scenario_a_metrics['initiative_count'] < 5:
-                    st.info("ℹ️ Limited scope may reduce impact")
+                st.markdown("#### ⚠️ Risk Mitigation")
+                for rec in recommendations.get('risk_mitigation', []):
+                    st.markdown(f"• {rec}")
             
             with col2:
-                st.markdown("**Scenario B Risks:**")
-                if scenario_b_metrics['total_cost'] < 200:
-                    st.success("✅ Low financial risk")
-                elif scenario_b_metrics['total_cost'] < 500:
-                    st.warning("⚠️ Moderate financial risk")
-                else:
-                    st.error("❌ High financial risk")
+                st.markdown("#### 📅 Short-term Actions")
+                for rec in recommendations.get('short_term', []):
+                    st.markdown(f"• {rec}")
                 
-                if scenario_b_metrics['initiative_count'] > 10:
-                    st.warning("⚠️ High complexity may increase failure risk")
+                st.markdown("#### 🔮 Long-term Strategy")
+                for rec in recommendations.get('long_term', []):
+                    st.markdown(f"• {rec}")
         
-        else:
-            st.error("Please select functions for both scenarios")
-
-def calculate_scenario_totals(functions: List[str], budget_multiplier: float = 1.0) -> Dict:
-    """Calculate total metrics for a scenario"""
-    total_cost = 0
-    initiative_count = 0
-    timeline_sum = 0
-    productivity_sum = 0
-    risk_factors = []
-    
-    for function_name in functions:
-        function_key = f"{function_name}_categories"
-        if function_key in st.session_state:
-            for category_data in st.session_state[function_key].values():
-                for initiative in category_data.get('initiatives', {}).values():
-                    data = initiative['data']
-                    total_cost += data.get('implementation_cost', 0) * budget_multiplier
-                    initiative_count += 1
-                    timeline_sum += data.get('timeline_months', 12)
-                    productivity_sum += data.get('expected_productivity_gain', 0.15)
+        # Detailed scenario analysis by category
+        scenarios = strategic_data.get('scenarios', {})
+        analysis_results = strategic_data.get('analysis_results', {})
+        
+        for category, category_scenarios in scenarios.items():
+            st.markdown("---")
+            category_title = category.replace("_", " ").title()
+            st.subheader(f"📈 {category_title} Scenarios")
+            
+            # Question context
+            question_key = category.replace("_", " ").title()
+            if question_key in questions_framework:
+                st.markdown(f"**Strategic Question:** {questions_framework[question_key]}")
+            
+            # Scenario comparison results
+            if category in analysis_results:
+                results = analysis_results[category]
+                
+                if 'comparative_analysis' in results and 'summary_table' in results['comparative_analysis']:
+                    summary_table = results['comparative_analysis']['summary_table']
                     
-                    # Collect risk factors
-                    initiative_risks = data.get('risk_factors', [])
-                    risk_factors.extend(initiative_risks)
-    
-    avg_timeline = timeline_sum / max(initiative_count, 1)
-    avg_productivity = productivity_sum / max(initiative_count, 1)
-    
-    # Calculate risk score
-    unique_risks = len(set(risk_factors))
-    risk_score = "Low" if unique_risks < 5 else "Medium" if unique_risks < 10 else "High"
-    
-    # Calculate ROI estimate (simplified)
-    annual_benefit = total_cost * avg_productivity * 0.5  # Simplified calculation
-    roi_estimate = (annual_benefit - total_cost) / max(total_cost, 1)
-    
-    return {
-        'total_cost': total_cost,
-        'initiative_count': initiative_count,
-        'avg_timeline': avg_timeline,
-        'productivity_gain': avg_productivity,
-        'risk_score': risk_score,
-        'roi_estimate': roi_estimate
-    }
+                    # Create comparison table
+                    comparison_data = []
+                    for scenario_name, metrics in summary_table.items():
+                        comparison_data.append({
+                            'Scenario': scenario_name,
+                            'Expected ROI (%)': f"{metrics['expected_roi']:.1f}%",
+                            'ROI Risk (σ)': f"{metrics['roi_std']:.1f}%",
+                            'Expected Value': f"${metrics['expected_value']:,.0f}",
+                            'Success Probability': f"{metrics['probability_success']:.1%}"
+                        })
+                    
+                    df = pd.DataFrame(comparison_data)
+                    st.dataframe(df, use_container_width=True)
+                    
+                    # Risk comparison
+                    if 'risk_comparison' in results['comparative_analysis']:
+                        risk_data = results['comparative_analysis']['risk_comparison']
+                        
+                        st.markdown("#### ⚠️ Risk Analysis")
+                        col1, col2, col3 = st.columns(3)
+                        
+                        for i, (scenario_name, risk_metrics) in enumerate(risk_data.items()):
+                            with [col1, col2, col3][i % 3]:
+                                st.markdown(f"**{scenario_name}**")
+                                st.metric("Success Probability", f"{risk_metrics['probability_positive_roi']:.1%}")
+                                st.metric("5% Value at Risk", f"${risk_metrics['value_at_risk_5']:,.0f}")
+            
+            # Scenario details
+            with st.expander(f"📋 {category_title} Scenario Details"):
+                for scenario_name, scenario_config in category_scenarios.items():
+                    st.markdown(f"**{scenario_name}**")
+                    st.markdown(f"*{scenario_config['description']}*")
+                    
+                    ai_init = scenario_config['ai_initiative']
+                    
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        st.write(f"• AI Type: {ai_init['ai_type']}")
+                        st.write(f"• Investment: ${ai_init['investment']:,.0f}")
+                        st.write(f"• Timeline: {ai_init['timeline']}")
+                    
+                    with col2:
+                        st.write(f"• Automation Level: {ai_init['automation_level']}%")
+                        st.write(f"• Workforce Reduction: {ai_init['workforce_reduction']}%")
+                        st.write(f"• Upskilling Required: {ai_init['upskilling_required']}%")
+                    
+                    with col3:
+                        st.write(f"• Technical Risk: {ai_init.get('technical_risk', 0):.1%}")
+                        st.write(f"• Adoption Risk: {ai_init.get('adoption_risk', 0):.1%}")
+                        st.write(f"• Integration Risk: {ai_init.get('integration_risk', 0):.1%}")
+                    
+                    st.markdown("---")
+        
+        # Strategic insights summary
+        st.markdown("---")
+        st.subheader("💡 Strategic Insights Summary")
+        
+        # Cross-category analysis
+        insights = []
+        
+        # Investment efficiency analysis
+        all_summaries = []
+        for category_results in analysis_results.values():
+            if 'comparative_analysis' in category_results and 'summary_table' in category_results['comparative_analysis']:
+                all_summaries.extend(category_results['comparative_analysis']['summary_table'].values())
+        
+        if all_summaries:
+            avg_roi = np.mean([s['expected_roi'] for s in all_summaries])
+            high_roi_scenarios = [s for s in all_summaries if s['expected_roi'] > avg_roi * 1.2]
+            
+            insights.append(f"Average expected ROI across all scenarios: {avg_roi:.1f}%")
+            insights.append(f"High-performing scenarios ({len(high_roi_scenarios)} identified) exceed {avg_roi * 1.2:.1f}% ROI")
+            
+            # Risk vs Return analysis
+            low_risk_high_return = [
+                s for s in all_summaries 
+                if s['expected_roi'] > avg_roi and s['probability_success'] > 0.8
+            ]
+            
+            if low_risk_high_return:
+                insights.append(f"Low-risk, high-return opportunities: {len(low_risk_high_return)} scenarios identified")
+            
+            # Investment range analysis
+            investments = [s['expected_value'] for s in all_summaries]
+            insights.append(f"Investment range: ${min(investments):,.0f} - ${max(investments):,.0f}")
+        
+        for insight in insights:
+            st.markdown(f"• {insight}")
+        
+        # Export strategic analysis
+        st.markdown("---")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("📄 Export Strategic Analysis"):
+                # Create comprehensive report
+                export_data = {
+                    'function': selected_function,
+                    'analysis_scope': analysis_scope,
+                    'strategic_recommendations': recommendations,
+                    'scenario_summaries': {}
+                }
+                
+                # Add scenario summaries
+                for category, results in analysis_results.items():
+                    if 'comparative_analysis' in results:
+                        export_data['scenario_summaries'][category] = results['comparative_analysis']
+                
+                # Convert to downloadable format
+                import json
+                report_json = json.dumps(export_data, indent=2, default=str)
+                
+                st.download_button(
+                    label="Download Strategic Analysis Report",
+                    data=report_json,
+                    file_name=f"strategic_analysis_{selected_function}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                    mime="application/json"
+                )
+        
+        with col2:
+            if st.button("🔄 Run New Analysis"):
+                if f'strategic_analysis_{selected_function}' in st.session_state:
+                    del st.session_state[f'strategic_analysis_{selected_function}']
+                st.rerun()
 
-def show_temporal_analysis():
-    """Temporal analysis of AI implementation impacts over time"""
-    st.title("⏰ Temporal Analysis")
-    st.markdown("Analyze AI implementation impacts and benefits over time")
+def show_scenario_comparison():
+    st.header("⚖️ Scenario Comparison")
     
-    # Get all configured initiatives
-    all_initiatives = []
-    for key in st.session_state.keys():
-        if key.endswith('_categories'):
-            function_name = key.replace('_categories', '')
-            for category_data in st.session_state[key].values():
-                for initiative in category_data.get('initiatives', {}).values():
-                    all_initiatives.append({
-                        'function': function_name,
-                        'name': initiative['name'],
-                        'data': initiative['data']
-                    })
-    
-    if not all_initiatives:
-        st.warning("⚠️ No AI initiatives configured. Please configure initiatives in Function Analysis first.")
+    if len(st.session_state.predictions) < 1:
+        st.warning("⚠️ Please configure at least one function in Function Analysis first.")
         return
     
-    # Time Horizon Selection
-    st.subheader("⏱️ Analysis Parameters")
+    configured_functions = list(st.session_state.predictions.keys())
     
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        time_horizon = st.selectbox("Time Horizon", ["1 Year", "3 Years", "5 Years"])
-        horizon_months = {"1 Year": 12, "3 Years": 36, "5 Years": 60}[time_horizon]
-    
-    with col2:
-        analysis_type = st.selectbox("Analysis Type", ["Cumulative Benefits", "ROI Over Time", "Risk Evolution"])
-    
-    with col3:
-        granularity = st.selectbox("Time Granularity", ["Monthly", "Quarterly", "Yearly"])
-        
-    # Run Temporal Analysis
-    if st.button("📈 Run Temporal Analysis", type="primary"):
-        with st.spinner("Analyzing temporal impacts..."):
-            temporal_data = calculate_temporal_analysis(all_initiatives, horizon_months, granularity)
-        
-        st.subheader("📊 Temporal Analysis Results")
-        
-        if analysis_type == "Cumulative Benefits":
-            show_cumulative_benefits(temporal_data, granularity)
-        elif analysis_type == "ROI Over Time":
-            show_roi_over_time(temporal_data, granularity)
-        else:  # Risk Evolution
-            show_risk_evolution(temporal_data, granularity)
-        
-        # Key Insights
-        st.subheader("🔍 Key Insights")
-        
-        insights = generate_temporal_insights(temporal_data, time_horizon)
-        for insight in insights:
-            st.info(f"**{insight['category']}**: {insight['insight']}")
-
-def calculate_temporal_analysis(initiatives: List[Dict], horizon_months: int, granularity: str) -> Dict:
-    """Calculate temporal analysis data"""
-    
-    # Time periods
-    if granularity == "Monthly":
-        periods = list(range(1, horizon_months + 1))
-        period_label = "Month"
-    elif granularity == "Quarterly":
-        periods = list(range(1, (horizon_months // 3) + 1))
-        period_label = "Quarter"
-    else:  # Yearly
-        periods = list(range(1, (horizon_months // 12) + 1))
-        period_label = "Year"
-    
-    # Initialize data structures
-    cumulative_investment = []
-    cumulative_benefits = []
-    cumulative_roi = []
-    active_initiatives = []
-    risk_scores = []
-    
-    for period in periods:
-        period_months = period * (1 if granularity == "Monthly" else 3 if granularity == "Quarterly" else 12)
-        
-        # Calculate cumulative investment
-        total_investment = 0
-        total_benefits = 0
-        initiatives_active = 0
-        period_risks = []
-        
-        for initiative in initiatives:
-            data = initiative['data']
-            implementation_months = data.get('timeline_months', 12)
-            cost = data.get('implementation_cost', 0)
-            productivity_gain = data.get('expected_productivity_gain', 0.15)
-            
-            # Investment (occurs during implementation)
-            if period_months <= implementation_months:
-                # Linear investment over implementation period
-                total_investment += cost * (period_months / implementation_months)
-            else:
-                total_investment += cost
-            
-            # Benefits (start after implementation with ramp-up)
-            if period_months > implementation_months:
-                months_operational = period_months - implementation_months
-                # Ramp-up factor (50% benefit in first 6 months, then full benefit)
-                ramp_factor = min(1.0, 0.5 + (months_operational / 12) * 0.5)
-                annual_benefit = cost * productivity_gain * ramp_factor
-                total_benefits += annual_benefit * (months_operational / 12)
-                initiatives_active += 1
-                
-                # Risk decreases over time as initiative matures
-                base_risk = len(data.get('risk_factors', []))
-                time_risk_reduction = min(0.5, months_operational / 24)
-                adjusted_risk = base_risk * (1 - time_risk_reduction)
-                period_risks.append(adjusted_risk)
-        
-        cumulative_investment.append(total_investment)
-        cumulative_benefits.append(total_benefits)
-        
-        # ROI calculation
-        if total_investment > 0:
-            roi = (total_benefits - total_investment) / total_investment
-        else:
-            roi = 0
-        cumulative_roi.append(roi)
-        
-        active_initiatives.append(initiatives_active)
-        
-        # Average risk score
-        avg_risk = sum(period_risks) / max(len(period_risks), 1) if period_risks else 0
-        risk_scores.append(avg_risk)
-    
-    return {
-        'periods': periods,
-        'period_label': period_label,
-        'cumulative_investment': cumulative_investment,
-        'cumulative_benefits': cumulative_benefits,
-        'cumulative_roi': cumulative_roi,
-        'active_initiatives': active_initiatives,
-        'risk_scores': risk_scores
-    }
-
-def show_cumulative_benefits(temporal_data: Dict, granularity: str):
-    """Show cumulative benefits over time"""
-    periods = temporal_data['periods']
-    investment = temporal_data['cumulative_investment']
-    benefits = temporal_data['cumulative_benefits']
-    
-    # Create chart data
-    chart_data = {}
-    for i, period in enumerate(periods):
-        period_key = f"{temporal_data['period_label']} {period}"
-        chart_data[period_key] = {
-            'Investment': investment[i],
-            'Benefits': benefits[i],
-            'Net Benefit': benefits[i] - investment[i]
-        }
-    
-    st.markdown("**Cumulative Investment vs Benefits Over Time**")
-    
-    # Display metrics
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.metric(
-            "Total Investment", 
-            f"${investment[-1]:,.0f}k" if investment else "$0k"
-        )
-    
-    with col2:
-        st.metric(
-            "Total Benefits",
-            f"${benefits[-1]:,.0f}k" if benefits else "$0k"
-        )
-    
-    with col3:
-        net_benefit = (benefits[-1] - investment[-1]) if benefits and investment else 0
-        st.metric(
-            "Net Benefit",
-            f"${net_benefit:,.0f}k",
-            delta=f"${net_benefit:,.0f}k"
-        )
-    
-    # Show break-even point
-    breakeven_period = None
-    for i, period in enumerate(periods):
-        if benefits[i] >= investment[i]:
-            breakeven_period = period
-            break
-    
-    if breakeven_period:
-        st.success(f"✅ Break-even achieved at {temporal_data['period_label']} {breakeven_period}")
-    else:
-        st.warning("⚠️ Break-even not achieved within the analysis period")
-
-def show_roi_over_time(temporal_data: Dict, granularity: str):
-    """Show ROI evolution over time"""
-    periods = temporal_data['periods']
-    roi_data = temporal_data['cumulative_roi']
-    
-    st.markdown("**ROI Evolution Over Time**")
-    
-    # Display current ROI
-    current_roi = roi_data[-1] if roi_data else 0
-    st.metric("Current ROI", f"{current_roi:.1%}")
-    
-    # Create ROI chart data
-    chart_data = {}
-    for i, period in enumerate(periods):
-        period_key = f"{temporal_data['period_label']} {period}"
-        chart_data[period_key] = int(roi_data[i] * 100)  # Convert to percentage
-    
-    st.line_chart(chart_data)
-    
-    # ROI milestones
-    st.markdown("**ROI Milestones:**")
-    
-    milestones = [0.0, 0.25, 0.5, 1.0]  # 0%, 25%, 50%, 100%
-    
-    for milestone in milestones:
-        milestone_period = None
-        for i, roi in enumerate(roi_data):
-            if roi >= milestone:
-                milestone_period = periods[i]
-                break
-        
-        if milestone_period:
-            st.markdown(f"• {milestone:.0%} ROI: {temporal_data['period_label']} {milestone_period}")
-        else:
-            st.markdown(f"• {milestone:.0%} ROI: Not achieved in analysis period")
-
-def show_risk_evolution(temporal_data: Dict, granularity: str):
-    """Show risk evolution over time"""
-    periods = temporal_data['periods']
-    risk_data = temporal_data['risk_scores']
-    active_initiatives = temporal_data['active_initiatives']
-    
-    st.markdown("**Risk Profile Evolution Over Time**")
-    
-    # Current risk metrics
+    # Scenario selection
     col1, col2 = st.columns(2)
     
     with col1:
-        current_risk = risk_data[-1] if risk_data else 0
-        risk_level = "Low" if current_risk < 3 else "Medium" if current_risk < 6 else "High"
-        st.metric("Current Risk Level", risk_level)
+        st.subheader("📊 Baseline Scenario (Current State)")
+        baseline_functions = st.multiselect("Select Functions for Baseline", 
+                                          configured_functions, 
+                                          default=configured_functions)
     
     with col2:
-        current_active = active_initiatives[-1] if active_initiatives else 0
-        st.metric("Active Initiatives", current_active)
+        st.subheader("🤖 AI-Enabled Scenario")
+        ai_functions = st.multiselect("Select Functions with AI Implementation", 
+                                    configured_functions, 
+                                    default=configured_functions)
     
-    # Risk trend analysis
-    if len(risk_data) >= 2:
-        risk_trend = risk_data[-1] - risk_data[0]
-        if risk_trend < -0.5:
-            st.success("✅ Risk decreasing over time - initiative maturity reducing risk")
-        elif risk_trend > 0.5:
-            st.warning("⚠️ Risk increasing over time - may need attention")
-        else:
-            st.info("ℹ️ Risk levels stable over time")
-    
-    # Risk factors over time
-    st.markdown("**Risk Factor Analysis:**")
-    
-    # Identify peak risk period
-    if risk_data:
-        peak_risk_period = periods[risk_data.index(max(risk_data))]
-        st.markdown(f"• **Peak Risk Period**: {temporal_data['period_label']} {peak_risk_period}")
+    if st.button("🔄 Compare Scenarios", type="primary"):
+        # Calculate baseline totals using actual configured data
+        baseline_totals = calculate_scenario_totals(baseline_functions, use_ai=False)
+        ai_totals = calculate_scenario_totals(ai_functions, use_ai=True)
         
-        # Risk mitigation timeline
-        st.markdown("**Risk Mitigation Timeline:**")
-        for i, period in enumerate(periods[::len(periods)//4]):  # Show 4 key periods
-            period_idx = periods.index(period)
-            risk_score = risk_data[period_idx]
-            active_count = active_initiatives[period_idx]
-            
-            risk_level = "Low" if risk_score < 3 else "Medium" if risk_score < 6 else "High"
-            st.markdown(f"• {temporal_data['period_label']} {period}: {risk_level} risk ({active_count} active initiatives)")
-
-def generate_temporal_insights(temporal_data: Dict, time_horizon: str) -> List[Dict]:
-    """Generate key insights from temporal analysis"""
-    insights = []
-    
-    periods = temporal_data['periods']
-    investment = temporal_data['cumulative_investment']
-    benefits = temporal_data['cumulative_benefits']
-    roi_data = temporal_data['cumulative_roi']
-    
-    # Investment pattern insight
-    if len(investment) >= 2:
-        early_investment = sum(investment[:len(investment)//2])
-        late_investment = sum(investment[len(investment)//2:]) - early_investment
+        # Calculate actual AI investment from configured initiatives
+        total_ai_investment = 0
+        total_initiatives = 0
         
-        if early_investment > late_investment * 1.5:
-            insights.append({
-                'category': 'Investment Pattern',
-                'insight': 'Front-loaded investment strategy - most costs occur early with benefits ramping up over time'
-            })
-        else:
-            insights.append({
-                'category': 'Investment Pattern',
-                'insight': 'Distributed investment strategy - costs spread evenly throughout implementation'
-            })
-    
-    # Payback insight
-    payback_period = None
-    for i, period in enumerate(periods):
-        if benefits[i] >= investment[i]:
-            payback_period = period
-            break
-    
-    if payback_period:
-        if payback_period <= len(periods) // 3:
-            insights.append({
-                'category': 'Payback Analysis',
-                'insight': f'Fast payback achieved in {temporal_data["period_label"]} {payback_period} - strong short-term returns'
-            })
-        else:
-            insights.append({
-                'category': 'Payback Analysis',
-                'insight': f'Moderate payback timeline of {temporal_data["period_label"]} {payback_period} - focus on long-term value'
-            })
-    else:
-        insights.append({
-            'category': 'Payback Analysis',
-            'insight': f'Payback extends beyond {time_horizon} - consider strategy adjustment or longer evaluation period'
-        })
-    
-    # ROI trajectory insight
-    if len(roi_data) >= 3:
-        final_roi = roi_data[-1]
-        mid_roi = roi_data[len(roi_data)//2]
+        for func in ai_functions:
+            if f'categories_{func}' in st.session_state:
+                categories = st.session_state[f'categories_{func}']
+                for category_data in categories.values():
+                    initiatives = category_data.get('ai_initiatives', {})
+                    for init_data in initiatives.values():
+                        total_ai_investment += init_data.get('investment', 0)
+                        total_initiatives += 1
         
-        if final_roi > mid_roi * 1.5:
-            insights.append({
-                'category': 'ROI Trajectory',
-                'insight': 'Accelerating returns - ROI improves significantly in later periods'
-            })
-        elif final_roi < mid_roi * 0.8:
-            insights.append({
-                'category': 'ROI Trajectory',
-                'insight': 'Diminishing returns - ROI growth slows over time, may indicate market saturation'
-            })
-        else:
-            insights.append({
-                'category': 'ROI Trajectory',
-                'insight': 'Steady ROI growth - consistent value generation throughout the period'
-            })
-    
-    return insights
-
-def show_executive_summary():
-    """Generate comprehensive executive summary"""
-    st.title("📋 Executive Summary")
-    st.markdown("Comprehensive strategic overview of your AI transformation initiative")
-    
-    # Collect all data
-    total_functions = 0
-    total_initiatives = 0
-    total_investment = 0
-    ai_type_distribution = {}
-    function_summaries = {}
-    
-    for key in st.session_state.keys():
-        if key.endswith('_categories'):
-            function_name = key.replace('_categories', '')
-            function_initiatives = 0
-            function_investment = 0
-            
-            for category_data in st.session_state[key].values():
-                initiatives = category_data.get('initiatives', {})
-                function_initiatives += len(initiatives)
+        st.markdown("---")
+        st.subheader("📈 Comparison Results")
+        
+        # Key metrics comparison
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            revenue_diff = ai_totals['revenue'] - baseline_totals['revenue']
+            st.metric("Revenue Impact", f"${revenue_diff:,.0f}", 
+                     delta=f"{(revenue_diff/baseline_totals['revenue']*100):.1f}%")
+        
+        with col2:
+            cost_diff = ai_totals['costs'] - baseline_totals['costs']
+            st.metric("Cost Impact", f"${cost_diff:,.0f}", 
+                     delta=f"{(cost_diff/baseline_totals['costs']*100):.1f}%")
+        
+        with col3:
+            headcount_diff = ai_totals['headcount'] - baseline_totals['headcount']
+            st.metric("Headcount Impact", f"{headcount_diff:,.0f}", 
+                     delta=f"{(headcount_diff/baseline_totals['headcount']*100):.1f}%")
+        
+        with col4:
+            productivity_diff = ai_totals['productivity'] - baseline_totals['productivity']
+            st.metric("Productivity Impact", f"{productivity_diff:.1f}%", 
+                     delta=f"{productivity_diff:.1f}%")
+        
+        # Detailed comparison chart
+        visualizer = DashboardVisualizer()
+        fig = visualizer.create_scenario_comparison(baseline_totals, ai_totals)
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Function-level breakdown
+        st.subheader("🏢 Function-Level Breakdown")
+        
+        comparison_data = []
+        for func in configured_functions:
+            if (func in st.session_state.predictions and 
+                func in st.session_state.ai_initiatives and 
+                func in st.session_state.baseline_data):
+                pred = st.session_state.predictions[func]
+                baseline = st.session_state.baseline_data[func]
+                ai_config = st.session_state.ai_initiatives[func]
                 
-                for initiative in initiatives.values():
-                    data = initiative['data']
-                    cost = data.get('implementation_cost', 0)
-                    function_investment += cost
-                    total_investment += cost
-                    
-                    ai_type = data.get('ai_type', 'Unknown')
-                    ai_type_distribution[ai_type] = ai_type_distribution.get(ai_type, 0) + 1
-            
-            if function_initiatives > 0:
-                total_functions += 1
-                total_initiatives += function_initiatives
-                function_summaries[function_name] = {
-                    'initiatives': function_initiatives,
-                    'investment': function_investment
-                }
+                comparison_data.append({
+                    'Function': func,
+                    'Current Revenue': baseline['revenue'],
+                    'AI Revenue': baseline['revenue'] + pred['value_generated'],
+                    'Current Costs': baseline['costs'],
+                    'AI Costs': baseline['costs'] + ai_config['investment'],
+                    'ROI': pred['roi'],
+                    'Productivity Gain': pred['productivity_gain']
+                })
+        
+        df = pd.DataFrame(comparison_data)
+        st.dataframe(df, use_container_width=True)
+
+def show_temporal_analysis():
+    st.header("📅 Temporal Analysis")
     
-    if total_initiatives == 0:
-        st.warning("⚠️ No AI initiatives configured. Please configure initiatives in Function Analysis first.")
+    if len(st.session_state.predictions) < 1:
+        st.warning("⚠️ Please configure at least one function in Function Analysis first.")
         return
     
-    # Executive Overview
-    st.subheader("🎯 Executive Overview")
-    
-    col1, col2, col3, col4 = st.columns(4)
+    # Time horizon selection
+    col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.metric("Functions Engaged", total_functions)
+        time_horizon = st.selectbox("Analysis Time Horizon", 
+                                  ["1 year", "2 years", "3 years", "5 years"])
+    
     with col2:
-        st.metric("Total AI Initiatives", total_initiatives)
+        analysis_granularity = st.selectbox("Analysis Granularity", 
+                                          ["Monthly", "Quarterly", "Yearly"])
+    
     with col3:
-        st.metric("Total Investment", f"${total_investment:,}k")
+        confidence_level = st.selectbox("Confidence Level", 
+                                      ["90%", "95%", "99%"])
+    
+    # Function selection for temporal analysis
+    selected_functions = st.multiselect("Select Functions for Temporal Analysis", 
+                                      list(st.session_state.predictions.keys()),
+                                      default=list(st.session_state.predictions.keys()))
+    
+    if st.button("📊 Generate Temporal Projections", type="primary"):
+        engine = PredictiveEngine()
+        
+        # Generate time-series projections
+        years = int(time_horizon.split()[0])
+        months = years * 12
+        
+        # Create temporal projections for each selected function
+        temporal_data = {}
+        
+        for func in selected_functions:
+            if (func in st.session_state.baseline_data and 
+                func in st.session_state.ai_initiatives and 
+                func in st.session_state.predictions):
+                baseline = st.session_state.baseline_data[func]
+                ai_config = st.session_state.ai_initiatives[func]
+                predictions = st.session_state.predictions[func]
+                
+                temporal_projection = engine.generate_temporal_projection(
+                    baseline, ai_config, predictions, months
+                )
+                temporal_data[func] = temporal_projection
+        
+        # Visualize temporal trends
+        st.markdown("---")
+        st.subheader("📈 Temporal Projections")
+        
+        # Revenue and value generation over time
+        visualizer = DashboardVisualizer()
+        
+        # Combined temporal view
+        fig = visualizer.create_temporal_analysis(temporal_data, years)
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Individual function temporal analysis
+        st.subheader("🏢 Function-Specific Temporal Analysis")
+        
+        for func in selected_functions:
+            if func in temporal_data:
+                with st.expander(f"📊 {func} - Detailed Temporal View"):
+                    fig_individual = visualizer.create_individual_temporal_analysis(
+                        temporal_data[func], func
+                    )
+                    st.plotly_chart(fig_individual, use_container_width=True)
+                    
+                    # Key temporal insights
+                    data = temporal_data[func]
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        break_even_month = next((i for i, val in enumerate(data['cumulative_roi']) if val > 0), None)
+                        if break_even_month:
+                            st.metric("Break-even Point", f"Month {break_even_month + 1}")
+                        else:
+                            st.metric("Break-even Point", "Beyond horizon")
+                    
+                    with col2:
+                        max_roi = max(data['monthly_roi'])
+                        st.metric("Peak Monthly ROI", f"{max_roi:.1f}%")
+                    
+                    with col3:
+                        final_value = data['cumulative_value'][-1]
+                        st.metric("Total Value at End", f"${final_value:,.0f}")
+
+def show_executive_summary():
+    st.header("📋 Executive Summary")
+    
+    if len(st.session_state.predictions) < 1:
+        st.warning("⚠️ Please configure at least one function in Function Analysis first.")
+        return
+    
+    # Generate executive summary using actual configured data
+    report_generator = ReportGenerator()
+    
+    # Aggregate actual AI initiatives from your configured categories
+    aggregated_initiatives = {}
+    total_enterprise_investment = 0
+    total_initiatives_count = 0
+    
+    for function_name in st.session_state.baseline_data.keys():
+        if f'categories_{function_name}' in st.session_state:
+            categories = st.session_state[f'categories_{function_name}']
+            
+            # Extract actual initiatives for this function
+            function_investment = 0
+            function_initiatives = []
+            
+            for category_name, category_data in categories.items():
+                initiatives = category_data.get('ai_initiatives', {})
+                for init_id, init_data in initiatives.items():
+                    investment = init_data.get('investment', 0)
+                    function_investment += investment
+                    total_enterprise_investment += investment
+                    total_initiatives_count += 1
+                    
+                    function_initiatives.append({
+                        'name': init_data.get('name', f'Initiative {init_id}'),
+                        'ai_type': init_data.get('ai_type', 'Unknown'),
+                        'investment': investment,
+                        'category': category_name
+                    })
+            
+            aggregated_initiatives[function_name] = {
+                'investment': function_investment,
+                'initiatives': function_initiatives,
+                'baseline': st.session_state.baseline_data[function_name]
+            }
+    
+    # Create summary data from actual configured initiatives
+    summary_data = {
+        'total_investment': total_enterprise_investment,
+        'total_initiatives': total_initiatives_count,
+        'configured_functions': list(aggregated_initiatives.keys()),
+        'baseline_totals': {
+            'revenue': sum(data['baseline']['revenue'] for data in aggregated_initiatives.values()),
+            'costs': sum(data['baseline']['costs'] for data in aggregated_initiatives.values()),
+            'headcount': sum(data['baseline']['headcount'] for data in aggregated_initiatives.values())
+        }
+    }
+    
+    # Executive KPIs using actual configured data
+    st.subheader("🎯 Key Performance Indicators")
+    
+    # Calculate actual metrics from your configured initiatives
+    total_baseline_revenue = sum(data['baseline']['revenue'] for data in aggregated_initiatives.values())
+    total_baseline_costs = sum(data['baseline']['costs'] for data in aggregated_initiatives.values())
+    total_baseline_headcount = sum(data['baseline']['headcount'] for data in aggregated_initiatives.values())
+    
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    with col1:
+        st.metric("Total AI Investment", f"${total_enterprise_investment:,.0f}")
+        st.caption(f"Across {total_initiatives_count} initiatives")
+    with col2:
+        # Calculate ROI from actual predictions if available
+        if st.session_state.predictions:
+            actual_roi = sum(pred.get('roi', 0) for pred in st.session_state.predictions.values()) / len(st.session_state.predictions)
+            st.metric("Expected ROI", f"{actual_roi:.1f}%")
+        else:
+            st.metric("Expected ROI", "Configure predictions")
+        st.caption("From configured initiatives")
+    with col3:
+        st.metric("Baseline Revenue", f"${total_baseline_revenue:,.0f}")
+        st.caption("Current enterprise baseline")
     with col4:
-        avg_investment = total_investment / max(total_initiatives, 1)
-        st.metric("Avg Investment/Initiative", f"${avg_investment:,.0f}k")
+        st.metric("Baseline Costs", f"${total_baseline_costs:,.0f}")
+        st.caption("Current operational costs")
+    with col5:
+        st.metric("Total Headcount", f"{total_baseline_headcount:,.0f}")
+        st.caption("Current workforce")
     
-    # Strategic Summary
-    st.subheader("📊 Strategic Portfolio Analysis")
+    # Strategic overview using actual configured data
+    st.markdown("---")
+    st.subheader("🎯 Strategic Overview")
     
-    # Investment by function
-    if function_summaries:
-        st.markdown("**Investment Distribution by Function:**")
+    if aggregated_initiatives:
+        col1, col2 = st.columns([2, 1])
         
-        # Sort functions by investment
-        sorted_functions = sorted(function_summaries.items(), key=lambda x: x[1]['investment'], reverse=True)
+        with col1:
+            st.markdown("**Configured AI Initiatives by Function**")
+            
+            # Display actual initiatives from your configuration
+            for function_name, function_data in aggregated_initiatives.items():
+                with st.expander(f"📊 {function_name} - {len(function_data['initiatives'])} initiatives"):
+                    st.markdown(f"**Total Investment:** ${function_data['investment']:,.0f}")
+                    st.markdown(f"**Baseline Revenue:** ${function_data['baseline']['revenue']:,.0f}")
+                    st.markdown(f"**Current Headcount:** {function_data['baseline']['headcount']:,}")
+                    
+                    if function_data['initiatives']:
+                        st.markdown("**AI Initiatives:**")
+                        for init in function_data['initiatives']:
+                            st.markdown(f"• {init['name']} ({init['ai_type']}) - ${init['investment']:,.0f} in {init['category']}")
+                    else:
+                        st.info("No AI initiatives configured yet")
         
-        for function_name, summary in sorted_functions:
-            percentage = (summary['investment'] / total_investment) * 100
-            st.markdown(f"• **{function_name}**: ${summary['investment']:,}k ({percentage:.1f}%) - {summary['initiatives']} initiatives")
-    
-    # AI Technology Portfolio
-    st.markdown("**AI Technology Portfolio:**")
-    if ai_type_distribution:
-        sorted_ai_types = sorted(ai_type_distribution.items(), key=lambda x: x[1], reverse=True)
+        with col2:
+            st.markdown("**Implementation Summary**")
+            st.metric("Functions Configured", len(aggregated_initiatives))
+            st.metric("Total Initiatives", total_initiatives_count)
+            
+            # Show breakdown by AI type from actual data
+            ai_types = {}
+            for function_data in aggregated_initiatives.values():
+                for init in function_data['initiatives']:
+                    ai_type = init['ai_type']
+                    ai_types[ai_type] = ai_types.get(ai_type, 0) + 1
+            
+            if ai_types:
+                st.markdown("**AI Types Distribution:**")
+                for ai_type, count in ai_types.items():
+                    st.markdown(f"• {ai_type}: {count} initiatives")
+    else:
+        st.info("Configure AI initiatives in Function Analysis to see strategic overview")
         
-        for ai_type, count in sorted_ai_types:
-            percentage = (count / total_initiatives) * 100
-            st.markdown(f"• **{ai_type}**: {count} initiatives ({percentage:.1f}%)")
+        priority_data = []
+        for func, pred in st.session_state.predictions.items():
+            if func in aggregated_initiatives:
+                initiative = aggregated_initiatives[func]
+                
+                # Calculate priority score based on ROI and risk (use default risk values for aggregated data)
+                roi_score = min(pred['roi'] / 100, 1.0) * 50
+                # Use moderate risk assumption for aggregated initiatives
+                risk_score = (100 - 30) / 100 * 50  # Assume 30% average risk
+                priority_score = roi_score + risk_score
+                
+                priority_data.append({
+                    'Function': func,
+                    'Priority Score': priority_score,
+                    'ROI': pred['roi'],
+                    'Risk Level': 30  # Use default risk level for aggregated data
+                })
+        
+        if priority_data:
+            priority_df = pd.DataFrame(priority_data).sort_values('Priority Score', ascending=False)
+            
+            for _, row in priority_df.iterrows():
+                if row['Priority Score'] > 70:
+                    st.success(f"🟢 {row['Function']} (Score: {row['Priority Score']:.1f})")
+                elif row['Priority Score'] > 50:
+                    st.warning(f"🟡 {row['Function']} (Score: {row['Priority Score']:.1f})")
+                else:
+                    st.error(f"🔴 {row['Function']} (Score: {row['Priority Score']:.1f})")
+        else:
+            st.info("Configure AI initiatives in departments to see priority analysis.")
     
-    # Strategic Recommendations
+    # Risk assessment
+    st.markdown("---")
+    st.subheader("⚠️ Risk Assessment")
+    
+    risk_summary = report_generator.generate_risk_assessment(st.session_state.ai_initiatives)
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("**High Risk Functions**")
+        for func in risk_summary['high_risk']:
+            st.error(f"🔴 {func}")
+    
+    with col2:
+        st.markdown("**Medium Risk Functions**")
+        for func in risk_summary['medium_risk']:
+            st.warning(f"🟡 {func}")
+    
+    with col3:
+        st.markdown("**Low Risk Functions**")
+        for func in risk_summary['low_risk']:
+            st.success(f"🟢 {func}")
+    
+    # Recommendations
+    st.markdown("---")
     st.subheader("💡 Strategic Recommendations")
     
-    recommendations = generate_executive_recommendations(
-        total_investment, total_initiatives, function_summaries, ai_type_distribution
+    recommendations = report_generator.generate_recommendations(
+        st.session_state.predictions, aggregated_initiatives
     )
     
     for i, rec in enumerate(recommendations, 1):
         st.markdown(f"**{i}. {rec['title']}**")
         st.markdown(f"   {rec['description']}")
-        st.markdown(f"   *Impact: {rec['impact']}*")
         st.markdown("")
     
-    # Risk Assessment
-    st.subheader("⚠️ Executive Risk Assessment")
+    # Export functionality
+    st.markdown("---")
+    st.subheader("📤 Export Options")
     
-    risks = assess_executive_risks(total_investment, total_initiatives, function_summaries)
+    col1, col2, col3 = st.columns(3)
     
-    high_risks = [r for r in risks if r['level'] == 'High']
-    medium_risks = [r for r in risks if r['level'] == 'Medium']
+    with col1:
+        if st.button("📊 Export Data to CSV"):
+            export_data = report_generator.prepare_export_data(
+                st.session_state.baseline_data,
+                st.session_state.ai_initiatives,
+                st.session_state.predictions
+            )
+            st.download_button(
+                label="💾 Download CSV",
+                data=export_data.to_csv(index=False),
+                file_name=f"ai_impact_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv"
+            )
     
-    if high_risks:
-        st.error("**High Priority Risks:**")
-        for risk in high_risks:
-            st.markdown(f"• {risk['description']}")
+    with col2:
+        if st.button("📋 Generate Report Summary"):
+            report_text = report_generator.generate_text_report(summary_data, recommendations)
+            st.download_button(
+                label="📄 Download Report",
+                data=report_text,
+                file_name=f"executive_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+                mime="text/plain"
+            )
     
-    if medium_risks:
-        st.warning("**Medium Priority Risks:**")
-        for risk in medium_risks:
-            st.markdown(f"• {risk['description']}")
-    
-    if not high_risks and not medium_risks:
-        st.success("✅ No significant risks identified in current portfolio")
-    
-    # Implementation Roadmap Summary
-    st.subheader("🗓️ Implementation Roadmap")
-    
-    # Calculate implementation timeline
-    all_timelines = []
-    for key in st.session_state.keys():
-        if key.endswith('_categories'):
-            for category_data in st.session_state[key].values():
-                for initiative in category_data.get('initiatives', {}).values():
-                    timeline = initiative['data'].get('timeline_months', 12)
-                    all_timelines.append(timeline)
-    
-    if all_timelines:
-        avg_timeline = sum(all_timelines) / len(all_timelines)
-        max_timeline = max(all_timelines)
-        min_timeline = min(all_timelines)
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.metric("Average Timeline", f"{avg_timeline:.1f} months")
-        with col2:
-            st.metric("Longest Initiative", f"{max_timeline} months")
-        with col3:
-            st.metric("Shortest Initiative", f"{min_timeline} months")
-        
-        # Timeline recommendations
-        if max_timeline > 18:
-            st.warning("⚠️ Some initiatives have extended timelines (>18 months). Consider phased approaches.")
-        
-        if avg_timeline > 12:
-            st.info("ℹ️ Average timeline exceeds 1 year. Ensure adequate project management resources.")
-    
-    # Success Metrics
-    st.subheader("📈 Success Metrics Framework")
-    
-    st.markdown("**Recommended KPIs for Tracking:**")
-    st.markdown("• **Financial**: ROI, Cost Savings, Revenue Impact")
-    st.markdown("• **Operational**: Process Efficiency, Error Reduction, Automation Rate")
-    st.markdown("• **Strategic**: Time-to-Market, Competitive Advantage, Innovation Rate")
-    st.markdown("• **Organizational**: Employee Satisfaction, Skill Development, Change Adoption")
-    
-    # Next Steps
-    st.subheader("🚀 Recommended Next Steps")
-    
-    next_steps = [
-        "Conduct detailed risk assessment for high-investment initiatives",
-        "Establish governance framework and steering committee",
-        "Define success metrics and monitoring dashboards",
-        "Secure necessary resources and budget approvals", 
-        "Begin with highest-impact, lowest-risk initiatives",
-        "Plan change management and training programs"
-    ]
-    
-    for i, step in enumerate(next_steps, 1):
-        st.markdown(f"{i}. {step}")
+    with col3:
+        if st.button("🎯 Export for Presentation"):
+            st.info("💡 Use the visualizations above for your presentation. Screenshots can be taken directly from the dashboard.")
 
-def generate_executive_recommendations(total_investment: int, total_initiatives: int, 
-                                     function_summaries: Dict, ai_type_distribution: Dict) -> List[Dict]:
-    """Generate executive-level strategic recommendations"""
-    recommendations = []
-    
-    # Investment concentration analysis
-    if function_summaries:
-        max_investment_function = max(function_summaries.items(), key=lambda x: x[1]['investment'])
-        max_percentage = (max_investment_function[1]['investment'] / total_investment) * 100
-        
-        if max_percentage > 50:
-            recommendations.append({
-                'title': 'Diversify AI Portfolio',
-                'description': f'{max_investment_function[0]} represents {max_percentage:.1f}% of total investment. Consider spreading investments across more functions to reduce concentration risk.',
-                'impact': 'High - Risk Mitigation'
-            })
-    
-    # Investment scale analysis
-    if total_investment > 1000:  # > $1M
-        recommendations.append({
-            'title': 'Establish AI Center of Excellence',
-            'description': f'With ${total_investment:,}k total investment, establish a dedicated AI governance body to ensure coordination and maximize synergies across initiatives.',
-            'impact': 'High - Strategic Coordination'
-        })
-    
-    # Technology portfolio analysis
-    if ai_type_distribution:
-        dominant_tech = max(ai_type_distribution.items(), key=lambda x: x[1])
-        if dominant_tech[1] / total_initiatives > 0.4:
-            recommendations.append({
-                'title': 'Technology Portfolio Balance',
-                'description': f'{dominant_tech[0]} dominates your portfolio ({(dominant_tech[1]/total_initiatives)*100:.1f}%). Consider diversifying AI technologies to capture broader value opportunities.',
-                'impact': 'Medium - Value Optimization'
-            })
-    
-    # Scale analysis
-    avg_investment = total_investment / max(total_initiatives, 1)
-    if avg_investment < 50:  # < $50k average
-        recommendations.append({
-            'title': 'Consider Strategic Consolidation',
-            'description': f'Average investment per initiative is ${avg_investment:,.0f}k. Consider consolidating smaller initiatives into larger, more impactful programs.',
-            'impact': 'Medium - Efficiency Improvement'
-        })
-    elif avg_investment > 300:  # > $300k average
-        recommendations.append({
-            'title': 'Implement Phased Approach',
-            'description': f'High average investment per initiative (${avg_investment:,.0f}k). Consider breaking larger initiatives into phases to reduce risk and accelerate time-to-value.',
-            'impact': 'High - Risk Management'
-        })
-    
-    # Portfolio maturity
-    if total_initiatives >= 10:
-        recommendations.append({
-            'title': 'Develop AI Operating Model',
-            'description': f'With {total_initiatives} initiatives, establish standardized processes for AI development, deployment, and maintenance to ensure consistent quality and efficiency.',
-            'impact': 'High - Operational Excellence'
-        })
-    
-    return recommendations
-
-def assess_executive_risks(total_investment: int, total_initiatives: int, function_summaries: Dict) -> List[Dict]:
-    """Assess executive-level risks"""
-    risks = []
-    
-    # Financial risk
-    if total_investment > 2000:  # > $2M
-        risks.append({
-            'level': 'High',
-            'description': f'Total investment of ${total_investment:,}k represents significant financial exposure'
-        })
-    elif total_investment > 500:  # > $500k
-        risks.append({
-            'level': 'Medium', 
-            'description': f'Investment level of ${total_investment:,}k requires careful monitoring and governance'
-        })
-    
-    # Complexity risk
-    if total_initiatives > 15:
-        risks.append({
-            'level': 'High',
-            'description': f'{total_initiatives} concurrent initiatives may strain organizational capacity and coordination'
-        })
-    elif total_initiatives > 8:
-        risks.append({
-            'level': 'Medium',
-            'description': f'{total_initiatives} initiatives require strong program management to ensure success'
-        })
-    
-    # Concentration risk
-    if function_summaries:
-        max_function_investment = max(func['investment'] for func in function_summaries.values())
-        concentration_percentage = (max_function_investment / total_investment) * 100
-        
-        if concentration_percentage > 60:
-            risks.append({
-                'level': 'High',
-                'description': f'Investment concentration of {concentration_percentage:.1f}% in single function creates dependency risk'
-            })
-        elif concentration_percentage > 40:
-            risks.append({
-                'level': 'Medium',
-                'description': f'Investment concentration of {concentration_percentage:.1f}% should be monitored for balance'
-            })
-    
-    return risks
-
-def show_benchmarking_optimization():
-    """Advanced benchmarking and optimization analysis"""
-    st.title("🔧 Benchmarking & Optimization")
-    st.markdown("Industry benchmarking and AI portfolio optimization recommendations")
-    
-    # Get configured data
-    all_initiatives = []
-    function_data = {}
-    
-    for key in st.session_state.keys():
-        if key.endswith('_categories'):
-            function_name = key.replace('_categories', '')
-            initiatives = []
-            
-            for category_data in st.session_state[key].values():
-                for initiative in category_data.get('initiatives', {}).values():
-                    initiative_data = {
-                        'function': function_name,
-                        'name': initiative['name'],
-                        'data': initiative['data']
-                    }
-                    initiatives.append(initiative_data)
-                    all_initiatives.append(initiative_data)
-            
-            if initiatives:
-                function_data[function_name] = initiatives
-    
-    if not all_initiatives:
-        st.warning("⚠️ No AI initiatives configured. Please configure initiatives in Function Analysis first.")
-        return
-    
-    # Industry Benchmarking
-    st.subheader("📊 Industry Benchmarking")
-    
-    # Calculate portfolio metrics
-    total_investment = sum(init['data'].get('implementation_cost', 0) for init in all_initiatives)
-    avg_timeline = sum(init['data'].get('timeline_months', 12) for init in all_initiatives) / len(all_initiatives)
-    avg_productivity_gain = sum(init['data'].get('expected_productivity_gain', 0.15) for init in all_initiatives) / len(all_initiatives)
-    
-    # Industry benchmarks (simplified - would come from real data)
-    industry_benchmarks = {
-        'avg_investment_per_initiative': 150,  # $150k
-        'avg_timeline': 10,  # 10 months
-        'avg_productivity_gain': 0.18,  # 18%
-        'success_rate': 0.65,  # 65%
-        'roi_threshold': 1.5  # 150%
+def calculate_scenario_totals(functions, use_ai=False):
+    """Calculate total metrics for a scenario"""
+    totals = {
+        'revenue': 0,
+        'costs': 0,
+        'headcount': 0,
+        'productivity': 0
     }
     
-    col1, col2 = st.columns(2)
+    function_count = len(functions)
+    if function_count == 0:
+        return totals
     
-    with col1:
-        st.markdown("**Your Portfolio:**")
-        avg_investment = total_investment / len(all_initiatives)
-        st.metric("Avg Investment/Initiative", f"${avg_investment:,.0f}k")
-        st.metric("Avg Timeline", f"{avg_timeline:.1f} months")
-        st.metric("Avg Productivity Gain", f"{avg_productivity_gain:.1%}")
-        st.metric("Total Initiatives", len(all_initiatives))
-    
-    with col2:
-        st.markdown("**Industry Benchmark:**")
-        st.metric("Industry Avg Investment", f"${industry_benchmarks['avg_investment_per_initiative']}k")
-        st.metric("Industry Avg Timeline", f"{industry_benchmarks['avg_timeline']} months")
-        st.metric("Industry Avg Gain", f"{industry_benchmarks['avg_productivity_gain']:.1%}")
-        st.metric("Industry Success Rate", f"{industry_benchmarks['success_rate']:.1%}")
-    
-    # Benchmark Analysis
-    st.subheader("🎯 Benchmark Analysis")
-    
-    # Investment comparison
-    investment_vs_benchmark = (avg_investment / industry_benchmarks['avg_investment_per_initiative']) - 1
-    if investment_vs_benchmark > 0.2:
-        st.warning(f"⚠️ Your average investment is {investment_vs_benchmark:.1%} above industry benchmark")
-        st.markdown("**Recommendation**: Review initiative scope and consider cost optimization opportunities")
-    elif investment_vs_benchmark < -0.2:
-        st.info(f"ℹ️ Your average investment is {abs(investment_vs_benchmark):.1%} below industry benchmark")
-        st.markdown("**Opportunity**: Consider expanding scope for higher impact initiatives")
-    else:
-        st.success("✅ Investment levels align well with industry benchmarks")
-    
-    # Timeline comparison
-    timeline_vs_benchmark = (avg_timeline / industry_benchmarks['avg_timeline']) - 1
-    if timeline_vs_benchmark > 0.2:
-        st.warning(f"⚠️ Your average timeline is {timeline_vs_benchmark:.1%} longer than industry benchmark")
-        st.markdown("**Recommendation**: Review project management practices and consider agile approaches")
-    elif timeline_vs_benchmark < -0.2:
-        st.success(f"✅ Your timelines are {abs(timeline_vs_benchmark):.1%} faster than industry average")
-        st.markdown("**Strength**: Efficient implementation processes")
-    else:
-        st.success("✅ Timeline performance aligns with industry standards")
-    
-    # Portfolio Optimization
-    st.subheader("🚀 Portfolio Optimization")
-    
-    # Optimization analysis
-    optimization_opportunities = analyze_optimization_opportunities(all_initiatives, function_data)
-    
-    if optimization_opportunities:
-        st.markdown("**Identified Optimization Opportunities:**")
-        
-        for i, opportunity in enumerate(optimization_opportunities, 1):
-            with st.expander(f"Opportunity {i}: {opportunity['title']}"):
-                st.markdown(f"**Type**: {opportunity['type']}")
-                st.markdown(f"**Description**: {opportunity['description']}")
-                st.markdown(f"**Potential Impact**: {opportunity['impact']}")
-                st.markdown(f"**Implementation Effort**: {opportunity['effort']}")
-                
-                if opportunity.get('affected_initiatives'):
-                    st.markdown("**Affected Initiatives:**")
-                    for init in opportunity['affected_initiatives']:
-                        st.markdown(f"• {init}")
-    
-    # Sensitivity Analysis
-    st.subheader("📈 Sensitivity Analysis")
-    
-    st.markdown("Analyze how changes in key parameters affect portfolio outcomes:")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        cost_sensitivity = st.slider("Cost Variation (%)", -50, 50, 0, 5)
-        timeline_sensitivity = st.slider("Timeline Variation (%)", -50, 50, 0, 5)
-    
-    with col2:
-        productivity_sensitivity = st.slider("Productivity Gain Variation (%)", -50, 50, 0, 5)
-        success_rate_sensitivity = st.slider("Success Rate Variation (%)", -50, 50, 0, 5)
-    
-    if st.button("🔍 Run Sensitivity Analysis"):
-        # Calculate sensitivity impact
-        base_portfolio_value = calculate_portfolio_value(all_initiatives)
-        
-        # Apply sensitivity adjustments
-        adjusted_initiatives = []
-        for init in all_initiatives:
-            adjusted_data = init['data'].copy()
-            adjusted_data['implementation_cost'] *= (1 + cost_sensitivity / 100)
-            adjusted_data['timeline_months'] *= (1 + timeline_sensitivity / 100)
-            adjusted_data['expected_productivity_gain'] *= (1 + productivity_sensitivity / 100)
+    for func in functions:
+        if func in st.session_state.baseline_data:
+            baseline = st.session_state.baseline_data[func]
             
-            adjusted_init = {'data': adjusted_data, 'name': init['name'], 'function': init['function']}
-            adjusted_initiatives.append(adjusted_init)
+            if use_ai and func in st.session_state.predictions and func in st.session_state.ai_initiatives:
+                pred = st.session_state.predictions[func]
+                ai_config = st.session_state.ai_initiatives[func]
+                
+                totals['revenue'] += baseline['revenue'] + pred['value_generated']
+                totals['costs'] += baseline['costs'] + ai_config['investment']
+                totals['headcount'] += int(baseline['headcount'] * (1 - ai_config['workforce_reduction']/100))
+                totals['productivity'] += baseline['productivity'] + pred['productivity_gain']
+            else:
+                totals['revenue'] += baseline['revenue']
+                totals['costs'] += baseline['costs']
+                totals['headcount'] += int(baseline['headcount'])
+                totals['productivity'] += baseline['productivity']
+    
+    # Average productivity
+    totals['productivity'] = totals['productivity'] / function_count
+    
+    return totals
+
+def show_benchmarking_optimization():
+    st.header("📊 Benchmarking & Optimization")
+    
+    if len(st.session_state.predictions) < 1:
+        st.warning("⚠️ Please configure at least one function in Function Analysis first.")
+        return
+    
+    # Initialize benchmarking tools
+    benchmark_tool = IndustryBenchmarking()
+    sensitivity_tool = SensitivityAnalysis()
+    optimization_tool = ScenarioOptimization()
+    
+    # Tabs for different analysis types
+    tab1, tab2, tab3 = st.tabs(["🏭 Industry Benchmarking", "📈 Sensitivity Analysis", "🎯 Scenario Optimization"])
+    
+    with tab1:
+        st.subheader("Industry Benchmark Comparison")
         
-        adjusted_portfolio_value = calculate_portfolio_value(adjusted_initiatives)
+        # Industry selection
+        industry = st.selectbox(
+            "Select your industry for benchmarking:",
+            ["Technology", "Financial Services", "Manufacturing", "Healthcare", "Retail", "General"]
+        )
         
-        # Display results
-        value_change = (adjusted_portfolio_value / base_portfolio_value) - 1
+        if st.button("🔍 Run Benchmark Analysis"):
+            comparison = benchmark_tool.get_industry_comparison(industry, st.session_state.predictions)
+            
+            # Display comparison metrics
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                perf = comparison['performance']['roi_vs_benchmark']
+                st.metric("ROI vs Industry", f"{perf:+.1f}%", delta=f"vs {industry} average")
+            
+            with col2:
+                perf = comparison['performance']['payback_vs_benchmark']
+                st.metric("Payback vs Industry", f"{perf:+.1f}%", delta="better" if perf > 0 else "slower")
+            
+            with col3:
+                perf = comparison['performance']['productivity_vs_benchmark']
+                st.metric("Productivity vs Industry", f"{perf:+.1f}%", delta=f"vs {industry} average")
+            
+            # Benchmark comparison chart
+            benchmark_fig = benchmark_tool.create_benchmark_comparison_chart(comparison)
+            st.plotly_chart(benchmark_fig, use_container_width=True)
+    
+    with tab2:
+        st.subheader("Sensitivity Analysis")
         
-        col1, col2 = st.columns(2)
+        # Function selection for sensitivity analysis
+        selected_function = st.selectbox(
+            "Select function for sensitivity analysis:",
+            list(st.session_state.predictions.keys())
+        )
         
-        with col1:
-            st.metric("Base Portfolio Value", f"${base_portfolio_value:,.0f}k")
+        # Factor selection
+        factor = st.selectbox(
+            "Select factor to analyze:",
+            ["investment", "automation_level", "accuracy_improvement", "speed_improvement", "technical_risk", "adoption_risk"]
+        )
         
-        with col2:
-            st.metric(
-                "Adjusted Portfolio Value", 
-                f"${adjusted_portfolio_value:,.0f}k",
-                delta=f"{value_change:.1%}"
+        if st.button("📊 Run Sensitivity Analysis"):
+            baseline_data = st.session_state.baseline_data[selected_function]
+            ai_initiative = st.session_state.ai_initiatives[selected_function]
+            predictions = st.session_state.predictions[selected_function]
+            
+            sensitivity_results = sensitivity_tool.run_sensitivity_analysis(
+                baseline_data, ai_initiative, predictions, factor
             )
+            
+            # Display sensitivity chart
+            sensitivity_fig = sensitivity_tool.create_sensitivity_chart(sensitivity_results)
+            st.plotly_chart(sensitivity_fig, use_container_width=True)
+    
+    with tab3:
+        st.subheader("Scenario Optimization")
         
-        # Sensitivity insights
-        if abs(value_change) > 0.2:
-            st.warning(f"⚠️ High sensitivity detected: {abs(value_change):.1%} value change from parameter variations")
-            st.markdown("**Recommendation**: Focus on risk mitigation for the most sensitive parameters")
-        else:
-            st.success("✅ Portfolio shows good stability across parameter variations")
-
-def analyze_optimization_opportunities(all_initiatives: List[Dict], function_data: Dict) -> List[Dict]:
-    """Analyze optimization opportunities across the AI portfolio"""
-    opportunities = []
-    
-    # Cost optimization opportunities
-    high_cost_initiatives = [init for init in all_initiatives if init['data'].get('implementation_cost', 0) > 300]
-    if high_cost_initiatives:
-        opportunities.append({
-            'title': 'High-Cost Initiative Review',
-            'type': 'Cost Optimization',
-            'description': f'{len(high_cost_initiatives)} initiatives have costs >$300k. Review scope and consider phased approaches.',
-            'impact': 'High - Potential 20-30% cost reduction',
-            'effort': 'Medium',
-            'affected_initiatives': [f"{init['function']} - {init['name']}" for init in high_cost_initiatives]
-        })
-    
-    # Timeline optimization
-    long_timeline_initiatives = [init for init in all_initiatives if init['data'].get('timeline_months', 12) > 18]
-    if long_timeline_initiatives:
-        opportunities.append({
-            'title': 'Timeline Acceleration',
-            'type': 'Schedule Optimization',
-            'description': f'{len(long_timeline_initiatives)} initiatives have timelines >18 months. Consider parallel execution or scope reduction.',
-            'impact': 'Medium - Faster time-to-value',
-            'effort': 'High',
-            'affected_initiatives': [f"{init['function']} - {init['name']}" for init in long_timeline_initiatives]
-        })
-    
-    # Technology consolidation
-    ai_types = {}
-    for init in all_initiatives:
-        ai_type = init['data'].get('ai_type', 'Unknown')
-        if ai_type not in ai_types:
-            ai_types[ai_type] = []
-        ai_types[ai_type].append(init)
-    
-    # Look for consolidation opportunities
-    for ai_type, initiatives in ai_types.items():
-        if len(initiatives) > 2 and ai_type != 'Unknown':
-            opportunities.append({
-                'title': f'{ai_type} Platform Consolidation',
-                'type': 'Technology Optimization',
-                'description': f'{len(initiatives)} initiatives use {ai_type}. Consider shared platform approach.',
-                'impact': 'High - 15-25% cost savings, improved consistency',
-                'effort': 'Medium',
-                'affected_initiatives': [f"{init['function']} - {init['name']}" for init in initiatives]
-            })
-    
-    # Cross-function synergies
-    if len(function_data) > 2:
-        opportunities.append({
-            'title': 'Cross-Function Data Sharing',
-            'type': 'Synergy Optimization',
-            'description': f'Multiple functions ({len(function_data)}) implementing AI. Explore data and model sharing opportunities.',
-            'impact': 'Medium - Improved accuracy, reduced duplication',
-            'effort': 'Low',
-            'affected_initiatives': ['All initiatives']
-        })
-    
-    # Low-impact initiative review
-    low_impact_initiatives = [init for init in all_initiatives if init['data'].get('expected_productivity_gain', 0.15) < 0.1]
-    if low_impact_initiatives:
-        opportunities.append({
-            'title': 'Low-Impact Initiative Review',
-            'type': 'Portfolio Optimization',
-            'description': f'{len(low_impact_initiatives)} initiatives have <10% expected productivity gain. Consider scope expansion or removal.',
-            'impact': 'Medium - Better resource allocation',
-            'effort': 'Low',
-            'affected_initiatives': [f"{init['function']} - {init['name']}" for init in low_impact_initiatives]
-        })
-    
-    return opportunities
-
-def calculate_portfolio_value(initiatives: List[Dict]) -> float:
-    """Calculate overall portfolio value (simplified ROI-based calculation)"""
-    total_value = 0
-    
-    for init in initiatives:
-        data = init['data']
-        cost = data.get('implementation_cost', 0)
-        productivity_gain = data.get('expected_productivity_gain', 0.15)
-        timeline = data.get('timeline_months', 12)
+        # Function selection for optimization
+        opt_function = st.selectbox(
+            "Select function to optimize:",
+            list(st.session_state.predictions.keys()),
+            key="opt_function"
+        )
         
-        # Simplified 3-year value calculation
-        annual_benefit = cost * productivity_gain
-        three_year_benefit = annual_benefit * 3
-        net_value = three_year_benefit - cost
+        # Optimization target
+        target_metric = st.selectbox(
+            "Optimization target:",
+            ["roi", "value_generated", "payback_period", "risk_adjusted_roi"]
+        )
         
-        # Apply timeline discount (longer projects have reduced value)
-        timeline_discount = max(0.5, 1.0 - (timeline - 12) / 48)  # Discount for timelines >12 months
-        discounted_value = net_value * timeline_discount
-        
-        total_value += discounted_value
-    
-    return total_value
+        if st.button("🎯 Optimize Scenario"):
+            baseline_data = st.session_state.baseline_data[opt_function]
+            ai_initiative = st.session_state.ai_initiatives[opt_function]
+            
+            optimization_results = optimization_tool.optimize_scenario(
+                baseline_data, ai_initiative, target_metric
+            )
+            
+            if optimization_results['best_result']:
+                st.subheader("🏆 Optimization Results")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("**Current Configuration**")
+                    current_pred = st.session_state.predictions[opt_function]
+                    st.write(f"ROI: {current_pred['roi']:.1f}%")
+                    st.write(f"Value: ${current_pred['value_generated']:,.0f}")
+                
+                with col2:
+                    st.markdown("**Optimized Configuration**")
+                    best_result = optimization_results['best_result']
+                    st.write(f"ROI: {best_result['roi']:.1f}%")
+                    st.write(f"Value: ${best_result['value_generated']:,.0f}")
 
 if __name__ == "__main__":
     main()

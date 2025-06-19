@@ -1,8 +1,8 @@
-modules = ["python-3.11", "postgresql-16", "python3"]
+modules = ["python-3.11", "postgresql-16"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["cairo", "ffmpeg-full", "freetype", "gcc-unwrapped", "ghostscript", "glibc", "glibcLocales", "gobject-introspection", "gtk3", "libgcc", "libstdcxx5", "pkg-config", "qhull", "tcl", "tk", "zlib"]
+packages = ["glibcLocales"]
 
 [deployment]
 deploymentTarget = "autoscale"
