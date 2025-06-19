@@ -6,7 +6,7 @@ requires-python = ">=3.11"
 dependencies = [
     "anthropic>=0.54.0",
     "matplotlib>=3.10.3",
-    "numpy>=2.3.0",
+    "numpy==1.26.4",
     "openai>=1.88.0",
     "pandas>=2.3.0",
     "plotly>=6.1.2",
