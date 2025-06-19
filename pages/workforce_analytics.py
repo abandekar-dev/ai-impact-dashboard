@@ -25,10 +25,6 @@ def show_workforce_analytics():
         st.warning("Please configure baseline data for enterprise functions first in 'Input by Department/Business'.")
         return
     
-    # Show selected industry context
-    selected_industry = st.session_state.get('selected_industry', 'Technology')
-    st.info(f"Analyzing workforce for {selected_industry} industry functions")
-    
     # Department selection
     departments = list(st.session_state.baseline_data.keys())
     selected_dept = st.selectbox("Select Department for Analysis", departments)
@@ -366,15 +362,8 @@ def show_human_ai_integration_architecture(architect: HumanAIIntegrationArchitec
     st.subheader("🤖 Human-AI Integration Architecture")
     
     # Design integration architecture
-    try:
-        with st.spinner("Designing human-AI integration architecture..."):
-            architecture = architect.design_integration_architecture(profile, ai_initiative)
-    except Exception as e:
-        st.error(f"Error in integration architecture design: {str(e)}")
-        st.write("Debug info:")
-        st.write(f"AI Initiative: {ai_initiative}")
-        st.write(f"Profile department: {profile.department}")
-        return
+    with st.spinner("Designing human-AI integration architecture..."):
+        architecture = architect.design_integration_architecture(profile, ai_initiative)
     
     # Display integration model
     st.markdown("#### 🔗 Integration Model")
@@ -449,38 +438,7 @@ def show_human_ai_integration_architecture(architect: HumanAIIntegrationArchitec
     st.markdown("#### 🏛️ Governance Structure")
     
     if architecture.governance_structure:
-        try:
-            # Create a more structured display
-            governance = architecture.governance_structure
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown("**Steering Committee**")
-                st.write(governance.get('steering_committee', 'Not defined'))
-                
-                st.markdown("**Review Frequency**")
-                st.write(governance.get('review_frequency', 'Not defined'))
-            
-            with col2:
-                st.markdown("**Implementation Team**")
-                st.write(governance.get('implementation_team', 'Not defined'))
-                
-                st.markdown("**Decision Framework**")
-                st.write(governance.get('decision_framework', 'Not defined'))
-            
-            st.markdown("**Success Metrics**")
-            metrics = governance.get('success_metrics', [])
-            if isinstance(metrics, list):
-                for metric in metrics:
-                    st.write(f"• {metric}")
-            else:
-                st.write(str(metrics))
-                
-        except Exception as e:
-            st.error(f"Error displaying governance structure: {str(e)}")
-            st.write("Raw governance data:")
-            st.write(architecture.governance_structure)
+        st.json(architecture.governance_structure)
 
 def show_experience_optimization(optimizer: ExperienceOptimizer,
                                profile: WorkforceProfile, 
@@ -574,7 +532,7 @@ def show_experience_optimization(optimizer: ExperienceOptimizer,
                 color='Impact Category',
                 title="Predicted Experience Impact by Dimension",
                 color_discrete_map={'Positive': 'green', 'Negative': 'red', 'Neutral': 'gray'})
-    fig.update_layout(xaxis_tickangle=45)
+    fig.update_xaxis(tickangle=45)
     st.plotly_chart(fig, use_container_width=True)
     
     # Optimization Strategies

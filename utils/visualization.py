@@ -6,7 +6,7 @@ import numpy as np
 from typing import Dict, List
 
 class DashboardVisualizer:
-    """Visualization utilities for the Analytics and Insights Engine"""
+    """Visualization utilities for the AI impact dashboard"""
     
     def __init__(self):
         self.color_palette = {

@@ -124,31 +124,3 @@ class SessionManager:
         except Exception as e:
             print(f"Error exporting session: {e}")
             return None
-    
-    def create_new_session(self) -> bool:
-        """Create a new session by clearing current data"""
-        try:
-            # Clear all session state data to start fresh
-            st.session_state.baseline_data = {}
-            st.session_state.ai_initiatives = {}
-            st.session_state.predictions = {}
-            
-            # Reset other session-related data
-            if 'corporate_objectives' in st.session_state:
-                del st.session_state.corporate_objectives
-            if 'budget_constraints' in st.session_state:
-                del st.session_state.budget_constraints
-            if 'change_management' in st.session_state:
-                del st.session_state.change_management
-            if 'enterprise_integrations' in st.session_state:
-                del st.session_state.enterprise_integrations
-                
-            # Reset category manager data
-            if 'function_categories' in st.session_state:
-                st.session_state.function_categories = {}
-            
-            return True
-            
-        except Exception as e:
-            print(f"Error creating new session: {e}")
-            return False
