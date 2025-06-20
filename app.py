@@ -1,17 +1,34 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
 from datetime import datetime, timedelta
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+
+# Import dependencies through compatibility layer
+try:
+    from utils.compatibility import (
+        np, pd, px, go, make_subplots,
+        NUMPY_AVAILABLE, PANDAS_AVAILABLE, PLOTLY_AVAILABLE
+    )
+except ImportError:
+    # Fallback if compatibility module isn't available
+    try:
+        import pandas as pd
+        import numpy as np
+        import plotly.express as px
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
+        NUMPY_AVAILABLE = PANDAS_AVAILABLE = PLOTLY_AVAILABLE = True
+    except ImportError:
+        st.error("Required dependencies are not available. Some features may be limited.")
+        NUMPY_AVAILABLE = PANDAS_AVAILABLE = PLOTLY_AVAILABLE = False
 
 # Import utility modules
 from utils.data_models import EnterpriseFunction, AIInitiative
 from utils.predictive_engine import PredictiveEngine
 from utils.visualization import DashboardVisualizer
 from utils.report_generator import ReportGenerator
-from utils.database import DatabaseManager
+try:
+    from utils.database import DatabaseManager
+except ImportError:
+    from utils.database_fallback import DatabaseManagerFallback as DatabaseManager
 from utils.benchmarking import IndustryBenchmarking, SensitivityAnalysis, ScenarioOptimization
 from utils.session_manager import SessionManager
 from utils.monte_carlo import MonteCarloSimulator, ScenarioModeler
