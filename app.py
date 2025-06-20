@@ -121,6 +121,52 @@ def auto_save_data():
 auto_save_data()
 
 def main():
+    # Global CSS to ensure proper text contrast
+    st.markdown("""
+    <style>
+    /* Fix text contrast issues - ensure dark text on white background */
+    .main .block-container, .main .block-container * {
+        color: #1f2937 !important;
+        background-color: white !important;
+    }
+    
+    /* Sidebar text */
+    .css-1d391kg, .css-1d391kg * {
+        color: #1f2937 !important;
+    }
+    
+    /* Navigation and markdown text */
+    .stMarkdown, .stMarkdown * {
+        color: #1f2937 !important;
+    }
+    
+    /* Button text - except for styled metric cards */
+    .stButton button {
+        color: #1f2937 !important;
+    }
+    
+    /* Input and form labels */
+    label, .stSelectbox label, .stTextInput label, .stNumberInput label {
+        color: #1f2937 !important;
+    }
+    
+    /* Tab navigation */
+    .stTabs [data-baseweb="tab-list"] button {
+        color: #1f2937 !important;
+    }
+    
+    /* Headers and paragraphs */
+    h1, h2, h3, h4, h5, h6, p, div, span {
+        color: #1f2937 !important;
+    }
+    
+    /* Exception: Keep metric cards white text on colored background */
+    .metric-card, .metric-card * {
+        color: white !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
     st.title("🎯 AI Impact Predictive Dashboard")
     st.markdown("**Executive Dashboard for Predictive Modeling of AI Implementation Impact**")
     
