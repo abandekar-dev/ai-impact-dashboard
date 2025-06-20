@@ -2,7 +2,7 @@ modules = ["python-3.11", "postgresql-16"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["glibcLocales"]
+packages = ["gcc", "glibc", "glibcLocales", "libstdcxx5", "libgcc", "python311Packages.numpy", "python311Packages.pandas", "python311Packages.streamlit", "python311Packages.plotly", "python311Packages.scikit-learn", "python311Packages.sqlalchemy", "python311Packages.psycopg2"]
 
 [deployment]
 deploymentTarget = "autoscale"
