@@ -1,26 +1,17 @@
 import streamlit as st
 import json
-import plotly.graph_objects as go
-import plotly.express as px
 from datetime import datetime, timedelta
 from typing import Dict, List, Any
 import random
 import math
 
-# Initialize database connection
-from utils.database import DatabaseManager
-
+# Simple in-memory storage for this demo version
 def init_database():
-    """Initialize database connection with error handling"""
-    try:
-        db = DatabaseManager()
-        return db
-    except Exception as e:
-        st.sidebar.warning(f"Database connection unavailable: {str(e)}")
-        return None
+    """Mock database initialization for simplified version"""
+    return None
 
 # Initialize database
-db = init_database()
+db = None
 
 def main():
     st.title("🎯 Analytics and Insights Engine")
@@ -268,22 +259,16 @@ def show_comparative_analysis():
             st.metric("ROI", f"{roi_percentage:.1f}%")
         
         # Visualization
-        metrics = ['Revenue', 'Costs', 'Productivity']
-        current_values = [baseline['annual_revenue']/1000000, baseline['annual_costs']/1000000, baseline['current_productivity']]
-        future_values = [future_revenue/1000000, future_costs/1000000, future_productivity]
+        st.subheader("📊 Performance Comparison")
         
-        fig = go.Figure(data=[
-            go.Bar(name='Current', x=metrics, y=current_values, marker_color='lightblue'),
-            go.Bar(name='Future', x=metrics, y=future_values, marker_color='darkblue')
-        ])
+        # Create simple comparison table
+        comparison_df = {
+            'Metric': ['Revenue ($M)', 'Costs ($M)', 'Productivity (1-10)'],
+            'Current': [f"{baseline['annual_revenue']/1000000:.1f}", f"{baseline['annual_costs']/1000000:.1f}", f"{baseline['current_productivity']:.1f}"],
+            'Future': [f"{future_revenue/1000000:.1f}", f"{future_costs/1000000:.1f}", f"{future_productivity:.1f}"]
+        }
         
-        fig.update_layout(
-            title=f'{selected_function}: Current vs Future Performance',
-            barmode='group',
-            yaxis_title='Value (Revenue/Costs in $M, Productivity 1-10)'
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
+        st.table(comparison_df)
 
 def show_build_buy_analysis():
     st.header("🔧 Build vs Buy Analysis")
@@ -397,22 +382,17 @@ def show_build_buy_analysis():
         st.metric("Potential Savings", f"${total_savings:,.0f}")
     
     # Visualization
-    skills = [data['Skill'] for data in comparison_data]
-    buy_costs = [data['Buy Cost (3yr)'] for data in comparison_data]
-    build_costs = [data['Build Cost (3yr)'] for data in comparison_data]
+    st.subheader("📊 Cost Comparison Chart")
     
-    fig = go.Figure(data=[
-        go.Bar(name='Buy', x=skills, y=buy_costs, marker_color='red'),
-        go.Bar(name='Build', x=skills, y=build_costs, marker_color='green')
-    ])
+    # Create comparison table
+    chart_table = {
+        'Skill': [data['Skill'] for data in comparison_data],
+        'Buy Cost (3yr)': [f"${data['Buy Cost (3yr)']:,.0f}" for data in comparison_data],
+        'Build Cost (3yr)': [f"${data['Build Cost (3yr)']:,.0f}" for data in comparison_data],
+        'Recommendation': [data['Recommendation'] for data in comparison_data]
+    }
     
-    fig.update_layout(
-        title='3-Year Cost Comparison: Build vs Buy',
-        barmode='group',
-        yaxis_title='Cost ($)'
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
+    st.table(chart_table)
 
 if __name__ == "__main__":
     main()
