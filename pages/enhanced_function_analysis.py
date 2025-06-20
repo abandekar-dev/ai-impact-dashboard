@@ -3,8 +3,6 @@ import pandas as pd
 from typing import Dict, List
 from utils.category_manager import CategoryManager
 from utils.predictive_engine import PredictiveEngine
-from utils.natural_language_processor import NaturalLanguageProcessor, CrossFunctionAnalyzer
-from utils.vector_database import VectorDatabase, SemanticAnalyzer
 from datetime import datetime
 
 def show_enhanced_function_analysis(category_manager, db=None):
@@ -72,11 +70,11 @@ def show_enhanced_function_analysis(category_manager, db=None):
             current_headcount = st.number_input("Current Headcount", min_value=1, 
                                                value=existing_data.get('headcount', 100), step=1)
             current_revenue = st.number_input("Annual Revenue Contribution ($)", 
-                                            min_value=0.0, value=float(existing_data.get('revenue', 1000000)), step=10000.0)
+                                            min_value=0, value=float(existing_data.get('revenue', 1000000)), step=10000.0)
         
         with col2:
             current_costs = st.number_input("Annual Operating Costs ($)", 
-                                          min_value=0.0, value=float(existing_data.get('costs', 500000)), step=10000.0)
+                                          min_value=0, value=float(existing_data.get('costs', 500000)), step=10000.0)
             current_satisfaction = st.number_input("Performance Satisfaction (0-100)", 
                                                  min_value=0.0, max_value=100.0, 
                                                  value=existing_data.get('satisfaction', 80.0), step=0.1)
@@ -196,7 +194,7 @@ def show_enhanced_function_analysis(category_manager, db=None):
             st.metric("Most Common AI Type", "None")
     
     # Category management
-    tab1, tab2, tab3, tab4 = st.tabs(["📋 Manage Categories", "🤖 AI Initiatives", "📊 Category Analysis", "🔗 Cross-Function Dependencies"])
+    tab1, tab2, tab3 = st.tabs(["📋 Manage Categories", "🤖 AI Initiatives", "📊 Category Analysis"])
     
     with tab1:
         st.subheader("Category Management")
@@ -243,168 +241,6 @@ def show_enhanced_function_analysis(category_manager, db=None):
         if not categories:
             st.warning("Please create at least one category first.")
             return
-        
-        # Initialize natural language processor
-        nlp = NaturalLanguageProcessor()
-        
-        # Natural language initiative configuration
-        with st.expander("🤖 Natural Language Initiative Configuration", expanded=True):
-            st.markdown("**Describe your AI initiative in plain language:**")
-            
-            initiative_description = st.text_area(
-                "Initiative Description",
-                placeholder="Example: We want to automate our customer support ticket routing using AI to improve response times by analyzing incoming emails and routing them to the right department based on urgency and topic",
-                height=100
-            )
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                category_names = list(categories.keys())
-                target_category = st.selectbox("Target Category", category_names)
-            
-            with col2:
-                if st.button("🚀 Generate AI Initiative", type="primary") and initiative_description:
-                    with st.spinner("Analyzing description and generating configuration..."):
-                        try:
-                            # Parse the description using NLP
-                            parsed_config = nlp.parse_initiative_description(
-                                initiative_description, 
-                                st.session_state.get('selected_industry', 'Technology'),
-                                selected_function
-                            )
-                            
-                            # Store the parsed configuration in session state for review
-                            st.session_state['parsed_initiative'] = parsed_config
-                            st.session_state['parsed_category'] = target_category
-                            st.success("AI initiative configuration generated! Review below.")
-                            
-                        except Exception as e:
-                            st.error(f"Error generating configuration: {str(e)}")
-        
-        # Display and edit parsed configuration
-        if 'parsed_initiative' in st.session_state:
-            st.markdown("---")
-            st.subheader("📋 Review Generated Configuration")
-            
-            parsed_config = st.session_state['parsed_initiative']
-            target_category = st.session_state.get('parsed_category', category_names[0])
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown("**Generated Configuration:**")
-                edited_name = st.text_input("Initiative Name", value=parsed_config.get('name', ''))
-                edited_ai_type = st.selectbox("AI Type", 
-                    options=nlp.industry_ai_types.get(st.session_state.get('selected_industry', 'Technology'), []),
-                    index=0 if parsed_config.get('ai_type') not in nlp.industry_ai_types.get(st.session_state.get('selected_industry', 'Technology'), []) 
-                    else nlp.industry_ai_types.get(st.session_state.get('selected_industry', 'Technology'), []).index(parsed_config.get('ai_type'))
-                )
-                edited_investment = st.number_input("Investment ($)", value=int(parsed_config.get('investment', 0)), min_value=0)
-                edited_automation = st.slider("Automation Level (%)", 0, 100, value=int(parsed_config.get('automation_level', 0)))
-                edited_productivity = st.slider("Productivity Gain (%)", 0, 100, value=int(parsed_config.get('productivity_gain', 0)))
-            
-            with col2:
-                st.markdown("**Additional Details:**")
-                edited_workforce_reduction = st.slider("Workforce Reduction (%)", 0, 50, value=int(parsed_config.get('workforce_reduction', 0)))
-                edited_timeline = st.selectbox("Timeline", 
-                    options=['3-6 months', '6-12 months', '12+ months'],
-                    index=['3-6 months', '6-12 months', '12+ months'].index(parsed_config.get('timeline', '6-12 months'))
-                )
-                edited_complexity = st.selectbox("Complexity", 
-                    options=['Low', 'Medium', 'High'],
-                    index=['Low', 'Medium', 'High'].index(parsed_config.get('complexity', 'Medium'))
-                )
-                edited_description = st.text_area("Description", value=parsed_config.get('description', ''), height=100)
-            
-            # Show benefits and implementation steps
-            st.markdown("**Key Benefits:**")
-            benefits = parsed_config.get('key_benefits', [])
-            if isinstance(benefits, list):
-                for benefit in benefits:
-                    st.markdown(f"• {benefit}")
-            
-            st.markdown("**Implementation Steps:**")
-            steps = parsed_config.get('implementation_steps', [])
-            if isinstance(steps, list):
-                for i, step in enumerate(steps, 1):
-                    st.markdown(f"{i}. {step}")
-            
-            # Improvement suggestions
-            with st.expander("💡 AI-Generated Improvement Suggestions"):
-                if st.button("Get Suggestions"):
-                    suggestions = nlp.suggest_initiative_improvements(
-                        {
-                            'name': edited_name,
-                            'ai_type': edited_ai_type,
-                            'investment': edited_investment,
-                            'automation_level': edited_automation,
-                            'productivity_gain': edited_productivity
-                        },
-                        st.session_state.get('selected_industry', 'Technology'),
-                        selected_function
-                    )
-                    
-                    for suggestion in suggestions:
-                        st.markdown(f"• {suggestion}")
-            
-            # Save configuration
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                if st.button("💾 Save Initiative", type="primary"):
-                    final_config = {
-                        'name': edited_name,
-                        'ai_type': edited_ai_type,
-                        'investment': edited_investment,
-                        'automation_level': edited_automation,
-                        'productivity_gain': edited_productivity,
-                        'workforce_reduction': edited_workforce_reduction,
-                        'timeline': edited_timeline,
-                        'complexity': edited_complexity,
-                        'description': edited_description,
-                        'key_benefits': parsed_config.get('key_benefits', []),
-                        'implementation_steps': parsed_config.get('implementation_steps', [])
-                    }
-                    
-                    initiative_id = category_manager.add_ai_initiative(
-                        selected_function, target_category, edited_name, final_config
-                    )
-                    
-                    if initiative_id:
-                        st.success(f"Initiative '{edited_name}' saved successfully!")
-                        
-                        # Store in vector database if available
-                        if db:
-                            try:
-                                vector_db = VectorDatabase(db)
-                                vector_db.store_initiative_embedding(selected_function, initiative_id, final_config)
-                            except Exception:
-                                pass  # Vector DB is optional
-                        
-                        # Clear parsed configuration
-                        del st.session_state['parsed_initiative']
-                        if 'parsed_category' in st.session_state:
-                            del st.session_state['parsed_category']
-                        st.rerun()
-                    else:
-                        st.error("Failed to save initiative.")
-            
-            with col2:
-                if st.button("🔄 Regenerate"):
-                    # Clear and regenerate
-                    del st.session_state['parsed_initiative']
-                    st.rerun()
-            
-            with col3:
-                if st.button("❌ Cancel"):
-                    del st.session_state['parsed_initiative']
-                    if 'parsed_category' in st.session_state:
-                        del st.session_state['parsed_category']
-                    st.rerun()
-        
-        st.markdown("---")
-        
-        # Manual initiative configuration (existing functionality)
-        st.subheader("📝 Manual Initiative Configuration")
         
         # Select category for initiative
         category_names = list(categories.keys())
@@ -659,177 +495,3 @@ def show_enhanced_function_analysis(category_manager, db=None):
                     st.rerun()
                 else:
                     st.error("Please save function baseline first.")
-    
-    with tab4:
-        st.subheader("🔗 Cross-Function Dependencies")
-        
-        # Initialize cross-function analyzer
-        cross_analyzer = CrossFunctionAnalyzer()
-        
-        # Check if there are multiple functions to analyze
-        if len(st.session_state.baseline_data) < 2:
-            st.info("Configure at least 2 functions to analyze cross-function dependencies.")
-            return
-        
-        # Run dependency analysis
-        categories_data = {key: value for key, value in st.session_state.__dict__.items() if key.startswith('categories_')}
-        dependency_analysis = cross_analyzer.analyze_function_dependencies(
-            st.session_state.baseline_data,
-            categories_data
-        )
-        
-        # Display dependency matrix
-        st.markdown("#### Function Dependency Matrix")
-        
-        dependencies = dependency_analysis['dependencies']
-        if dependencies:
-            # Create dependency visualization
-            functions = list(st.session_state.baseline_data.keys())
-            
-            # Dependency strength matrix
-            matrix_data = []
-            for func1 in functions:
-                row = {'Function': func1}
-                for func2 in functions:
-                    if func1 == func2:
-                        row[func2] = 1.0
-                    else:
-                        # Find dependency strength
-                        strength = 0
-                        func1_deps = dependencies.get(func1, [])
-                        for dep in func1_deps:
-                            if dep['target_function'] == func2:
-                                strength = dep['dependency_strength']
-                                break
-                        row[func2] = strength
-                matrix_data.append(row)
-            
-            df_matrix = pd.DataFrame(matrix_data)
-            st.dataframe(df_matrix.set_index('Function').style.background_gradient(cmap='RdYlBu_r'), use_container_width=True)
-            
-            # Dependency details
-            st.markdown("#### Dependency Details")
-            
-            for func_name, func_deps in dependencies.items():
-                if func_deps:
-                    with st.expander(f"📊 {func_name} Dependencies"):
-                        for dep in func_deps:
-                            strength = dep['dependency_strength']
-                            dep_type = dep['dependency_type']
-                            target = dep['target_function']
-                            
-                            # Color code by strength
-                            if strength > 0.7:
-                                color = "🔴"
-                            elif strength > 0.5:
-                                color = "🟡"
-                            else:
-                                color = "🟢"
-                            
-                            st.markdown(f"{color} **{target}** - {dep_type} dependency ({strength:.2f})")
-        
-        # Implementation sequence recommendation
-        st.markdown("#### Recommended Implementation Sequence")
-        
-        sequence = dependency_analysis['implementation_sequence']
-        if sequence:
-            for i, func in enumerate(sequence, 1):
-                st.markdown(f"{i}. **{func}**")
-                
-                # Show reasoning
-                func_deps = dependencies.get(func, [])
-                if func_deps:
-                    incoming = sum(1 for other_func in dependencies.values() 
-                                 for dep in other_func if dep['target_function'] == func)
-                    outgoing = len(func_deps)
-                    
-                    if i <= 3:  # First few functions
-                        reason = f"High foundation value - {incoming} functions depend on this"
-                    else:
-                        reason = f"Builds on established functions - depends on {outgoing} others"
-                    
-                    st.caption(reason)
-        
-        # Optimization opportunities
-        st.markdown("#### Cross-Function Optimization Opportunities")
-        
-        opportunities = dependency_analysis['optimization_opportunities']
-        if opportunities:
-            for opp in opportunities[:5]:  # Show top 5
-                with st.expander(f"💡 {opp['type']}"):
-                    st.markdown(f"**Functions:** {', '.join(opp['functions'])}")
-                    st.markdown(f"**Description:** {opp['description']}")
-                    
-                    if 'potential_savings' in opp:
-                        st.markdown(f"**Potential Savings:** {opp['potential_savings']}")
-                    if 'potential_benefit' in opp:
-                        st.markdown(f"**Benefit:** {opp['potential_benefit']}")
-        else:
-            st.info("No specific optimization opportunities identified. Consider adding more AI initiatives to reveal synergies.")
-        
-        # Impact matrix visualization
-        st.markdown("#### AI Implementation Impact Matrix")
-        
-        impact_matrix = dependency_analysis['impact_matrix']
-        if impact_matrix:
-            import plotly.graph_objects as go
-            
-            functions = list(impact_matrix.keys())
-            z_values = [[impact_matrix[func1][func2] for func2 in functions] for func1 in functions]
-            
-            fig = go.Figure(data=go.Heatmap(
-                z=z_values,
-                x=functions,
-                y=functions,
-                colorscale='RdYlBu_r',
-                colorbar=dict(title="Impact Strength"),
-                text=[[f"{impact_matrix[func1][func2]:.2f}" for func2 in functions] for func1 in functions],
-                texttemplate="%{text}",
-                textfont={"size": 10}
-            ))
-            
-            fig.update_layout(
-                title="Cross-Function AI Implementation Impact",
-                xaxis_title="Implementing Function",
-                yaxis_title="Affected Function",
-                height=500
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
-            
-            st.caption("Higher values indicate stronger impact when the implementing function deploys AI on the affected function.")
-        
-        # Semantic clustering analysis
-        if db:
-            try:
-                vector_db = VectorDatabase(db)
-                semantic_analyzer = SemanticAnalyzer(vector_db)
-                
-                st.markdown("#### Semantic Initiative Clustering")
-                
-                cluster_analysis = semantic_analyzer.analyze_initiative_clusters(
-                    st.session_state.baseline_data,
-                    categories_data
-                )
-                
-                clusters = cluster_analysis['clusters']
-                insights = cluster_analysis['insights']
-                
-                if clusters:
-                    for cluster in clusters:
-                        with st.expander(f"🎯 Cluster: {cluster['theme']} ({len(cluster['initiatives'])} initiatives)"):
-                            st.markdown(f"**Functions:** {', '.join(cluster['functions'])}")
-                            st.markdown(f"**AI Types:** {', '.join(cluster['ai_types'])}")
-                            
-                            st.markdown("**Initiatives:**")
-                            for init in cluster['initiatives']:
-                                init_data = init['initiative_data']
-                                st.markdown(f"• {init_data.get('name', 'Unnamed')} ({init['function_name']})")
-                
-                if insights:
-                    st.markdown("**Clustering Insights:**")
-                    for insight in insights:
-                        st.markdown(f"• {insight}")
-                        
-            except Exception as e:
-                st.info("Advanced semantic clustering requires vector database setup.")
