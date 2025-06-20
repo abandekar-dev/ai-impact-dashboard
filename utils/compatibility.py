@@ -80,17 +80,70 @@ except ImportError:
         def update_layout(self, **kwargs):
             self.layout.update(kwargs)
         
+        def update_xaxes(self, **kwargs):
+            pass
+        
+        def update_yaxes(self, **kwargs):
+            pass
+        
+        def add_hline(self, **kwargs):
+            pass
+        
+        def add_vline(self, **kwargs):
+            pass
+        
+        def add_shape(self, **kwargs):
+            pass
+        
+        def add_annotation(self, **kwargs):
+            pass
+        
+        def update_traces(self, **kwargs):
+            pass
+        
         def to_dict(self):
             return {'data': self.data, 'layout': self.layout}
     
+    class MockTrace:
+        def __init__(self, **kwargs):
+            self.data = kwargs
+    
     class MockGO:
-        class Scatter:
-            def __init__(self, **kwargs):
-                self.data = kwargs
+        class Scatter(MockTrace):
+            pass
         
-        class Bar:
-            def __init__(self, **kwargs):
-                self.data = kwargs
+        class Bar(MockTrace):
+            pass
+        
+        class Heatmap(MockTrace):
+            pass
+        
+        class Histogram(MockTrace):
+            pass
+        
+        class Box(MockTrace):
+            pass
+        
+        class Violin(MockTrace):
+            pass
+        
+        class Scatter3d(MockTrace):
+            pass
+        
+        class Surface(MockTrace):
+            pass
+        
+        class Mesh3d(MockTrace):
+            pass
+        
+        class Pie(MockTrace):
+            pass
+        
+        class Sunburst(MockTrace):
+            pass
+        
+        class Treemap(MockTrace):
+            pass
         
         Figure = MockFigure
     
