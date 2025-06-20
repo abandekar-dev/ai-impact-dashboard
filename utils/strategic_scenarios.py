@@ -1,7 +1,18 @@
-import numpy as np
-import pandas as pd
 from typing import Dict, List, Tuple
 import streamlit as st
+
+# Import dependencies through compatibility layer
+try:
+    from .compatibility import (
+        np, pd, NUMPY_AVAILABLE, PANDAS_AVAILABLE
+    )
+except ImportError:
+    try:
+        import numpy as np
+        import pandas as pd
+        NUMPY_AVAILABLE = PANDAS_AVAILABLE = True
+    except ImportError:
+        NUMPY_AVAILABLE = PANDAS_AVAILABLE = False
 from .monte_carlo import MonteCarloSimulator, ScenarioModeler
 
 class StrategicScenarioPlanner:

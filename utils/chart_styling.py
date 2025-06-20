@@ -1,10 +1,21 @@
 """
 Enhanced chart styling utilities for professional data visualizations
 """
-import plotly.graph_objects as go
-import plotly.express as px
 from typing import Dict, List, Any
-import pandas as pd
+
+# Import dependencies through compatibility layer
+try:
+    from .compatibility import (
+        go, px, pd, PLOTLY_AVAILABLE, PANDAS_AVAILABLE
+    )
+except ImportError:
+    try:
+        import plotly.graph_objects as go
+        import plotly.express as px
+        import pandas as pd
+        PLOTLY_AVAILABLE = PANDAS_AVAILABLE = True
+    except ImportError:
+        PLOTLY_AVAILABLE = PANDAS_AVAILABLE = False
 
 class ChartTheme:
     """Professional chart theming with modern color palettes and styling"""

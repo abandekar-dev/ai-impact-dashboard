@@ -1,12 +1,28 @@
-import numpy as np
-import pandas as pd
 from typing import Dict, List, Tuple, Optional
-import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
-from scipy import stats as scipy_stats
 import warnings
 warnings.filterwarnings('ignore')
+
+# Import dependencies through compatibility layer
+try:
+    from .compatibility import (
+        np, pd, go, px, make_subplots,
+        NUMPY_AVAILABLE, PANDAS_AVAILABLE, PLOTLY_AVAILABLE
+    )
+except ImportError:
+    try:
+        import numpy as np
+        import pandas as pd
+        import plotly.graph_objects as go
+        import plotly.express as px
+        from plotly.subplots import make_subplots
+        NUMPY_AVAILABLE = PANDAS_AVAILABLE = PLOTLY_AVAILABLE = True
+    except ImportError:
+        NUMPY_AVAILABLE = PANDAS_AVAILABLE = PLOTLY_AVAILABLE = False
+
+try:
+    from scipy import stats as scipy_stats
+except ImportError:
+    scipy_stats = None
 
 from .predictive_engine import PredictiveEngine
 from .data_models import MetricsCalculator
