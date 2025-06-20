@@ -1,9 +1,24 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+
+# Import dependencies through compatibility layer
+try:
+    import sys
+    import os
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+    from utils.compatibility import (
+        pd, np, px, go, make_subplots,
+        PANDAS_AVAILABLE, NUMPY_AVAILABLE, PLOTLY_AVAILABLE
+    )
+except ImportError:
+    try:
+        import pandas as pd
+        import numpy as np
+        import plotly.express as px
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
+        PANDAS_AVAILABLE = NUMPY_AVAILABLE = PLOTLY_AVAILABLE = True
+    except ImportError:
+        PANDAS_AVAILABLE = NUMPY_AVAILABLE = PLOTLY_AVAILABLE = False
 from typing import Dict, List, Tuple
 from datetime import datetime
 
