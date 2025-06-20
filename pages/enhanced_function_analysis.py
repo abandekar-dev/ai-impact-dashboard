@@ -68,13 +68,13 @@ def show_enhanced_function_analysis(category_manager, db=None):
                                                  min_value=0.0, max_value=100.0, 
                                                  value=existing_data.get('productivity', 75.0), step=0.1)
             current_headcount = st.number_input("Current Headcount", min_value=1, 
-                                               value=existing_data.get('headcount', 100), step=1)
+                                               value=int(existing_data.get('headcount', 100)), step=1)
             current_revenue = st.number_input("Annual Revenue Contribution ($)", 
-                                            min_value=0, value=float(existing_data.get('revenue', 1000000)), step=10000.0)
+                                            min_value=0.0, value=float(existing_data.get('revenue', 1000000)), step=10000.0)
         
         with col2:
             current_costs = st.number_input("Annual Operating Costs ($)", 
-                                          min_value=0, value=float(existing_data.get('costs', 500000)), step=10000.0)
+                                          min_value=0.0, value=float(existing_data.get('costs', 500000)), step=10000.0)
             current_satisfaction = st.number_input("Performance Satisfaction (0-100)", 
                                                  min_value=0.0, max_value=100.0, 
                                                  value=existing_data.get('satisfaction', 80.0), step=0.1)
@@ -278,7 +278,7 @@ def show_enhanced_function_analysis(category_manager, db=None):
                 implementation_complexity = st.selectbox("Implementation Complexity", 
                                                         ["Low", "Medium", "High"])
                 investment_amount = st.number_input("Investment Amount ($)", 
-                                                  min_value=0, value=50000, step=5000)
+                                                  min_value=0.0, value=50000.0, step=5000.0)
                 implementation_timeline = st.selectbox("Implementation Timeline", 
                                                      ["3 months", "6 months", "12 months", "18 months", "24 months"])
             

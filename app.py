@@ -540,7 +540,7 @@ def show_function_analysis():
         implementation_complexity = st.selectbox("Implementation Complexity", 
                                                 ["Low", "Medium", "High"])
         investment_amount = st.number_input("Total Investment ($)", 
-                                          min_value=0, value=100000, step=5000)
+                                          min_value=0.0, value=100000.0, step=5000.0)
         implementation_timeline = st.selectbox("Implementation Timeline", 
                                              ["3 months", "6 months", "12 months", "18 months", "24 months"])
         change_management = st.selectbox("Change Management Approach", 
