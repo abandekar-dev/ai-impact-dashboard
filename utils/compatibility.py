@@ -80,18 +80,6 @@ except ImportError:
         def update_layout(self, **kwargs):
             self.layout.update(kwargs)
         
-        def update_xaxes(self, **kwargs):
-            pass
-        
-        def update_yaxes(self, **kwargs):
-            pass
-        
-        def update_traces(self, **kwargs):
-            pass
-        
-        def show(self):
-            pass
-        
         def to_dict(self):
             return {'data': self.data, 'layout': self.layout}
     
@@ -101,22 +89,6 @@ except ImportError:
                 self.data = kwargs
         
         class Bar:
-            def __init__(self, **kwargs):
-                self.data = kwargs
-        
-        class Pie:
-            def __init__(self, **kwargs):
-                self.data = kwargs
-        
-        class Histogram:
-            def __init__(self, **kwargs):
-                self.data = kwargs
-        
-        class Box:
-            def __init__(self, **kwargs):
-                self.data = kwargs
-        
-        class Scatterpolar:
             def __init__(self, **kwargs):
                 self.data = kwargs
         
@@ -130,15 +102,6 @@ except ImportError:
             return MockFigure()
         
         def scatter(self, data_frame=None, **kwargs):
-            return MockFigure()
-        
-        def pie(self, data_frame=None, **kwargs):
-            return MockFigure()
-        
-        def histogram(self, data_frame=None, **kwargs):
-            return MockFigure()
-        
-        def box(self, data_frame=None, **kwargs):
             return MockFigure()
     
     go = MockGO()

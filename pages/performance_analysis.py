@@ -1,30 +1,9 @@
 import streamlit as st
-try:
-    from utils.compatibility import pd, np, px, PANDAS_AVAILABLE, NUMPY_AVAILABLE, PLOTLY_AVAILABLE
-except ImportError:
-    try:
-        import pandas as pd
-        import numpy as np
-        import plotly.express as px
-        PANDAS_AVAILABLE = NUMPY_AVAILABLE = PLOTLY_AVAILABLE = True
-    except ImportError:
-        PANDAS_AVAILABLE = NUMPY_AVAILABLE = PLOTLY_AVAILABLE = False
-try:
-    from utils.compatibility import go, make_subplots, PLOTLY_AVAILABLE
-    if not PLOTLY_AVAILABLE:
-        import plotly.graph_objects as go
-        from plotly.subplots import make_subplots
-except ImportError:
-    try:
-        import plotly.graph_objects as go
-        from plotly.subplots import make_subplots
-    except ImportError:
-        # Mock objects for fallback
-        class MockGO:
-            Bar = lambda **kwargs: None
-            Scatter = lambda **kwargs: None
-        go = MockGO()
-        make_subplots = lambda **kwargs: None
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from typing import Dict, List, Tuple
 from datetime import datetime
 

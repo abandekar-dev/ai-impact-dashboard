@@ -2,13 +2,32 @@ modules = ["python-3.11", "postgresql-16"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["gcc", "glibc", "glibcLocales", "libgcc", "libstdcxx5", "python311Packages.numpy", "python311Packages.openai", "python311Packages.pandas", "python311Packages.plotly", "python311Packages.psycopg2", "python311Packages.scikit-learn", "python311Packages.sqlalchemy", "python311Packages.streamlit", "zlib"]
+packages = ["gcc", "glibc", "glibcLocales", "libgcc", "libstdcxx5", "python311Packages.numpy", "python311Packages.pandas", "python311Packages.plotly", "python311Packages.psycopg2", "python311Packages.scikit-learn", "python311Packages.sqlalchemy", "python311Packages.streamlit", "zlib", "python311Packages.openai"]
 
 [deployment]
 deploymentTarget = "autoscale"
 run = ["streamlit", "run", "app.py", "--server.port", "5000"]
 
 [workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "AI Dashboard Server"
+
+[[workflows.workflow]]
+name = "AI Dashboard Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "streamlit run app.py --server.port 5000"
+waitForPort = 5000
 
 [[ports]]
 localPort = 5000
