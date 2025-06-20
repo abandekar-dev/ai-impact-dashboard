@@ -18,15 +18,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "AI Dashboard Server"
+args = "Simple Dashboard"
 
 [[workflows.workflow]]
-name = "AI Dashboard Server"
+name = "Simple Dashboard"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "streamlit run app.py --server.port 5000"
+args = "streamlit run simple_dashboard.py --server.port 5000"
 waitForPort = 5000
 
 [[ports]]
