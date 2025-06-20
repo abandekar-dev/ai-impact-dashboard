@@ -2,60 +2,34 @@ import streamlit as st
 import sys
 import os
 
-# Temporary fix for numpy import issue
-try:
-    import pandas as pd
-    import numpy as np
-    DEPS_AVAILABLE = True
-except ImportError as e:
-    st.error(f"Dependency issue detected: {e}")
-    st.info("Running in limited mode. Some features may be unavailable.")
-    DEPS_AVAILABLE = False
-    
-    # Create mock modules for essential functionality
-    class MockPandas:
-        def DataFrame(self, data):
-            return data
-    
-    class MockNumpy:
-        def array(self, data):
-            return data
-        def mean(self, data):
-            return sum(data) / len(data) if data else 0
-    
-    pd = MockPandas()
-    np = MockNumpy()
+# Import core dependencies
+import pandas as pd
+import numpy as np
+DEPS_AVAILABLE = True
 
-if DEPS_AVAILABLE:
-    # Import all other dependencies normally
-    import plotly.graph_objects as go
-    import plotly.express as px
-    from plotly.subplots import make_subplots
-    from datetime import datetime, timedelta
-    import json
-    from typing import Dict, List, Any, Optional
-    
-    # Import utility modules with error handling
-    try:
-        from utils.database import DatabaseManager
-        from utils.category_manager import CategoryManager
-        from utils.predictive_engine import PredictiveEngine
-        from utils.benchmarking import IndustryBenchmarking, SensitivityAnalysis
-        from utils.dashboard_visualizer import DashboardVisualizer
-        
-        # Initialize components
-        category_manager = CategoryManager()
-        
-        # Database initialization
-        db = None
-        try:
-            db = DatabaseManager()
-        except Exception as e:
-            st.sidebar.warning("Database connection unavailable. Using session storage only.")
-    except ImportError as e:
-        st.warning(f"Some utility modules unavailable: {e}")
-        category_manager = None
-        db = None
+# Import all other dependencies
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
+from datetime import datetime, timedelta
+import json
+from typing import Dict, List, Any, Optional
+
+# Import utility modules
+from utils.database import DatabaseManager
+from utils.category_manager import CategoryManager
+from utils.predictive_engine import PredictiveEngine
+from utils.benchmarking import IndustryBenchmarking, SensitivityAnalysis
+
+# Initialize components
+category_manager = CategoryManager()
+
+# Database initialization
+db = None
+try:
+    db = DatabaseManager()
+except Exception as e:
+    st.sidebar.warning("Database connection unavailable. Using session storage only.")
 
 def init_database():
     """Initialize database tables if needed"""
@@ -106,9 +80,7 @@ if DEPS_AVAILABLE:
 def main():
     st.title("🎯 Analytics and Insights Engine")
     st.markdown("**Executive Platform for Strategic AI Implementation and Workforce Transformation Analytics**")
-    
-    if not DEPS_AVAILABLE:
-        st.warning("Application running in limited mode due to dependency issues. Some visualizations may be unavailable.")
+
     
     # Sidebar navigation
     st.sidebar.title("Navigation")
@@ -140,71 +112,39 @@ def main():
     if page == "Overview":
         show_overview()
     elif page == "Enhanced Function Analysis":
-        if DEPS_AVAILABLE:
-            from pages.enhanced_function_analysis import show_enhanced_function_analysis
-            show_enhanced_function_analysis(category_manager, db)
-        else:
-            st.error("This page requires full dependencies. Please resolve import issues.")
+        from pages.enhanced_function_analysis import show_enhanced_function_analysis
+        show_enhanced_function_analysis(category_manager, db)
     elif page == "Comparative Analysis":
-        if DEPS_AVAILABLE:
-            from pages.comparative_analysis import show_comparative_analysis
-            show_comparative_analysis()
-        else:
-            st.error("This page requires full dependencies. Please resolve import issues.")
+        from pages.comparative_analysis import show_comparative_analysis
+        show_comparative_analysis()
     elif page == "Build Buy Analysis":
-        if DEPS_AVAILABLE:
-            from pages.build_buy_analysis import show_build_buy_analysis
-            show_build_buy_analysis()
-        else:
-            st.error("This page requires full dependencies. Please resolve import issues.")
+        from pages.build_buy_analysis import show_build_buy_analysis
+        show_build_buy_analysis()
     elif page == "Performance Analysis":
-        if DEPS_AVAILABLE:
-            from pages.performance_analysis import show_performance_analysis
-            show_performance_analysis(category_manager)
-        else:
-            st.error("This page requires full dependencies. Please resolve import issues.")
+        from pages.performance_analysis import show_performance_analysis
+        show_performance_analysis(category_manager)
     else:
         show_basic_info()
 
 def show_overview():
-    """Show overview page with basic functionality"""
+    """Show overview page with full functionality"""
     st.markdown("""
     ## 🎯 AI-Powered Strategic Modeling Platform
     
     Welcome to the Analytics and Insights Engine - your comprehensive platform for enterprise AI transformation and workforce analytics.
-    
-    ### 🔧 Current Status
     """)
     
-    if DEPS_AVAILABLE:
-        st.success("✅ All systems operational")
-        st.markdown("""
-        ### 🚀 Available Modules
-        
-        - **Enhanced Function Analysis**: Configure enterprise functions and AI initiatives
-        - **Comparative Analysis**: Before/after impact assessment with financial projections
-        - **Build vs Buy Analysis**: Strategic workforce planning and skills gap analysis  
-        - **Performance Analysis**: Cross-function optimization and benchmarking
-        - **Budget & Resource Constraints**: Financial planning and resource allocation
-        - **Corporate Objectives & KPIs**: Strategic alignment and goal setting
-        """)
-    else:
-        st.warning("⚠️ Running in limited mode - dependency issues detected")
-        st.markdown("""
-        ### 🔧 Troubleshooting
-        
-        The application is currently experiencing dependency import issues. To resolve:
-        
-        1. **Check Python Environment**: Ensure numpy and pandas are properly installed
-        2. **Clear Cache**: Restart the application server
-        3. **Reinstall Dependencies**: Use the package manager to reinstall core packages
-        
-        ### 📋 Basic Information Available
-        
-        - Platform architecture overview
-        - Module descriptions and capabilities
-        - System requirements and setup guides
-        """)
+    st.success("✅ All systems operational")
+    st.markdown("""
+    ### 🚀 Available Modules
+    
+    - **Enhanced Function Analysis**: Configure enterprise functions and AI initiatives
+    - **Comparative Analysis**: Before/after impact assessment with financial projections
+    - **Build vs Buy Analysis**: Strategic workforce planning and skills gap analysis  
+    - **Performance Analysis**: Cross-function optimization and benchmarking
+    - **Budget & Resource Constraints**: Financial planning and resource allocation
+    - **Corporate Objectives & KPIs**: Strategic alignment and goal setting
+    """)
     
     # System information
     st.markdown("### 📊 System Information")
@@ -215,10 +155,7 @@ def show_overview():
     with col2:
         st.metric("Modules Available", "6+")
     with col3:
-        if DEPS_AVAILABLE:
-            st.metric("System Status", "Operational", delta="Full")
-        else:
-            st.metric("System Status", "Limited", delta="Degraded")
+        st.metric("System Status", "Operational", delta="Full")
 
 def show_basic_info():
     """Show basic information when full functionality is unavailable"""
