@@ -49,40 +49,41 @@ class ChartTheme:
     
     @staticmethod
     def get_layout_theme() -> Dict[str, Any]:
-        """Get standard layout theme for all charts"""
+        """Get standard layout theme for all charts - light theme"""
         return {
-            'plot_bgcolor': 'rgba(0,0,0,0)',
-            'paper_bgcolor': 'rgba(0,0,0,0)',
+            'plot_bgcolor': '#ffffff',
+            'paper_bgcolor': '#ffffff',
             'font': {
                 'family': 'Arial, sans-serif',
                 'size': 12,
-                'color': '#374151'
+                'color': '#262730'
             },
             'title': {
                 'font': {
                     'size': 18,
                     'family': 'Arial, sans-serif',
-                    'color': '#1f2937'
+                    'color': '#262730'
                 },
                 'x': 0.5,
                 'xanchor': 'center'
             },
             'legend': {
-                'bgcolor': 'rgba(255,255,255,0.8)',
+                'bgcolor': 'rgba(255,255,255,0.9)',
                 'bordercolor': 'rgba(0,0,0,0.1)',
-                'borderwidth': 1
+                'borderwidth': 1,
+                'font': {'color': '#262730'}
             },
             'margin': {'t': 60, 'b': 40, 'l': 40, 'r': 40}
         }
     
     @staticmethod
     def get_axis_theme() -> Dict[str, Any]:
-        """Get standard axis theme"""
+        """Get standard axis theme - light theme"""
         return {
             'gridcolor': 'rgba(0,0,0,0.1)',
             'zerolinecolor': 'rgba(0,0,0,0.2)',
             'linecolor': 'rgba(0,0,0,0.2)',
-            'tickfont': {'color': '#6b7280'}
+            'tickfont': {'color': '#262730'}
         }
 
 class EnhancedCharts:
@@ -106,7 +107,7 @@ class EnhancedCharts:
             marker_line_width=2,
             text=[f'{v:.1f}%' if v < 100 else f'{v:,.0f}' for v in values],
             textposition='outside',
-            textfont={'size': 14, 'color': '#1f2937'}
+            textfont={'size': 14, 'color': '#262730'}
         ))
         
         layout = self.theme.get_layout_theme()

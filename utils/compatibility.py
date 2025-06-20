@@ -104,6 +104,22 @@ except ImportError:
             def __init__(self, **kwargs):
                 self.data = kwargs
         
+        class Pie:
+            def __init__(self, **kwargs):
+                self.data = kwargs
+        
+        class Histogram:
+            def __init__(self, **kwargs):
+                self.data = kwargs
+        
+        class Box:
+            def __init__(self, **kwargs):
+                self.data = kwargs
+        
+        class Scatterpolar:
+            def __init__(self, **kwargs):
+                self.data = kwargs
+        
         Figure = MockFigure
     
     class MockPX:
@@ -114,6 +130,15 @@ except ImportError:
             return MockFigure()
         
         def scatter(self, data_frame=None, **kwargs):
+            return MockFigure()
+        
+        def pie(self, data_frame=None, **kwargs):
+            return MockFigure()
+        
+        def histogram(self, data_frame=None, **kwargs):
+            return MockFigure()
+        
+        def box(self, data_frame=None, **kwargs):
             return MockFigure()
     
     go = MockGO()
