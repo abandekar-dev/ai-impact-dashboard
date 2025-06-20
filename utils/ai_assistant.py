@@ -2,37 +2,7 @@ import streamlit as st
 import json
 import os
 from typing import Dict, List, Any, Optional
-
-# Handle OpenAI import with fallback
-try:
-    from openai import OpenAI
-    OPENAI_AVAILABLE = True
-except ImportError:
-    OPENAI_AVAILABLE = False
-    # Mock OpenAI class for compatibility
-    class MockResponse:
-        def __init__(self):
-            self.choices = [MockChoice()]
-    
-    class MockChoice:
-        def __init__(self):
-            self.message = MockMessage()
-    
-    class MockMessage:
-        def __init__(self):
-            self.content = "AI Assistant is currently unavailable. Please configure your OpenAI API key."
-    
-    class MockCompletions:
-        def create(self, **kwargs):
-            return MockResponse()
-    
-    class MockChat:
-        def __init__(self):
-            self.completions = MockCompletions()
-    
-    class OpenAI:
-        def __init__(self, api_key=None):
-            self.chat = MockChat()
+from openai import OpenAI
 
 # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
 # do not change this unless explicitly requested by the user

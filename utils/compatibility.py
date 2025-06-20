@@ -76,29 +76,9 @@ except ImportError:
         
         def add_trace(self, trace):
             self.data.append(trace)
-            return self
         
         def update_layout(self, **kwargs):
             self.layout.update(kwargs)
-            return self
-        
-        def update_xaxes(self, **kwargs):
-            return self
-        
-        def update_yaxes(self, **kwargs):
-            return self
-        
-        def update_traces(self, **kwargs):
-            return self
-        
-        def add_annotation(self, **kwargs):
-            return self
-        
-        def show(self):
-            pass
-        
-        def to_html(self):
-            return "<div>Chart not available (Plotly not installed)</div>"
         
         def to_dict(self):
             return {'data': self.data, 'layout': self.layout}
@@ -108,23 +88,7 @@ except ImportError:
             def __init__(self, **kwargs):
                 self.data = kwargs
         
-        class Scatterpolar:
-            def __init__(self, **kwargs):
-                self.data = kwargs
-        
         class Bar:
-            def __init__(self, **kwargs):
-                self.data = kwargs
-        
-        class Pie:
-            def __init__(self, **kwargs):
-                self.data = kwargs
-        
-        class Histogram:
-            def __init__(self, **kwargs):
-                self.data = kwargs
-        
-        class Heatmap:
             def __init__(self, **kwargs):
                 self.data = kwargs
         
