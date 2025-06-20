@@ -90,8 +90,32 @@ This is a comprehensive AI-powered strategic modeling platform built with Stream
 
 ## Changelog
 
-Changelog:
-- June 20, 2025. Initial setup
+- June 20, 2025: Initial setup and Phase 1 optimizations implemented
+- June 20, 2025: Added Comparative Analysis module for before/after AI impact assessment
+- June 20, 2025: Added Build vs Buy Analysis module for strategic workforce planning
+- June 20, 2025: Resolved numpy dependency conflicts affecting application startup
+
+## Recent Updates
+
+### Build vs Buy Analysis Module Added
+- **Skills Gap Analysis**: Identifies required capabilities based on AI initiatives with 8 key skill categories
+- **Cost-Benefit Analysis**: 3-year financial projections comparing internal training vs external hiring
+- **Strategic Recommendations**: Intelligent build/buy/hybrid decisions with detailed rationale
+- **Implementation Planning**: Gantt charts and resource allocation roadmaps
+- **Executive Summary**: CXO-level workforce impact metrics and risk assessment
+
+### Comparative Analysis Module Added  
+- **Metrics Comparison**: Side-by-side baseline vs AI-enhanced performance analysis
+- **Financial Impact**: Enterprise-wide ROI calculations and 5-year projections
+- **Workforce Transformation**: Detailed headcount changes and upskilling requirements
+- **Performance Analytics**: Productivity gains and automation level assessments
+- **Executive Dashboard**: Strategic KPIs and risk assessment matrices
+
+### Technical Enhancements
+- Phase 1 optimizations: Natural language configuration, cross-function dependency analysis, vector database integration
+- Industry-specific intelligence with tailored AI recommendations
+- Enhanced function analysis with conversational AI initiative creation
+- Comprehensive architecture documentation and requirements analysis
 
 ## User Preferences
 
