@@ -1,5 +1,9 @@
 import streamlit as st
-import pandas as pd
+try:
+    from utils.compatibility import pd, PANDAS_AVAILABLE
+except ImportError:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
 from typing import Dict, List
 from utils.category_manager import CategoryManager
 from utils.predictive_engine import PredictiveEngine
@@ -441,7 +445,14 @@ def show_enhanced_function_analysis(category_manager, db=None):
             
             # Investment distribution chart
             if len(comparison_data) > 1:
-                import plotly.express as px
+                try:
+                    from utils.compatibility import px, PLOTLY_AVAILABLE
+                except ImportError:
+                    try:
+                        import plotly.express as px
+                        PLOTLY_AVAILABLE = True
+                    except ImportError:
+                        PLOTLY_AVAILABLE = False
                 
                 investment_data = []
                 for row in comparison_data:

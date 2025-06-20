@@ -1,0 +1,21 @@
+{
+  "baseline_data": {
+    "IT & Technology": {
+      "productivity": 75.0,
+      "headcount": 100,
+      "revenue": 1000000.0,
+      "costs": 500000.0,
+      "satisfaction": 80.0,
+      "ai_proficiency": 30,
+      "learning_budget": 15,
+      "training_completion": 80,
+      "preferred_formats": [
+        "Self-paced Online",
+        "Live Virtual Sessions"
+      ],
+      "time_availability": "Moderate (3-5 hours/week)",
+      "change_readiness": 70
+    }
+  },
+  "last_updated": "2025-06-20T16:41:03.398188"
+}
