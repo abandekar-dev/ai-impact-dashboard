@@ -326,11 +326,8 @@ def show_overview():
     """, unsafe_allow_html=True)
     
     st.markdown("""
-    <h1 style="text-align: center; color: #4a5568; font-size: 3rem; font-weight: 700; 
-               text-shadow: 2px 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem;
-               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-               -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-               background-clip: text;">
+    <h1 style="text-align: center; color: #2d3748; font-size: 3rem; font-weight: 700; 
+               text-shadow: 2px 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem;">
         📊 AI Strategic Dashboard
     </h1>
     """, unsafe_allow_html=True)
