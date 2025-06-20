@@ -326,8 +326,11 @@ def show_overview():
     """, unsafe_allow_html=True)
     
     st.markdown("""
-    <h1 style="text-align: center; color: #2c3e50; font-size: 3rem; font-weight: 700; 
-               text-shadow: 2px 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h1 style="text-align: center; color: #4a5568; font-size: 3rem; font-weight: 700; 
+               text-shadow: 2px 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem;
+               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+               -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+               background-clip: text;">
         📊 AI Strategic Dashboard
     </h1>
     """, unsafe_allow_html=True)
@@ -341,7 +344,7 @@ def show_overview():
         st.markdown(create_styled_metric_card(
             f"{active_functions}", 
             "Active Functions",
-            "aurora"
+            "teal"
         ), unsafe_allow_html=True)
     
     with col2:
@@ -349,7 +352,7 @@ def show_overview():
         st.markdown(create_styled_metric_card(
             f"${total_revenue:,.0f}", 
             "Total Revenue",
-            "forest"
+            "purple"
         ), unsafe_allow_html=True)
     
     with col3:
@@ -357,7 +360,7 @@ def show_overview():
         st.markdown(create_styled_metric_card(
             f"{total_headcount:,}", 
             "Total Headcount",
-            "coral"
+            "orange"
         ), unsafe_allow_html=True)
     
     with col4:
@@ -369,7 +372,7 @@ def show_overview():
         st.markdown(create_styled_metric_card(
             roi_display, 
             "Projected ROI",
-            "sunset"
+            "pink"
         ), unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
