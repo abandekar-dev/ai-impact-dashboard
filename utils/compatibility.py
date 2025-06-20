@@ -80,6 +80,18 @@ except ImportError:
         def update_layout(self, **kwargs):
             self.layout.update(kwargs)
         
+        def update_xaxes(self, **kwargs):
+            pass
+        
+        def update_yaxes(self, **kwargs):
+            pass
+        
+        def update_traces(self, **kwargs):
+            pass
+        
+        def show(self):
+            pass
+        
         def to_dict(self):
             return {'data': self.data, 'layout': self.layout}
     
