@@ -2,10 +2,19 @@ import streamlit as st
 import sys
 import os
 
-# Import core dependencies
-import pandas as pd
-import numpy as np
-DEPS_AVAILABLE = True
+# Import core dependencies with graceful degradation
+try:
+    import pandas as pd
+    import numpy as np
+    DEPS_AVAILABLE = True
+except ImportError as e:
+    # System dependency issue - inform user and provide resolution path
+    st.error("❌ **System Dependency Issue Detected**")
+    st.error(f"Unable to load required libraries: {str(e)}")
+    st.info("🔧 **Resolution Required**: The system needs C++ runtime libraries to be updated.")
+    st.info("Please contact support to resolve this infrastructure dependency.")
+    st.stop()  # Stop execution until dependencies are resolved
+    DEPS_AVAILABLE = False
 
 # Import all other dependencies
 import plotly.graph_objects as go
