@@ -294,14 +294,13 @@ def show_overview():
     st.markdown("""
     <style>
     .main > div {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: white;
         min-height: 100vh;
     }
     .block-container {
-        background: rgba(255, 255, 255, 0.95);
+        background: white;
         border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         margin-top: 2rem;
         padding: 2rem;
     }
