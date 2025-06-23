@@ -70,7 +70,7 @@ def show_enhanced_function_analysis(category_manager, db=None):
             current_headcount = st.number_input("Current Headcount", min_value=1, 
                                                value=existing_data.get('headcount', 100), step=1)
             current_revenue = st.number_input("Annual Revenue Contribution ($)", 
-                                            min_value=0, value=float(existing_data.get('revenue', 1000000)), step=10000.0)
+                                            min_value=0.0, value=float(existing_data.get('revenue', 1000000)), step=10000.0)
         
         with col2:
             current_costs = st.number_input("Annual Operating Costs ($)", 
