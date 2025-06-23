@@ -441,32 +441,39 @@ def show_overview():
     </h1>
     """, unsafe_allow_html=True)
     
-    # Modern metrics cards with gradient styling
+    # Simple white metrics cards
     col1, col2, col3, col4 = st.columns(4)
+    
+    def create_white_metric_card(value: str, label: str) -> str:
+        """Create simple white metric card with black text"""
+        return f"""
+        <div style="background: white; padding: 2rem; border-radius: 8px; 
+                    color: black; text-align: center; border: 1px solid #e0e0e0;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); margin: 1rem 0;">
+            <h2 style="margin: 0; font-size: 2.5rem; font-weight: 700; color: black;">{value}</h2>
+            <p style="margin: 0.8rem 0 0 0; font-size: 1.1rem; font-weight: 500; color: black;">{label}</p>
+        </div>
+        """
     
     with col1:
         active_functions = len(st.session_state.baseline_data)
-        from utils.chart_styling import create_styled_metric_card
-        st.markdown(create_styled_metric_card(
+        st.markdown(create_white_metric_card(
             f"{active_functions}", 
-            "Active Functions",
-            "teal"
+            "Active Functions"
         ), unsafe_allow_html=True)
     
     with col2:
         total_revenue = sum(data.get('annual_revenue', 0) for data in st.session_state.baseline_data.values())
-        st.markdown(create_styled_metric_card(
+        st.markdown(create_white_metric_card(
             f"${total_revenue:,.0f}", 
-            "Total Revenue",
-            "purple"
+            "Total Revenue"
         ), unsafe_allow_html=True)
     
     with col3:
         total_headcount = sum(data.get('headcount', 0) for data in st.session_state.baseline_data.values())
-        st.markdown(create_styled_metric_card(
+        st.markdown(create_white_metric_card(
             f"{total_headcount:,}", 
-            "Total Headcount",
-            "orange"
+            "Total Headcount"
         ), unsafe_allow_html=True)
     
     with col4:
@@ -475,10 +482,9 @@ def show_overview():
             roi_display = f"{avg_roi:.1f}%"
         else:
             roi_display = "N/A"
-        st.markdown(create_styled_metric_card(
+        st.markdown(create_white_metric_card(
             roi_display, 
-            "Projected ROI",
-            "pink"
+            "Projected ROI"
         ), unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
