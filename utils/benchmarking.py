@@ -1,20 +1,8 @@
+import pandas as pd
+import numpy as np
 from typing import Dict, List, Optional
-
-# Import dependencies through compatibility layer
-try:
-    from .compatibility import (
-        np, pd, go, make_subplots,
-        NUMPY_AVAILABLE, PANDAS_AVAILABLE, PLOTLY_AVAILABLE
-    )
-except ImportError:
-    try:
-        import pandas as pd
-        import numpy as np
-        import plotly.graph_objects as go
-        from plotly.subplots import make_subplots
-        NUMPY_AVAILABLE = PANDAS_AVAILABLE = PLOTLY_AVAILABLE = True
-    except ImportError:
-        NUMPY_AVAILABLE = PANDAS_AVAILABLE = PLOTLY_AVAILABLE = False
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 class IndustryBenchmarking:
     """Industry benchmarking and comparative analysis utilities"""

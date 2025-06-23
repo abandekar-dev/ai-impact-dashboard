@@ -90,7 +90,7 @@ def show_budget_resources():
         
         first_milestone_months = st.number_input(
             "First Milestone Timeline (months)", 
-            min_value=1, max_value=24, value=6, step=1,
+            min_value=1, max_value=24, value=6,
             help="Time to achieve first major milestone"
         )
         

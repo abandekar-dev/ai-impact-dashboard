@@ -1,34 +1,17 @@
 import streamlit as st
+import pandas as pd
+import numpy as np
 from datetime import datetime, timedelta
-
-# Import dependencies through compatibility layer
-try:
-    from utils.compatibility import (
-        np, pd, px, go, make_subplots,
-        NUMPY_AVAILABLE, PANDAS_AVAILABLE, PLOTLY_AVAILABLE
-    )
-except ImportError:
-    # Fallback if compatibility module isn't available
-    try:
-        import pandas as pd
-        import numpy as np
-        import plotly.express as px
-        import plotly.graph_objects as go
-        from plotly.subplots import make_subplots
-        NUMPY_AVAILABLE = PANDAS_AVAILABLE = PLOTLY_AVAILABLE = True
-    except ImportError:
-        st.error("Required dependencies are not available. Some features may be limited.")
-        NUMPY_AVAILABLE = PANDAS_AVAILABLE = PLOTLY_AVAILABLE = False
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # Import utility modules
 from utils.data_models import EnterpriseFunction, AIInitiative
 from utils.predictive_engine import PredictiveEngine
 from utils.visualization import DashboardVisualizer
 from utils.report_generator import ReportGenerator
-try:
-    from utils.database import DatabaseManager
-except ImportError:
-    from utils.database_fallback import DatabaseManagerFallback as DatabaseManager
+from utils.database import DatabaseManager
 from utils.benchmarking import IndustryBenchmarking, SensitivityAnalysis, ScenarioOptimization
 from utils.session_manager import SessionManager
 from utils.monte_carlo import MonteCarloSimulator, ScenarioModeler
@@ -121,116 +104,6 @@ def auto_save_data():
 auto_save_data()
 
 def main():
-    # Global CSS for white backgrounds and black text across all pages
-    st.markdown("""
-    <style>
-    /* Force white background and black text for entire application */
-    .stApp {
-        background-color: white !important;
-        color: black !important;
-    }
-    
-    /* Main content area */
-    .main {
-        background-color: white !important;
-        color: black !important;
-    }
-    
-    .main .block-container {
-        background-color: white !important;
-        color: black !important;
-    }
-    
-    /* Sidebar */
-    .css-1d391kg, section[data-testid="stSidebar"] {
-        background-color: white !important;
-        color: black !important;
-    }
-    
-    .css-1d391kg *, section[data-testid="stSidebar"] * {
-        background-color: white !important;
-        color: black !important;
-    }
-    
-    /* All text elements */
-    *, h1, h2, h3, h4, h5, h6, p, div, span, label, 
-    .stMarkdown, .stMarkdown *, .streamlit-expanderHeader {
-        background-color: white !important;
-        color: black !important;
-    }
-    
-    /* Buttons */
-    .stButton > button {
-        background-color: white !important;
-        color: black !important;
-        border: 1px solid #ccc !important;
-    }
-    
-    .stButton > button:hover {
-        background-color: #f8f9fa !important;
-        color: black !important;
-    }
-    
-    /* Form elements */
-    .stSelectbox > div > div, .stTextInput > div > div > input, 
-    .stNumberInput > div > div > input, .stTextArea > div > div > textarea,
-    .stSlider > div > div > div > div {
-        background-color: white !important;
-        color: black !important;
-    }
-    
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] {
-        background-color: white !important;
-    }
-    
-    .stTabs [data-baseweb="tab-list"] button {
-        background-color: white !important;
-        color: black !important;
-    }
-    
-    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
-        background-color: #f0f0f0 !important;
-        color: black !important;
-    }
-    
-    /* Data frames and tables */
-    .dataframe, .dataframe *, table, table * {
-        background-color: white !important;
-        color: black !important;
-    }
-    
-    /* Expanders and containers */
-    .streamlit-expanderHeader, .streamlit-container {
-        background-color: white !important;
-        color: black !important;
-    }
-    
-    /* Metrics and info boxes */
-    .metric-container, .stAlert, .stInfo, .stSuccess, .stWarning, .stError {
-        background-color: white !important;
-        color: black !important;
-    }
-    
-    /* Charts and plotly containers */
-    .js-plotly-plot, .plotly {
-        background-color: white !important;
-    }
-    
-    /* Override any gradient backgrounds except metric cards */
-    div:not([style*="linear-gradient"]) {
-        background: white !important;
-        color: black !important;
-    }
-    
-    /* Keep only metric cards with gradients */
-    div[style*="linear-gradient"] h2,
-    div[style*="linear-gradient"] p {
-        color: white !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
     st.title("🎯 AI Impact Predictive Dashboard")
     st.markdown("**Executive Dashboard for Predictive Modeling of AI Implementation Impact**")
     
@@ -417,63 +290,57 @@ def main():
         show_executive_summary()
 
 def show_overview():
-    # Simple white background styling for overview page
+    # Add modern background styling
     st.markdown("""
     <style>
     .main > div {
-        background: white !important;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
     }
     .block-container {
-        background: white !important;
-        border-radius: 0px;
-        box-shadow: none;
-        margin-top: 1rem;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        margin-top: 2rem;
         padding: 2rem;
     }
     </style>
     """, unsafe_allow_html=True)
     
     st.markdown("""
-    <h1 style="text-align: center; color: #2d3748; font-size: 3rem; font-weight: 700; 
+    <h1 style="text-align: center; color: #2c3e50; font-size: 3rem; font-weight: 700; 
                text-shadow: 2px 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem;">
         📊 AI Strategic Dashboard
     </h1>
     """, unsafe_allow_html=True)
     
-    # Simple white metrics cards
+    # Modern metrics cards with gradient styling
     col1, col2, col3, col4 = st.columns(4)
-    
-    def create_white_metric_card(value: str, label: str) -> str:
-        """Create simple white metric card with black text"""
-        return f"""
-        <div style="background: white; padding: 2rem; border-radius: 8px; 
-                    color: black; text-align: center; border: 1px solid #e0e0e0;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); margin: 1rem 0;">
-            <h2 style="margin: 0; font-size: 2.5rem; font-weight: 700; color: black;">{value}</h2>
-            <p style="margin: 0.8rem 0 0 0; font-size: 1.1rem; font-weight: 500; color: black;">{label}</p>
-        </div>
-        """
     
     with col1:
         active_functions = len(st.session_state.baseline_data)
-        st.markdown(create_white_metric_card(
+        from utils.chart_styling import create_styled_metric_card
+        st.markdown(create_styled_metric_card(
             f"{active_functions}", 
-            "Active Functions"
+            "Active Functions",
+            "aurora"
         ), unsafe_allow_html=True)
     
     with col2:
         total_revenue = sum(data.get('annual_revenue', 0) for data in st.session_state.baseline_data.values())
-        st.markdown(create_white_metric_card(
+        st.markdown(create_styled_metric_card(
             f"${total_revenue:,.0f}", 
-            "Total Revenue"
+            "Total Revenue",
+            "forest"
         ), unsafe_allow_html=True)
     
     with col3:
         total_headcount = sum(data.get('headcount', 0) for data in st.session_state.baseline_data.values())
-        st.markdown(create_white_metric_card(
+        st.markdown(create_styled_metric_card(
             f"{total_headcount:,}", 
-            "Total Headcount"
+            "Total Headcount",
+            "coral"
         ), unsafe_allow_html=True)
     
     with col4:
@@ -482,9 +349,10 @@ def show_overview():
             roi_display = f"{avg_roi:.1f}%"
         else:
             roi_display = "N/A"
-        st.markdown(create_white_metric_card(
+        st.markdown(create_styled_metric_card(
             roi_display, 
-            "Projected ROI"
+            "Projected ROI",
+            "sunset"
         ), unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
@@ -655,7 +523,7 @@ def show_function_analysis():
         implementation_complexity = st.selectbox("Implementation Complexity", 
                                                 ["Low", "Medium", "High"])
         investment_amount = st.number_input("Total Investment ($)", 
-                                          min_value=0.0, value=100000.0, step=5000.0)
+                                          min_value=0, value=100000, step=5000)
         implementation_timeline = st.selectbox("Implementation Timeline", 
                                              ["3 months", "6 months", "12 months", "18 months", "24 months"])
         change_management = st.selectbox("Change Management Approach", 

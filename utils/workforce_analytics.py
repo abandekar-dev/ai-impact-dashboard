@@ -1,19 +1,8 @@
-# Import dependencies through compatibility layer
-try:
-    from .compatibility import (
-        pd, np, px, go, make_subplots,
-        PANDAS_AVAILABLE, NUMPY_AVAILABLE, PLOTLY_AVAILABLE
-    )
-except ImportError:
-    try:
-        import pandas as pd
-        import numpy as np
-        import plotly.express as px
-        import plotly.graph_objects as go
-        from plotly.subplots import make_subplots
-        PANDAS_AVAILABLE = NUMPY_AVAILABLE = PLOTLY_AVAILABLE = True
-    except ImportError:
-        PANDAS_AVAILABLE = NUMPY_AVAILABLE = PLOTLY_AVAILABLE = False
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime, timedelta
 import streamlit as st
