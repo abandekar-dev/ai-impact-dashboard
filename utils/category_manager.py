@@ -341,30 +341,39 @@ class CategoryManager:
                 "Channel and Distribution Management"
             ],
             "Supply Chain": [
-                "Demand Planning",
-                "Procurement",
-                "Manufacturing Planning",
-                "Distribution",
-                "Inventory Management",
-                "Vendor Management"
+                "Strategic Sourcing and Procurement",
+                "Demand Planning and Forecasting",
+                "Supply Planning and Allocation",
+                "Manufacturing and Production Planning",
+                "Distribution Network Management",
+                "Inventory Optimization and Control",
+                "Vendor and Supplier Relationship Management",
+                "Supply Chain Risk Management",
+                "Logistics and Transportation Coordination"
             ],
             
             # Common Functions (appear in multiple industries)
             "Finance & Accounting": [
-                "Accounts Payable / Receivable",
-                "General Ledger / Bookkeeping",
-                "Financial Planning & Analysis (FP&A)",
-                "Tax & Treasury",
-                "Audit & Controls",
-                "Financial Reporting"
+                "Accounts Payable and Receivable Management",
+                "General Ledger and Financial Bookkeeping",
+                "Financial Planning and Analysis (FP&A)",
+                "Tax Management and Treasury Operations",
+                "Internal Audit and Financial Controls",
+                "Financial Reporting and Compliance",
+                "Budget Planning and Cost Management",
+                "Cash Flow and Working Capital Management",
+                "Financial Systems and Process Optimization"
             ],
             "HR & Talent Management": [
-                "Talent Acquisition / Recruiting",
-                "Learning & Development",
-                "Performance Management",
-                "Compensation & Benefits",
-                "Workforce Planning",
-                "Employee Relations & HR Operations"
+                "Talent Acquisition and Recruitment",
+                "Learning and Development Programs",
+                "Performance Management and Reviews",
+                "Compensation and Benefits Administration",
+                "Workforce Planning and Analytics",
+                "Employee Relations and HR Operations",
+                "Organizational Development and Culture",
+                "HR Information Systems Management",
+                "Compliance and Employment Law"
             ],
             "Operations & Supply Chain": [
                 "Inventory Management",
