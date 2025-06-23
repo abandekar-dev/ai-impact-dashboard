@@ -121,73 +121,111 @@ def auto_save_data():
 auto_save_data()
 
 def main():
-    # Global CSS to ensure proper text contrast
+    # Global CSS for white backgrounds and black text across all pages
     st.markdown("""
     <style>
-    /* Ensure all text is dark and readable */
-    .main, .main * {
-        color: #1a202c !important;
-    }
-    
-    /* Sidebar styling */
-    .css-1d391kg {
-        background-color: #f7fafc !important;
-    }
-    
-    .css-1d391kg, .css-1d391kg *, .sidebar *, section[data-testid="stSidebar"] * {
-        color: #1a202c !important;
+    /* Force white background and black text for entire application */
+    .stApp {
+        background-color: white !important;
+        color: black !important;
     }
     
     /* Main content area */
+    .main {
+        background-color: white !important;
+        color: black !important;
+    }
+    
     .main .block-container {
         background-color: white !important;
-        color: #1a202c !important;
+        color: black !important;
+    }
+    
+    /* Sidebar */
+    .css-1d391kg, section[data-testid="stSidebar"] {
+        background-color: white !important;
+        color: black !important;
+    }
+    
+    .css-1d391kg *, section[data-testid="stSidebar"] * {
+        background-color: white !important;
+        color: black !important;
     }
     
     /* All text elements */
-    h1, h2, h3, h4, h5, h6, p, div, span, label, .stMarkdown, .stMarkdown * {
-        color: #1a202c !important;
+    *, h1, h2, h3, h4, h5, h6, p, div, span, label, 
+    .stMarkdown, .stMarkdown *, .streamlit-expanderHeader {
+        background-color: white !important;
+        color: black !important;
     }
     
-    /* Button styling */
+    /* Buttons */
     .stButton > button {
-        color: #1a202c !important;
-        border: 1px solid #e2e8f0 !important;
+        background-color: white !important;
+        color: black !important;
+        border: 1px solid #ccc !important;
+    }
+    
+    .stButton > button:hover {
+        background-color: #f8f9fa !important;
+        color: black !important;
     }
     
     /* Form elements */
     .stSelectbox > div > div, .stTextInput > div > div > input, 
-    .stNumberInput > div > div > input, .stTextArea > div > div > textarea {
-        color: #1a202c !important;
+    .stNumberInput > div > div > input, .stTextArea > div > div > textarea,
+    .stSlider > div > div > div > div {
+        background-color: white !important;
+        color: black !important;
+    }
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
         background-color: white !important;
     }
     
-    /* Tab styling */
     .stTabs [data-baseweb="tab-list"] button {
-        color: #1a202c !important;
+        background-color: white !important;
+        color: black !important;
     }
     
     .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
-        color: #2d3748 !important;
-        background-color: #e2e8f0 !important;
+        background-color: #f0f0f0 !important;
+        color: black !important;
     }
     
-    /* Data frame styling */
-    .dataframe {
-        color: #1a202c !important;
+    /* Data frames and tables */
+    .dataframe, .dataframe *, table, table * {
+        background-color: white !important;
+        color: black !important;
     }
     
-    /* Override any remaining white text */
-    * {
-        color: #1a202c !important;
+    /* Expanders and containers */
+    .streamlit-expanderHeader, .streamlit-container {
+        background-color: white !important;
+        color: black !important;
     }
     
-    /* Exception: styled metric cards keep their design */
-    div[style*="linear-gradient"] {
-        color: white !important;
+    /* Metrics and info boxes */
+    .metric-container, .stAlert, .stInfo, .stSuccess, .stWarning, .stError {
+        background-color: white !important;
+        color: black !important;
     }
     
-    div[style*="linear-gradient"] * {
+    /* Charts and plotly containers */
+    .js-plotly-plot, .plotly {
+        background-color: white !important;
+    }
+    
+    /* Override any gradient backgrounds except metric cards */
+    div:not([style*="linear-gradient"]) {
+        background: white !important;
+        color: black !important;
+    }
+    
+    /* Keep only metric cards with gradients */
+    div[style*="linear-gradient"] h2,
+    div[style*="linear-gradient"] p {
         color: white !important;
     }
     </style>
@@ -379,19 +417,18 @@ def main():
         show_executive_summary()
 
 def show_overview():
-    # Add modern background styling
+    # Simple white background styling for overview page
     st.markdown("""
     <style>
     .main > div {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: white !important;
         min-height: 100vh;
     }
     .block-container {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(10px);
-        margin-top: 2rem;
+        background: white !important;
+        border-radius: 0px;
+        box-shadow: none;
+        margin-top: 1rem;
         padding: 2rem;
     }
     </style>
