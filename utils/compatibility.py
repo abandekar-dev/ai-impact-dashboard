@@ -162,8 +162,13 @@ except ImportError:
     make_subplots = lambda **kwargs: MockFigure()
 
 try:
-    from sklearn.ensemble import RandomForestRegressor
-    from sklearn.model_selection import train_test_split
+    from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, ExtraTreesRegressor
+    from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
+    from sklearn.svm import SVR
+    from sklearn.neural_network import MLPRegressor
+    from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler
+    from sklearn.feature_selection import SelectKBest, f_regression
+    from sklearn.model_selection import train_test_split, cross_val_score
     from sklearn.metrics import mean_squared_error, r2_score
     SKLEARN_AVAILABLE = True
 except ImportError:
@@ -183,7 +188,44 @@ except ImportError:
             # Simple linear prediction
             return [sum(row) * 0.1 + 50 for row in X]
     
+    class MockScaler:
+        def fit(self, X):
+            return self
+        
+        def transform(self, X):
+            return X
+        
+        def fit_transform(self, X):
+            return X
+    
+    class MockSelector:
+        def __init__(self, **kwargs):
+            pass
+        
+        def fit(self, X, y):
+            return self
+        
+        def transform(self, X):
+            return X
+        
+        def fit_transform(self, X, y):
+            return X
+    
     RandomForestRegressor = MockRegressor
+    GradientBoostingRegressor = MockRegressor
+    ExtraTreesRegressor = MockRegressor
+    LinearRegression = MockRegressor
+    Ridge = MockRegressor
+    Lasso = MockRegressor
+    ElasticNet = MockRegressor
+    SVR = MockRegressor
+    MLPRegressor = MockRegressor
+    StandardScaler = MockScaler
+    RobustScaler = MockScaler
+    MinMaxScaler = MockScaler
+    SelectKBest = MockSelector
+    f_regression = lambda X, y: (list(range(len(X[0]))), [0.1] * len(X[0]))
+    cross_val_score = lambda model, X, y, cv=5: [0.8] * cv
     train_test_split = lambda *args, **kwargs: args[:2] + args[:2]  # Return same data
     mean_squared_error = lambda y_true, y_pred: sum((a-b)**2 for a, b in zip(y_true, y_pred)) / len(y_true)
     r2_score = lambda y_true, y_pred: 0.8  # Mock R2 score

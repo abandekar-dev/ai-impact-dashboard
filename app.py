@@ -124,44 +124,70 @@ def main():
     # Global CSS to ensure proper text contrast
     st.markdown("""
     <style>
-    /* Fix text contrast issues - ensure dark text on white background */
-    .main .block-container, .main .block-container * {
-        color: #1f2937 !important;
+    /* Ensure all text is dark and readable */
+    .main, .main * {
+        color: #1a202c !important;
+    }
+    
+    /* Sidebar styling */
+    .css-1d391kg {
+        background-color: #f7fafc !important;
+    }
+    
+    .css-1d391kg, .css-1d391kg *, .sidebar *, section[data-testid="stSidebar"] * {
+        color: #1a202c !important;
+    }
+    
+    /* Main content area */
+    .main .block-container {
+        background-color: white !important;
+        color: #1a202c !important;
+    }
+    
+    /* All text elements */
+    h1, h2, h3, h4, h5, h6, p, div, span, label, .stMarkdown, .stMarkdown * {
+        color: #1a202c !important;
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        color: #1a202c !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+    
+    /* Form elements */
+    .stSelectbox > div > div, .stTextInput > div > div > input, 
+    .stNumberInput > div > div > input, .stTextArea > div > div > textarea {
+        color: #1a202c !important;
         background-color: white !important;
     }
     
-    /* Sidebar text */
-    .css-1d391kg, .css-1d391kg * {
-        color: #1f2937 !important;
-    }
-    
-    /* Navigation and markdown text */
-    .stMarkdown, .stMarkdown * {
-        color: #1f2937 !important;
-    }
-    
-    /* Button text - except for styled metric cards */
-    .stButton button {
-        color: #1f2937 !important;
-    }
-    
-    /* Input and form labels */
-    label, .stSelectbox label, .stTextInput label, .stNumberInput label {
-        color: #1f2937 !important;
-    }
-    
-    /* Tab navigation */
+    /* Tab styling */
     .stTabs [data-baseweb="tab-list"] button {
-        color: #1f2937 !important;
+        color: #1a202c !important;
     }
     
-    /* Headers and paragraphs */
-    h1, h2, h3, h4, h5, h6, p, div, span {
-        color: #1f2937 !important;
+    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
+        color: #2d3748 !important;
+        background-color: #e2e8f0 !important;
     }
     
-    /* Exception: Keep metric cards white text on colored background */
-    .metric-card, .metric-card * {
+    /* Data frame styling */
+    .dataframe {
+        color: #1a202c !important;
+    }
+    
+    /* Override any remaining white text */
+    * {
+        color: #1a202c !important;
+    }
+    
+    /* Exception: styled metric cards keep their design */
+    div[style*="linear-gradient"] {
+        color: white !important;
+    }
+    
+    div[style*="linear-gradient"] * {
         color: white !important;
     }
     </style>
