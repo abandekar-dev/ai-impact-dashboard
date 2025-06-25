@@ -188,6 +188,11 @@ def main():
     
     # Outputs Section
     st.sidebar.markdown("### 📤 Outputs")
+    if st.sidebar.button("📊 Dynamic Visualizations", use_container_width=True,
+                        type="primary" if st.session_state.selected_page == "Dynamic Visualizations" else "secondary"):
+        st.session_state.selected_page = "Dynamic Visualizations"
+        st.rerun()
+    
     if st.sidebar.button("🤖 AI Strategic Assistant", use_container_width=True,
                         type="primary" if st.session_state.selected_page == "AI Assistant" else "secondary"):
         st.session_state.selected_page = "AI Assistant"
@@ -283,6 +288,9 @@ def main():
     elif page == "AI Learning & Upskilling Personas":
         from pages.learning_personas import show_learning_personas
         show_learning_personas()
+    elif page == "Dynamic Visualizations":
+        from utils.dynamic_outputs import show_dynamic_outputs
+        show_dynamic_outputs()
     elif page == "AI Assistant":
         from pages.ai_assistant import show_ai_assistant
         show_ai_assistant()
