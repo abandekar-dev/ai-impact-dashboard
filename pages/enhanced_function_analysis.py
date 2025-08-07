@@ -5,6 +5,225 @@ from utils.category_manager import CategoryManager
 from utils.predictive_engine import PredictiveEngine
 from datetime import datetime
 
+def generate_ai_recommendations(assessment_data: Dict, function_name: str) -> List[Dict]:
+    """Generate AI initiative recommendations based on business problem assessment"""
+    
+    # AI initiative templates mapped to business problems and impact areas
+    ai_templates = {
+        # Generative AI Templates
+        "content_generation": {
+            "name": "AI Content Generation Assistant",
+            "ai_type": "🤖 Generative AI - Content Generation (emails, presentations, training)",
+            "category": "Content & Communication",
+            "complexity": "Medium",
+            "timeline": "6 months",
+            "estimated_roi": 180,
+            "triggers": ["Content creation and documentation", "Communication and collaboration"],
+            "problems": ["Manual processes are too slow and error-prone", "Knowledge management and retention problems"],
+            "benefits": "Automate document creation, standardize communications, accelerate content production"
+        },
+        "conversation_ai": {
+            "name": "Intelligent Customer Assistant",
+            "ai_type": "🤖 Generative AI - Conversation / Dialogue (chatbots, assistants)",
+            "category": "Customer Experience",
+            "complexity": "Medium",
+            "timeline": "9 months",
+            "estimated_roi": 240,
+            "triggers": ["Customer interaction and personalization", "Communication and collaboration"],
+            "problems": ["Poor customer experience and satisfaction", "Slow response times to customer requests"],
+            "benefits": "24/7 customer support, consistent service quality, reduced response times"
+        },
+        "document_summarization": {
+            "name": "Document Intelligence System",
+            "ai_type": "🤖 Generative AI - Summarization (documents, transcripts, calls)",
+            "category": "Knowledge Management",
+            "complexity": "Low",
+            "timeline": "3 months",
+            "estimated_roi": 160,
+            "triggers": ["Data analysis and insights generation", "Training and knowledge sharing"],
+            "problems": ["Difficulty accessing and analyzing data insights", "Knowledge management and retention problems"],
+            "benefits": "Quick information extraction, automated summaries, improved knowledge accessibility"
+        },
+        
+        # Predictive AI Templates
+        "demand_forecasting": {
+            "name": "Predictive Analytics Engine",
+            "ai_type": "🔶 Predictive AI - Forecasting / Prediction (churn, demand, attrition)",
+            "category": "Analytics & Forecasting",
+            "complexity": "High",
+            "timeline": "12 months",
+            "estimated_roi": 320,
+            "triggers": ["Predictive analytics and forecasting", "Data analysis and insights generation"],
+            "problems": ["Difficulty accessing and analyzing data insights", "Inefficient resource allocation"],
+            "benefits": "Accurate demand prediction, optimized inventory, reduced waste"
+        },
+        "recommendation_engine": {
+            "name": "AI Recommendation System",
+            "ai_type": "🔶 Predictive AI - Recommendation (next best action, skill path)",
+            "category": "Decision Support",
+            "complexity": "Medium",
+            "timeline": "9 months",
+            "estimated_roi": 210,
+            "triggers": ["Decision support and recommendations", "Customer interaction and personalization"],
+            "problems": ["Inconsistent decision-making across teams", "Poor customer experience and satisfaction"],
+            "benefits": "Personalized recommendations, improved decision consistency, enhanced user experience"
+        },
+        "classification_system": {
+            "name": "Intelligent Classification System",
+            "ai_type": "🔶 Predictive AI - Classification / Tagging (documents, risks, intent)",
+            "category": "Process Automation",
+            "complexity": "Medium",
+            "timeline": "6 months",
+            "estimated_roi": 190,
+            "triggers": ["Process efficiency and automation", "Quality assurance and monitoring"],
+            "problems": ["Manual processes are too slow and error-prone", "Quality control and consistency issues"],
+            "benefits": "Automated categorization, consistent tagging, reduced manual effort"
+        },
+        
+        # Agentic AI Templates
+        "workflow_automation": {
+            "name": "Autonomous Workflow Agent",
+            "ai_type": "🔸 Agentic AI - Autonomous Task Execution (multi-step workflows)",
+            "category": "Process Automation",
+            "complexity": "High",
+            "timeline": "12 months",
+            "estimated_roi": 280,
+            "triggers": ["Process efficiency and automation", "Decision support and recommendations"],
+            "problems": ["Manual processes are too slow and error-prone", "Complex approval and workflow processes"],
+            "benefits": "End-to-end automation, reduced manual intervention, consistent process execution"
+        },
+        "planning_agent": {
+            "name": "Strategic Planning Assistant",
+            "ai_type": "🔸 Agentic AI - Goal-Oriented Planning (task decomposition)",
+            "category": "Strategic Planning",
+            "complexity": "High",
+            "timeline": "18 months",
+            "estimated_roi": 250,
+            "triggers": ["Decision support and recommendations", "Process efficiency and automation"],
+            "problems": ["Inconsistent decision-making across teams", "Scaling operations without proportional cost increase"],
+            "benefits": "Automated task breakdown, optimized resource allocation, strategic guidance"
+        },
+        "monitoring_agent": {
+            "name": "Proactive Monitoring System",
+            "ai_type": "🔸 Agentic AI - Monitoring + Proactive Alerting (triggered actions)",
+            "category": "Operations & Monitoring",
+            "complexity": "Medium",
+            "timeline": "9 months",
+            "estimated_roi": 200,
+            "triggers": ["Quality assurance and monitoring", "Risk assessment and compliance"],
+            "problems": ["Lack of real-time visibility and monitoring", "Lack of proactive problem identification"],
+            "benefits": "Real-time issue detection, automated responses, reduced downtime"
+        },
+        
+        # Data AI Templates
+        "data_extraction": {
+            "name": "Intelligent Data Extraction",
+            "ai_type": "🔹 Data AI - Data Extraction / Structuring (OCR, unstructured data)",
+            "category": "Data Processing",
+            "complexity": "Medium",
+            "timeline": "6 months",
+            "estimated_roi": 170,
+            "triggers": ["Data analysis and insights generation", "Process efficiency and automation"],
+            "problems": ["Manual data entry and processing", "Difficulty accessing and analyzing data insights"],
+            "benefits": "Automated data capture, structured information, reduced data entry errors"
+        },
+        "knowledge_retrieval": {
+            "name": "AI Knowledge Assistant",
+            "ai_type": "🔹 Data AI - Knowledge Retention / Retrieval (memory-enabled responses)",
+            "category": "Knowledge Management",
+            "complexity": "Medium",
+            "timeline": "9 months",
+            "estimated_roi": 185,
+            "triggers": ["Training and knowledge sharing", "Decision support and recommendations"],
+            "problems": ["Knowledge management and retention problems", "Difficulty finding relevant information quickly"],
+            "benefits": "Instant knowledge access, contextual information retrieval, improved learning"
+        },
+        
+        # Classical ML Templates
+        "computer_vision": {
+            "name": "Quality Inspection System",
+            "ai_type": "⚙️ Classical ML - Computer Vision (image inspection, recognition)",
+            "category": "Quality Assurance",
+            "complexity": "High",
+            "timeline": "12 months",
+            "estimated_roi": 230,
+            "triggers": ["Quality assurance and monitoring", "Process efficiency and automation"],
+            "problems": ["Quality control and consistency issues", "Manual processes are too slow and error-prone"],
+            "benefits": "Automated quality inspection, consistent standards, defect detection"
+        },
+        "nlp_analysis": {
+            "name": "Text Analytics Platform",
+            "ai_type": "⚙️ Classical ML - Natural Language Processing (text analysis)",
+            "category": "Analytics & Insights",
+            "complexity": "Medium",
+            "timeline": "9 months",
+            "estimated_roi": 195,
+            "triggers": ["Data analysis and insights generation", "Customer interaction and personalization"],
+            "problems": ["Difficulty accessing and analyzing data insights", "Poor customer experience and satisfaction"],
+            "benefits": "Sentiment analysis, content insights, customer intelligence"
+        }
+    }
+    
+    # Score each template based on assessment
+    scored_recommendations = []
+    
+    for template_id, template in ai_templates.items():
+        score = 0
+        reasoning_parts = []
+        
+        # Score based on impact area match
+        if assessment_data['impact_area'] in template['triggers']:
+            score += 40
+            reasoning_parts.append(f"Directly addresses your focus on {assessment_data['impact_area'].lower()}")
+        
+        # Score based on primary challenge match
+        if assessment_data['primary_challenge'] in template['problems']:
+            score += 30
+            reasoning_parts.append(f"Solves your primary challenge: {assessment_data['primary_challenge'].lower()}")
+        
+        # Score based on pain points overlap
+        pain_point_matches = 0
+        for pain_point in assessment_data['pain_points']:
+            if any(keyword in pain_point.lower() for keyword in template['name'].lower().split()):
+                pain_point_matches += 1
+        if pain_point_matches > 0:
+            score += min(pain_point_matches * 10, 20)
+            reasoning_parts.append(f"Addresses {pain_point_matches} of your pain points")
+        
+        # Adjust score based on readiness level
+        readiness_complexity_match = {
+            "Just starting - need simple, low-risk solutions": {"Low": 20, "Medium": 5, "High": -10},
+            "Some experience - ready for moderate complexity": {"Low": 10, "Medium": 20, "High": 5},
+            "Experienced - can handle advanced implementations": {"Low": 5, "Medium": 15, "High": 20},
+            "AI-native - looking for cutting-edge solutions": {"Low": 0, "Medium": 10, "High": 25}
+        }
+        
+        if assessment_data['readiness_level'] in readiness_complexity_match:
+            complexity_bonus = readiness_complexity_match[assessment_data['readiness_level']].get(template['complexity'], 0)
+            score += complexity_bonus
+            if complexity_bonus > 0:
+                reasoning_parts.append(f"Matches your {assessment_data['readiness_level'].lower()}")
+        
+        # Create recommendation object
+        if score > 0:  # Only include relevant recommendations
+            recommendation = {
+                'name': template['name'],
+                'ai_type': template['ai_type'],
+                'category': template['category'],
+                'complexity': template['complexity'],
+                'timeline': template['timeline'],
+                'estimated_roi': template['estimated_roi'],
+                'match_score': min(score, 100),
+                'reasoning': '; '.join(reasoning_parts) if reasoning_parts else "General fit for your requirements",
+                'benefits': template['benefits'],
+                'approach': f"Implement as {template['complexity'].lower()} complexity solution over {template['timeline']}"
+            }
+            scored_recommendations.append(recommendation)
+    
+    # Sort by score and return top 5
+    scored_recommendations.sort(key=lambda x: x['match_score'], reverse=True)
+    return scored_recommendations[:5]
+
 def show_enhanced_function_analysis(category_manager, db=None):
     """Enhanced function analysis with categories and multiple AI initiatives"""
     
@@ -38,8 +257,9 @@ def show_enhanced_function_analysis(category_manager, db=None):
     
     col1, col2 = st.columns([1, 2])
     with col1:
-        selected_industry = st.selectbox("Select Industry", list(industries.keys()), 
-                                        index=list(industries.keys()).index(saved_industry) if saved_industry in industries else 0)
+        industry_keys = list(industries.keys())
+        default_index = industry_keys.index(saved_industry) if saved_industry and saved_industry in industry_keys else 0
+        selected_industry = st.selectbox("Select Industry", industry_keys, index=default_index)
         st.session_state.selected_industry = selected_industry
     
     with col2:
@@ -194,9 +414,197 @@ def show_enhanced_function_analysis(category_manager, db=None):
             st.metric("Most Common AI Type", "None")
     
     # Category management
-    tab1, tab2, tab3 = st.tabs(["📋 Manage Categories", "🤖 AI Initiatives", "📊 Category Analysis"])
+    tab1, tab2, tab3, tab4 = st.tabs(["🎯 Business Problem Assessment", "📋 Manage Categories", "🤖 AI Initiatives", "📊 Category Analysis"])
     
     with tab1:
+        st.subheader("🎯 Business Problem Assessment")
+        st.markdown("**Answer these questions to get personalized AI initiative recommendations**")
+        
+        # Business problem assessment form
+        with st.form("business_problem_assessment"):
+            st.markdown("#### 📋 Business Challenge Analysis")
+            
+            # Question 1: Primary business challenge
+            q1 = st.selectbox(
+                "1. What is your primary business challenge in this function?",
+                [
+                    "Select a challenge...",
+                    "Manual processes are too slow and error-prone",
+                    "Inconsistent decision-making across teams",
+                    "Poor customer experience and satisfaction",
+                    "High operational costs and resource waste",
+                    "Difficulty accessing and analyzing data insights",
+                    "Compliance and risk management issues",
+                    "Scaling operations without proportional cost increase",
+                    "Lack of real-time visibility and monitoring",
+                    "Knowledge management and retention problems",
+                    "Quality control and consistency issues"
+                ],
+                help="Select the most critical business problem your organization faces"
+            )
+            
+            # Question 2: Impact area
+            q2 = st.selectbox(
+                "2. Which area would benefit most from improvement?",
+                [
+                    "Select an area...",
+                    "Process efficiency and automation",
+                    "Data analysis and insights generation",
+                    "Customer interaction and personalization",
+                    "Content creation and documentation",
+                    "Predictive analytics and forecasting",
+                    "Quality assurance and monitoring",
+                    "Decision support and recommendations",
+                    "Communication and collaboration",
+                    "Training and knowledge sharing",
+                    "Risk assessment and compliance"
+                ],
+                help="Choose the functional area where AI could have the biggest impact"
+            )
+            
+            # Question 3: Current pain points
+            q3 = st.multiselect(
+                "3. What are your biggest operational pain points? (Select all that apply)",
+                [
+                    "Too much time spent on repetitive tasks",
+                    "Inconsistent results and quality",
+                    "Difficulty finding relevant information quickly",
+                    "Poor coordination between teams",
+                    "Manual data entry and processing",
+                    "Slow response times to customer requests",
+                    "Lack of proactive problem identification",
+                    "Inefficient resource allocation",
+                    "Complex approval and workflow processes",
+                    "Limited real-time performance visibility"
+                ],
+                help="Select all pain points that apply to your current operations"
+            )
+            
+            # Question 4: Success metrics
+            q4 = st.selectbox(
+                "4. What success metric matters most to your organization?",
+                [
+                    "Select a metric...",
+                    "Reducing processing time and cycle time",
+                    "Improving accuracy and reducing errors",
+                    "Increasing customer satisfaction scores",
+                    "Lowering operational costs",
+                    "Generating more revenue per employee",
+                    "Improving compliance and risk scores",
+                    "Enhancing employee productivity",
+                    "Accelerating decision-making speed",
+                    "Improving data quality and insights",
+                    "Increasing automation coverage"
+                ],
+                help="Choose the key performance indicator you want to improve"
+            )
+            
+            # Question 5: Implementation readiness
+            q5 = st.selectbox(
+                "5. How would you describe your organization's AI readiness?",
+                [
+                    "Select readiness level...",
+                    "Just starting - need simple, low-risk solutions",
+                    "Some experience - ready for moderate complexity",
+                    "Experienced - can handle advanced implementations",
+                    "AI-native - looking for cutting-edge solutions"
+                ],
+                help="Assess your team's current AI knowledge and implementation capability"
+            )
+            
+            # Additional context
+            additional_context = st.text_area(
+                "📝 Additional Context (Optional)",
+                placeholder="Describe any specific requirements, constraints, or goals...",
+                help="Provide any additional context that might help us recommend the best AI initiatives"
+            )
+            
+            submitted = st.form_submit_button("🔍 Get AI Initiative Recommendations", type="primary")
+            
+            if submitted and q1 != "Select a challenge..." and q2 != "Select an area...":
+                # Store assessment data
+                assessment_data = {
+                    'primary_challenge': q1,
+                    'impact_area': q2,
+                    'pain_points': q3,
+                    'success_metric': q4,
+                    'readiness_level': q5,
+                    'additional_context': additional_context,
+                    'timestamp': datetime.now()
+                }
+                
+                # Store in session state
+                if 'business_assessments' not in st.session_state:
+                    st.session_state.business_assessments = {}
+                st.session_state.business_assessments[selected_function] = assessment_data
+                
+                # Generate recommendations
+                recommendations = generate_ai_recommendations(assessment_data, selected_function)
+                
+                # Display recommendations
+                st.markdown("---")
+                st.subheader("🎯 Recommended AI Initiatives")
+                st.success(f"Based on your assessment, here are the top AI initiatives for {selected_function}:")
+                
+                for i, rec in enumerate(recommendations, 1):
+                    with st.expander(f"🥇 Recommendation {i}: {rec['name']}", expanded=i==1):
+                        col1, col2 = st.columns([2, 1])
+                        
+                        with col1:
+                            st.markdown(f"**AI Type:** {rec['ai_type']}")
+                            st.markdown(f"**Why this fits:** {rec['reasoning']}")
+                            st.markdown(f"**Expected Benefits:** {rec['benefits']}")
+                            st.markdown(f"**Implementation Approach:** {rec['approach']}")
+                        
+                        with col2:
+                            st.metric("Match Score", f"{rec['match_score']}%")
+                            st.metric("Estimated ROI", f"{rec['estimated_roi']}%")
+                            st.metric("Complexity", rec['complexity'])
+                            st.metric("Timeline", rec['timeline'])
+                        
+                        if st.button(f"📝 Create Initiative from Recommendation {i}", key=f"create_from_rec_{i}"):
+                            # Auto-populate the AI initiative form
+                            st.session_state.auto_populate_initiative = rec
+                            st.session_state.selected_tab = "🤖 AI Initiatives"
+                            st.success(f"Ready to create '{rec['name']}' - switch to AI Initiatives tab!")
+                
+                # Quick action buttons
+                st.markdown("---")
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    if st.button("📋 Create Category for Top Recommendation"):
+                        top_rec = recommendations[0]
+                        category_name = f"{top_rec['category']}"
+                        if category_manager.add_category(selected_function, category_name, f"Auto-created for {top_rec['name']}"):
+                            st.success(f"Category '{category_name}' created!")
+                        else:
+                            st.info("Category already exists or similar category found")
+                
+                with col2:
+                    if st.button("📊 View Assessment Summary"):
+                        st.session_state.show_assessment_summary = True
+                
+                with col3:
+                    if st.button("🔄 Retake Assessment"):
+                        if selected_function in st.session_state.business_assessments:
+                            del st.session_state.business_assessments[selected_function]
+                        st.rerun()
+            
+            elif submitted:
+                st.warning("Please answer at least the first two questions to get recommendations.")
+        
+        # Show previous assessment if exists
+        if selected_function in st.session_state.get('business_assessments', {}):
+            with st.expander("📋 Previous Assessment Results", expanded=False):
+                prev_assessment = st.session_state.business_assessments[selected_function]
+                st.write(f"**Assessment Date:** {prev_assessment['timestamp'].strftime('%Y-%m-%d %H:%M')}")
+                st.write(f"**Primary Challenge:** {prev_assessment['primary_challenge']}")
+                st.write(f"**Impact Area:** {prev_assessment['impact_area']}")
+                st.write(f"**Success Metric:** {prev_assessment['success_metric']}")
+                if prev_assessment['pain_points']:
+                    st.write(f"**Pain Points:** {', '.join(prev_assessment['pain_points'])}")
+
+    with tab2:
         st.subheader("Category Management")
         
         # Add new category
@@ -235,7 +643,7 @@ def show_enhanced_function_analysis(category_manager, db=None):
                             st.success(f"Category '{category_name}' deleted!")
                             st.rerun()
     
-    with tab2:
+    with tab3:
         st.subheader("AI Initiative Management")
         
         if not categories:
@@ -415,7 +823,7 @@ def show_enhanced_function_analysis(category_manager, db=None):
             else:
                 st.info(f"No AI initiatives in '{selected_category}' yet.")
     
-    with tab3:
+    with tab4:
         st.subheader("Category Analysis & Comparison")
         
         if not categories:
