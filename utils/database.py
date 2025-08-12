@@ -303,6 +303,7 @@ class DatabaseManager:
     
     def load_latest_prediction(self, function_name: str) -> Optional[Dict]:
         """Load latest prediction for a function"""
+        session = None
         try:
             session = self.get_session()
             
@@ -327,12 +328,14 @@ class DatabaseManager:
             return None
             
         except Exception as e:
-            session.close()
+            if session:
+                session.close()
             print(f"Error loading prediction: {e}")
             return None
     
     def get_all_configured_functions(self) -> List[str]:
         """Get list of all configured functions"""
+        session = None
         try:
             session = self.get_session()
             
@@ -342,7 +345,8 @@ class DatabaseManager:
             return [f[0] for f in functions]
             
         except Exception as e:
-            session.close()
+            if session:
+                session.close()
             print(f"Error getting configured functions: {e}")
             return []
     
@@ -387,6 +391,7 @@ class DatabaseManager:
     
     def get_prediction_history(self, function_name: str, limit: int = 10) -> List[Dict]:
         """Get prediction history for a function"""
+        session = None
         try:
             session = self.get_session()
             
@@ -409,12 +414,14 @@ class DatabaseManager:
             return history
             
         except Exception as e:
-            session.close()
+            if session:
+                session.close()
             print(f"Error getting prediction history: {e}")
             return []
     
     def export_data_to_csv(self) -> pd.DataFrame:
         """Export all data to CSV format"""
+        session = None
         try:
             session = self.get_session()
             
@@ -446,6 +453,7 @@ class DatabaseManager:
             return df
             
         except Exception as e:
-            session.close()
+            if session:
+                session.close()
             print(f"Error exporting data: {e}")
             return pd.DataFrame()
