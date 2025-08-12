@@ -266,9 +266,15 @@ def show_enhanced_function_analysis(category_manager, db=None):
         st.info(f"Functions customized for {selected_industry} industry")
     
     # Get industry-specific functions
-    functions = industries[selected_industry]
+    functions = industries.get(selected_industry if selected_industry else 'Technology', [])
+    if not functions:
+        st.error("No functions available for selected industry")
+        return
     
     selected_function = st.selectbox("Select Enterprise Function", functions)
+    if not selected_function:
+        st.warning("Please select a function to continue")
+        return
     
     # Initialize categories for the selected function
     category_manager.initialize_function_categories(selected_function)
@@ -538,57 +544,13 @@ def show_enhanced_function_analysis(category_manager, db=None):
                     st.session_state.business_assessments = {}
                 st.session_state.business_assessments[selected_function] = assessment_data
                 
-                # Generate recommendations
-                recommendations = generate_ai_recommendations(assessment_data, selected_function)
-                
-                # Display recommendations
-                st.markdown("---")
-                st.subheader("🎯 Recommended AI Initiatives")
-                st.success(f"Based on your assessment, here are the top AI initiatives for {selected_function}:")
-                
-                for i, rec in enumerate(recommendations, 1):
-                    with st.expander(f"🥇 Recommendation {i}: {rec['name']}", expanded=i==1):
-                        col1, col2 = st.columns([2, 1])
-                        
-                        with col1:
-                            st.markdown(f"**AI Type:** {rec['ai_type']}")
-                            st.markdown(f"**Why this fits:** {rec['reasoning']}")
-                            st.markdown(f"**Expected Benefits:** {rec['benefits']}")
-                            st.markdown(f"**Implementation Approach:** {rec['approach']}")
-                        
-                        with col2:
-                            st.metric("Match Score", f"{rec['match_score']}%")
-                            st.metric("Estimated ROI", f"{rec['estimated_roi']}%")
-                            st.metric("Complexity", rec['complexity'])
-                            st.metric("Timeline", rec['timeline'])
-                        
-                        if st.button(f"📝 Create Initiative from Recommendation {i}", key=f"create_from_rec_{i}"):
-                            # Auto-populate the AI initiative form
-                            st.session_state.auto_populate_initiative = rec
-                            st.session_state.selected_tab = "🤖 AI Initiatives"
-                            st.success(f"Ready to create '{rec['name']}' - switch to AI Initiatives tab!")
-                
-                # Quick action buttons
-                st.markdown("---")
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    if st.button("📋 Create Category for Top Recommendation"):
-                        top_rec = recommendations[0]
-                        category_name = f"{top_rec['category']}"
-                        if category_manager.add_category(selected_function, category_name, f"Auto-created for {top_rec['name']}"):
-                            st.success(f"Category '{category_name}' created!")
-                        else:
-                            st.info("Category already exists or similar category found")
-                
-                with col2:
-                    if st.button("📊 View Assessment Summary"):
-                        st.session_state.show_assessment_summary = True
-                
-                with col3:
-                    if st.button("🔄 Retake Assessment"):
-                        if selected_function in st.session_state.business_assessments:
-                            del st.session_state.business_assessments[selected_function]
-                        st.rerun()
+                # Generate recommendations and store them
+                if selected_function:
+                    st.session_state.current_recommendations = generate_ai_recommendations(assessment_data, selected_function)
+                    st.session_state.recommendations_function = selected_function
+                    st.success("Assessment completed! Recommendations generated below.")
+                else:
+                    st.error("Please select a function first")
             
             elif submitted:
                 st.warning("Please answer at least the first two questions to get recommendations.")

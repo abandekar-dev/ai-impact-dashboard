@@ -9,6 +9,7 @@ from sklearn.model_selection import cross_val_score, GridSearchCV, TimeSeriesSpl
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectKBest, f_regression
+from typing import Optional
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -285,7 +286,7 @@ class PredictiveEngine:
             
             # Calculate confidence intervals
             confidence_interval = self._calculate_confidence_intervals(
-                productivity_gain, value_generated, roi, risk_factors
+                productivity_gain, value_generated, roi, risk_factors, baseline_data, ai_initiative
             )
             
             return {
@@ -547,11 +548,14 @@ class PredictiveEngine:
         return total_savings
     
     def _calculate_confidence_intervals(self, productivity_gain: float, value_generated: float, 
-                                     roi: float, risk_factors: dict) -> dict:
+                                     roi: float, risk_factors: dict, baseline_data: Optional[dict] = None, ai_initiative: Optional[dict] = None) -> dict:
         """Calculate confidence intervals for predictions"""
         
         # Dynamic base uncertainty based on data completeness
-        data_completeness = self._assess_data_completeness(baseline_data, ai_initiative)
+        if baseline_data and ai_initiative:
+            data_completeness = self._assess_data_completeness(baseline_data, ai_initiative)
+        else:
+            data_completeness = 0.7  # Default moderate completeness
         base_uncertainty = 0.15 + (1 - data_completeness) * 0.15  # 15-30% based on data quality
         
         # Adjust uncertainty based on risk factors
