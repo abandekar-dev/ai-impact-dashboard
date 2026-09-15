@@ -1,12 +1,11 @@
 # PostgreSQL support is optional: install psycopg2-binary separately (or
 # `pip install .[postgres]`) when DATABASE_URL points at Postgres. Without it
 # the app falls back to local SQLite.
-anthropic>=0.52.1
 numpy>=2.2.6
 openai>=1.82.1
 pandas>=2.2.3
 plotly>=6.1.2
 scikit-learn>=1.6.1
+scipy>=1.15.0
 sqlalchemy>=2.0.41
 streamlit>=1.45.1
-trafilatura>=2.0.0
