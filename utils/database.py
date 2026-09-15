@@ -68,25 +68,40 @@ class DatabaseManager:
     
     def __init__(self):
         self.database_url = os.getenv('DATABASE_URL')
-        if not self.database_url:
-            raise ValueError("DATABASE_URL environment variable not found")
-        
-        # Configure engine with connection pooling and retry logic
-        self.engine = create_engine(
-            self.database_url,
-            pool_pre_ping=True,  # Validate connections before use
-            pool_recycle=300,    # Recycle connections every 5 minutes
-            pool_size=5,
-            max_overflow=10,
-            connect_args={
-                "connect_timeout": 10,
-                "application_name": "ai_dashboard"
-            }
+
+        try:
+            if not self.database_url:
+                raise ValueError("DATABASE_URL environment variable not found")
+
+            # Configure PostgreSQL with connection pooling and retry logic.
+            self.engine = create_engine(
+                self.database_url,
+                pool_pre_ping=True,
+                pool_recycle=300,
+                pool_size=5,
+                max_overflow=10,
+                connect_args={
+                    "connect_timeout": 10,
+                    "application_name": "ai_dashboard"
+                }
+            )
+            self._create_tables_with_retry()
+        except Exception as error:
+            # Keep the dashboard usable when the managed database is temporarily
+            # unavailable or its credentials have been rotated.
+            print(f"PostgreSQL unavailable; using local SQLite storage: {error}")
+            self.database_url = "sqlite:///ai_dashboard.db"
+            self.engine = create_engine(
+                self.database_url,
+                connect_args={"check_same_thread": False}
+            )
+            Base.metadata.create_all(bind=self.engine)
+
+        self.SessionLocal = sessionmaker(
+            autocommit=False,
+            autoflush=False,
+            bind=self.engine
         )
-        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
-        
-        # Create tables with retry logic
-        self._create_tables_with_retry()
     
     def _create_tables_with_retry(self, max_retries=3):
         """Create database tables with retry logic"""

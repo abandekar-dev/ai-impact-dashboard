@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local database (ephemeral SQLite fallback)
+*.db
+*.sqlite3
+
+# Environment / secrets
+.env
+.streamlit/secrets.toml
+
+# Caches
+.config/matplotlib/
+.pytest_cache/
+.ruff_cache/
+
+# OS
+.DS_Store

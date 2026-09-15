@@ -1,0 +1,10 @@
+anthropic>=0.52.1
+numpy>=2.2.6
+openai>=1.82.1
+pandas>=2.2.3
+plotly>=6.1.2
+psycopg2-binary>=2.9.10
+scikit-learn>=1.6.1
+sqlalchemy>=2.0.41
+streamlit>=1.45.1
+trafilatura>=2.0.0

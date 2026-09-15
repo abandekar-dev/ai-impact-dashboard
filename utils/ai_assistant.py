@@ -7,13 +7,25 @@ from openai import OpenAI
 # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
 # do not change this unless explicitly requested by the user
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-openai_client = OpenAI(api_key=OPENAI_API_KEY)
+
+
+def get_openai_client() -> Optional[OpenAI]:
+    """Build the OpenAI client on demand.
+
+    Constructing it at import time crashes the whole page when no API key is
+    configured, so the rest of the dashboard stays usable by deferring this
+    until an answer is actually requested.
+    """
+    if not OPENAI_API_KEY:
+        return None
+    return OpenAI(api_key=OPENAI_API_KEY)
+
 
 class AIAssistant:
     """Conversational AI assistant for the dashboard"""
-    
+
     def __init__(self):
-        self.client = openai_client
+        self.client = get_openai_client()
         self.conversation_history = []
         
     def analyze_dashboard_data(self, question: str, context_data: Dict) -> str:
@@ -48,6 +60,11 @@ Answer the user's question based on the dashboard data provided."""
         for msg in self.conversation_history[-3:]:  # Keep last 3 exchanges
             messages.insert(-1, msg)
         
+        if self.client is None:
+            return ("The AI assistant needs an OpenAI API key. Set the "
+                    "`OPENAI_API_KEY` environment variable (or Streamlit secret) "
+                    "and reload the app to enable it.")
+
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4o",

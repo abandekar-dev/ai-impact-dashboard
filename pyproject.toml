@@ -1,7 +1,7 @@
 [project]
-name = "repl-nix-workspace"
+name = "ai-impact-dashboard"
 version = "0.1.0"
-description = "Add your description here"
+description = "Predictive dashboard for modeling enterprise AI business impact"
 requires-python = ">=3.11"
 dependencies = [
     "anthropic>=0.52.1",
