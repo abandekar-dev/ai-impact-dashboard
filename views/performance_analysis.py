@@ -352,7 +352,9 @@ def show_gap_analysis(category_manager):
                 return 'background-color: lightcoral'
             return ''
         
-        styled_df = gap_df.style.applymap(highlight_status, subset=['Status'])
+        # Styler.applymap was removed in pandas 3.0; Styler.map replaces it
+        # and has been available since pandas 2.1.
+        styled_df = gap_df.style.map(highlight_status, subset=['Status'])
         st.dataframe(styled_df, use_container_width=True)
         
         # Gap visualization
