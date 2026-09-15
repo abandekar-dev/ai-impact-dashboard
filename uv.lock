@@ -16,11 +16,15 @@ dependencies = [
     { name = "openai" },
     { name = "pandas" },
     { name = "plotly" },
-    { name = "psycopg2-binary" },
     { name = "scikit-learn" },
     { name = "sqlalchemy" },
     { name = "streamlit" },
     { name = "trafilatura" },
+]
+
+[package.optional-dependencies]
+postgres = [
+    { name = "psycopg2-binary" },
 ]
 
 [package.metadata]
@@ -30,12 +34,13 @@ requires-dist = [
     { name = "openai", specifier = ">=1.82.1" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "plotly", specifier = ">=6.1.2" },
-    { name = "psycopg2-binary", specifier = ">=2.9.10" },
+    { name = "psycopg2-binary", marker = "extra == 'postgres'", specifier = ">=2.9.10" },
     { name = "scikit-learn", specifier = ">=1.6.1" },
     { name = "sqlalchemy", specifier = ">=2.0.41" },
     { name = "streamlit", specifier = ">=1.45.1" },
     { name = "trafilatura", specifier = ">=2.0.0" },
 ]
+provides-extras = ["postgres"]
 
 [[package]]
 name = "altair"

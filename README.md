@@ -44,6 +44,16 @@ Set them as environment variables locally, or as secrets in your hosting platfor
 > On ephemeral hosts (Streamlit Community Cloud, containers) that file is wiped on every
 > restart. Point `DATABASE_URL` at a managed Postgres instance for durable sessions.
 
+### Using PostgreSQL
+
+The Postgres driver is an optional extra, because `psycopg2-binary` publishes no wheels
+for the newest Python releases and would otherwise force a source build (requiring
+`pg_config`) on hosts that default to them. Install it only when you need it:
+
+```bash
+pip install -r requirements.txt psycopg2-binary   # or: pip install .[postgres]
+```
+
 ## Project structure
 
 ```

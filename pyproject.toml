@@ -9,9 +9,14 @@ dependencies = [
     "openai>=1.82.1",
     "pandas>=2.2.3",
     "plotly>=6.1.2",
-    "psycopg2-binary>=2.9.10",
     "scikit-learn>=1.6.1",
     "sqlalchemy>=2.0.41",
     "streamlit>=1.45.1",
     "trafilatura>=2.0.0",
 ]
+
+[project.optional-dependencies]
+# Only needed when DATABASE_URL points at PostgreSQL. The app falls back to
+# SQLite without it, and psycopg2-binary has no wheels for newer Python
+# versions, so keeping it out of the default set lets hosts build cleanly.
+postgres = ["psycopg2-binary>=2.9.10"]
