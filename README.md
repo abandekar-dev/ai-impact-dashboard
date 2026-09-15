@@ -4,6 +4,8 @@ A Streamlit dashboard that helps executives model and predict the business impac
 adoption across enterprise functions — combining ensemble ML forecasting, Monte Carlo
 scenario analysis, workforce planning, and industry benchmarking in one interface.
 
+![AI Impact Predictive Dashboard](docs/images/dashboard.png)
+
 ## Features
 
 - **Predictive engine** — ensemble models (Random Forest, Gradient Boosting, Neural Networks)
@@ -45,8 +47,8 @@ Set them as environment variables locally, or as secrets in your hosting platfor
 ## Project structure
 
 ```
-app.py                  # Entry point, sidebar navigation, overview + input screens
-pages/                  # Individual dashboard screens
+app.py                  # Entry point, sidebar navigation, overview screen
+views/                  # Individual dashboard screens, rendered via show_*() functions
 utils/                  # Core logic
   predictive_engine.py  # Ensemble ML forecasting
   monte_carlo.py        # Scenario simulation

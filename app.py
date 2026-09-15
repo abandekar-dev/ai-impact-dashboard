@@ -259,19 +259,19 @@ def main():
     if page == "Overview":
         show_overview()
     elif page == "Function Analysis":
-        from pages.enhanced_function_analysis import show_enhanced_function_analysis
+        from views.enhanced_function_analysis import show_enhanced_function_analysis
         show_enhanced_function_analysis(category_manager, db)
     elif page == "Corporate Objectives":
-        from pages.corporate_objectives import show_corporate_objectives
+        from views.corporate_objectives import show_corporate_objectives
         show_corporate_objectives()
     elif page == "Budget Resources":
-        from pages.budget_resources import show_budget_resources
+        from views.budget_resources import show_budget_resources
         show_budget_resources()
     elif page == "Change Management":
-        from pages.change_management import show_change_management
+        from views.change_management import show_change_management
         show_change_management()
     elif page == "Enterprise Integration":
-        from pages.enterprise_integrations import show_enterprise_integrations
+        from views.enterprise_integrations import show_enterprise_integrations
         show_enterprise_integrations()
     elif page == "Monte Carlo Simulation":
         show_monte_carlo_simulation()
@@ -280,19 +280,19 @@ def main():
     elif page == "Benchmarking & Optimization":
         show_benchmarking_optimization()
     elif page == "Performance Analysis":
-        from pages.performance_analysis import show_performance_analysis
+        from views.performance_analysis import show_performance_analysis
         show_performance_analysis(category_manager)
     elif page == "Workforce Analytics":
-        from pages.workforce_analytics import show_workforce_analytics
+        from views.workforce_analytics import show_workforce_analytics
         show_workforce_analytics()
     elif page == "AI Learning & Upskilling Personas":
-        from pages.learning_personas import show_learning_personas
+        from views.learning_personas import show_learning_personas
         show_learning_personas()
     elif page == "Dynamic Visualizations":
         from utils.dynamic_outputs import show_dynamic_outputs
         show_dynamic_outputs()
     elif page == "AI Assistant":
-        from pages.ai_assistant import show_ai_assistant
+        from views.ai_assistant import show_ai_assistant
         show_ai_assistant()
     elif page == "Executive Summary":
         show_executive_summary()
@@ -335,7 +335,7 @@ def show_overview():
         ), unsafe_allow_html=True)
     
     with col2:
-        total_revenue = sum(data.get('annual_revenue', 0) for data in st.session_state.baseline_data.values())
+        total_revenue = sum(data.get('revenue', 0) for data in st.session_state.baseline_data.values())
         st.markdown(create_styled_metric_card(
             f"${total_revenue:,.0f}", 
             "Total Revenue",
@@ -399,12 +399,14 @@ def show_overview():
     
     with col2:
         st.markdown("**Quick Start Guide:**")
+        # These render inside an HTML block below, so emphasis has to be markup
+        # rather than markdown -- "**bold**" would show up as literal asterisks.
         steps = [
-            "Navigate to **Function Analysis** to configure departments",
-            "Set baseline metrics and AI implementation parameters", 
-            "Use **Strategic Planning** to evaluate scenarios",
-            "Review **Workforce Analytics** for impact assessment",
-            "Generate **Executive Summary** for stakeholder presentations"
+            "Navigate to <strong>Input by Department/Business</strong> to configure departments",
+            "Set baseline metrics and AI implementation parameters",
+            "Use <strong>Strategic Planning</strong> to evaluate scenarios",
+            "Review <strong>Workforce Analytics</strong> for impact assessment",
+            "Generate <strong>Executive Summary</strong> for stakeholder presentations"
         ]
         
         for i, step in enumerate(steps, 1):
@@ -434,8 +436,8 @@ def show_overview():
         
         for func_name, data in st.session_state.baseline_data.items():
             functions.append(func_name)
-            productivity.append(data.get('current_productivity', 0))
-            satisfaction.append(data.get('performance_satisfaction', 0))
+            productivity.append(data.get('productivity', 0))
+            satisfaction.append(data.get('satisfaction', 0))
         
         fig = go.Figure()
         
