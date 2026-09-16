@@ -297,6 +297,130 @@ def main():
     elif page == "Executive Summary":
         show_executive_summary()
 
+def show_overview_introduction():
+    """Explain what the dashboard is, who it serves, and how to work through it.
+
+    This is the first thing a new visitor sees, and the metric cards below read
+    as zeroes until functions are configured, so the context belongs up front.
+    """
+
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+                padding: 2rem 2.25rem; border-radius: 16px; border: 1px solid #e5e7eb;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04); margin-bottom: 1.5rem;">
+        <p style="margin: 0; font-size: 1.15rem; line-height: 1.7; color: #1f2937;">
+            <strong>Deciding where to invest in AI is a forecasting problem, not a technology problem.</strong>
+            This dashboard turns that decision into numbers: you describe each part of your business as it
+            operates today, describe the AI initiatives you are weighing, and it projects the financial,
+            operational, and workforce impact of each one &mdash; with the uncertainty made explicit, so you
+            can see the range of outcomes rather than a single optimistic figure.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("#### What it does")
+
+    capability_cards = [
+        ("🔮", "Predicts impact",
+         "Ensemble machine learning models (random forest, gradient boosting, neural networks) "
+         "estimate productivity, cost, revenue, and ROI effects for each initiative, with "
+         "confidence intervals instead of point estimates."),
+        ("🎲", "Stress-tests assumptions",
+         "Monte Carlo simulation runs thousands of scenarios across your risk and adoption "
+         "assumptions, showing the probability of success and which variables move the outcome most."),
+        ("👥", "Plans the workforce",
+         "Models headcount and role-level effects, scores change-management readiness, and builds "
+         "upskilling personas so the human side of the transition is costed alongside the technology."),
+    ]
+
+    cols = st.columns(3)
+    for col, (icon, title, body) in zip(cols, capability_cards):
+        with col:
+            st.markdown(f"""
+            <div style="background: white; padding: 1.5rem; border-radius: 12px; height: 100%;
+                        border: 1px solid #e5e7eb; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+                <div style="font-size: 1.75rem; line-height: 1;">{icon}</div>
+                <h4 style="margin: 0.75rem 0 0.5rem 0; color: #1f2937;">{title}</h4>
+                <p style="margin: 0; color: #4b5563; font-size: 0.95rem; line-height: 1.6;">{body}</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    audience_col, value_col = st.columns(2)
+
+    with audience_col:
+        st.markdown("""
+        <div style="background: white; padding: 1.75rem; border-radius: 12px; height: 100%;
+                    border: 1px solid #e5e7eb; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+            <h4 style="margin-top: 0; color: #1f2937;">🎯 Who it is for</h4>
+            <p style="margin: 0 0 0.75rem 0; color: #4b5563; font-size: 0.95rem; line-height: 1.6;">
+                Anyone who has to defend an AI budget to people who will ask hard questions:
+            </p>
+            <ul style="margin: 0; padding-left: 1.1rem; color: #4b5563; font-size: 0.95rem; line-height: 1.8;">
+                <li><strong>Executives</strong> choosing between competing AI investments</li>
+                <li><strong>Transformation and strategy leads</strong> building the business case</li>
+                <li><strong>Finance partners</strong> pressure-testing the ROI behind a proposal</li>
+                <li><strong>HR and operations leaders</strong> planning for workforce change</li>
+                <li><strong>Consultants</strong> producing board-ready analysis for clients</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with value_col:
+        st.markdown("""
+        <div style="background: white; padding: 1.75rem; border-radius: 12px; height: 100%;
+                    border: 1px solid #e5e7eb; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+            <h4 style="margin-top: 0; color: #1f2937;">💡 How it helps</h4>
+            <ul style="margin: 0; padding-left: 1.1rem; color: #4b5563; font-size: 0.95rem; line-height: 1.8;">
+                <li>Compare initiatives on the same basis, before committing budget</li>
+                <li>Replace single-number forecasts with a range and a confidence level</li>
+                <li>See which assumptions actually drive the result, and which do not</li>
+                <li>Tie every initiative back to a stated corporate objective or KPI</li>
+                <li>Cost the workforce transition alongside the technology spend</li>
+                <li>Export an executive summary you can take into a steering meeting</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    st.markdown("#### How to use it")
+    st.markdown("""
+    <div style="background: white; padding: 1.75rem; border-radius: 12px;
+                border: 1px solid #e5e7eb; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+        <p style="margin: 0 0 1rem 0; color: #4b5563; font-size: 0.95rem; line-height: 1.6;">
+            Work down the sidebar in order. Each stage builds on the one before it, and the
+            metrics on this page fill in as you go. Nothing is required up front &mdash; every
+            input has a sensible default you can adjust later.
+        </p>
+        <ol style="margin: 0; padding-left: 1.2rem; color: #4b5563; font-size: 0.95rem; line-height: 1.9;">
+            <li><strong>Inputs</strong> &mdash; describe a department under
+                <em>Input by Department/Business</em>: headcount, revenue, costs, and current
+                productivity. Add the AI initiatives you are considering for it. Repeat for each
+                department you want in scope.</li>
+            <li><strong>Context</strong> &mdash; set what success means and what limits you, using
+                <em>Corporate Objectives &amp; KPIs</em>, <em>Budget &amp; Resource Constraints</em>,
+                and <em>Change Management Readiness</em>.</li>
+            <li><strong>Analyses</strong> &mdash; run <em>Strategic Planning</em> for scenarios,
+                <em>Monte Carlo Simulation</em> for the probability of hitting your targets,
+                <em>Workforce Analytics</em> for the people impact, and
+                <em>Benchmarking &amp; Optimization</em> to compare against industry norms.</li>
+            <li><strong>Outputs</strong> &mdash; review <em>Dynamic Visualizations</em> and generate an
+                <em>Executive Summary</em> to share.</li>
+        </ol>
+        <p style="margin: 1rem 0 0 0; color: #6b7280; font-size: 0.9rem; line-height: 1.6;">
+            Exploring rather than modelling your own organisation? Open
+            <em>Input by Department/Business</em>, pick any department, and save it with the
+            defaults already filled in &mdash; that is enough to light up the rest of the dashboard.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("---")
+
+
 def show_overview():
     # Add modern background styling
     st.markdown("""
@@ -316,12 +440,14 @@ def show_overview():
     """, unsafe_allow_html=True)
     
     st.markdown("""
-    <h1 style="text-align: center; color: #2c3e50; font-size: 3rem; font-weight: 700; 
-               text-shadow: 2px 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h1 style="text-align: center; color: #2c3e50; font-size: 3rem; font-weight: 700;
+               text-shadow: 2px 2px 4px rgba(0,0,0,0.1); margin-bottom: 1.5rem;">
         📊 AI Strategic Dashboard
     </h1>
     """, unsafe_allow_html=True)
-    
+
+    show_overview_introduction()
+
     # Modern metrics cards with gradient styling
     col1, col2, col3, col4 = st.columns(4)
     
@@ -364,69 +490,49 @@ def show_overview():
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Enhanced function status in styled cards
-    st.markdown("""
-    <div style="background: white; padding: 2rem; border-radius: 12px; 
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb;">
-    """, unsafe_allow_html=True)
-    
     st.subheader("🚀 Function Configuration Status")
     
+    functions = ["HR & Talent Management", "Finance & Accounting", "Operations & Supply Chain",
+                "Sales & Marketing", "IT & Technology", "Customer Service", "Legal & Compliance", "R&D",
+                "Manufacturing & Production", "Quality Assurance", "Business Development", "Strategy & Planning",
+                "Risk Management", "Procurement", "Facilities Management", "Data & Analytics"]
+
+    configured_count = sum(1 for func in functions if func in st.session_state.baseline_data)
+    st.caption(
+        f"{configured_count} of {len(functions)} functions configured — "
+        "add one from **Input by Department/Business** in the sidebar."
+    )
+
+    def render_function_status(func):
+        """Render one function's configuration state as a styled row."""
+        if func in st.session_state.baseline_data:
+            background, border, marker, state = "#f0f9ff", "#10b981", "✅", "Configured"
+        else:
+            background, border, marker, state = "#f9fafb", "#d1d5db", "⚪", "Not configured"
+        st.markdown(f"""
+        <div style="background: {background}; padding: 0.75rem; border-radius: 8px;
+                    margin: 0.25rem 0; border-left: 4px solid {border};">
+            {marker} {func} - {state}
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Split the list across both columns so it stays readable instead of running
+    # down one narrow column.
+    midpoint = (len(functions) + 1) // 2
     col1, col2 = st.columns(2)
-    
+
     with col1:
-        st.markdown("**Enterprise Functions:**")
-        functions = ["HR & Talent Management", "Finance & Accounting", "Operations & Supply Chain", 
-                    "Sales & Marketing", "IT & Technology", "Customer Service", "Legal & Compliance", "R&D",
-                    "Manufacturing & Production", "Quality Assurance", "Business Development", "Strategy & Planning",
-                    "Risk Management", "Procurement", "Facilities Management", "Data & Analytics"]
-        
-        for func in functions:
-            if func in st.session_state.baseline_data:
-                st.markdown(f"""
-                <div style="background: #f0f9ff; padding: 0.75rem; border-radius: 8px; 
-                            margin: 0.25rem 0; border-left: 4px solid #10b981;">
-                    ✅ {func} - Configured
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown(f"""
-                <div style="background: #f9fafb; padding: 0.75rem; border-radius: 8px; 
-                            margin: 0.25rem 0; border-left: 4px solid #d1d5db;">
-                    ⚪ {func} - Not configured
-                </div>
-                """, unsafe_allow_html=True)
-    
+        for func in functions[:midpoint]:
+            render_function_status(func)
+
     with col2:
-        st.markdown("**Quick Start Guide:**")
-        # These render inside an HTML block below, so emphasis has to be markup
-        # rather than markdown -- "**bold**" would show up as literal asterisks.
-        steps = [
-            "Navigate to <strong>Input by Department/Business</strong> to configure departments",
-            "Set baseline metrics and AI implementation parameters",
-            "Use <strong>Strategic Planning</strong> to evaluate scenarios",
-            "Review <strong>Workforce Analytics</strong> for impact assessment",
-            "Generate <strong>Executive Summary</strong> for stakeholder presentations"
-        ]
-        
-        for i, step in enumerate(steps, 1):
-            st.markdown(f"""
-            <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; 
-                        margin: 0.5rem 0; border-left: 4px solid #3b82f6;">
-                <strong>{i}.</strong> {step}
-            </div>
-            """, unsafe_allow_html=True)
+        for func in functions[midpoint:]:
+            render_function_status(func)
     
-    st.markdown("</div>", unsafe_allow_html=True)
     
     # Performance visualization if data exists
     if len(st.session_state.baseline_data) > 0:
         st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("""
-        <div style="background: white; padding: 2rem; border-radius: 12px; 
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb;">
-        """, unsafe_allow_html=True)
-        
         st.subheader("📈 Performance Overview")
         
         # Create enhanced performance visualization
@@ -493,7 +599,6 @@ def show_overview():
         fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)')
         
         st.plotly_chart(fig, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
 
 def show_function_analysis():
     st.header("🏢 Function Analysis")
