@@ -1,10 +1,10 @@
-# AI Impact Predictive Dashboard
+# Enterprise AI Impact Simulator
 
-A Streamlit dashboard that helps executives model and predict the business impact of AI
-adoption across enterprise functions — combining ensemble ML forecasting, Monte Carlo
-scenario analysis, workforce planning, and industry benchmarking in one interface.
+A Streamlit application that forecasts the business impact of AI across enterprise functions
+before the budget is committed — combining ensemble ML prediction, Monte Carlo scenario
+analysis, workforce planning, and industry benchmarking in one interface.
 
-![AI Impact Predictive Dashboard](docs/images/dashboard.png)
+![Enterprise AI Impact Simulator](docs/images/dashboard.png)
 
 ## Features
 
@@ -17,6 +17,13 @@ scenario analysis, workforce planning, and industry benchmarking in one interfac
 - **Enterprise integrations** — connectors for SAP, Oracle, Microsoft Dynamics, Workday,
   NetSuite, and Salesforce
 - **AI assistant** — natural-language Q&A over your dashboard data (optional, needs an API key)
+
+### The overview screen
+
+Every visit opens on a plain-language explanation of what the simulator does, who it is for,
+and how to work through it — the walkthrough expands on its own until you have data loaded.
+
+![Overview screen](docs/images/overview.png)
 
 ## Running locally
 

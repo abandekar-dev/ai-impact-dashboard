@@ -20,7 +20,7 @@ from utils.category_manager import CategoryManager
 
 # Page configuration
 st.set_page_config(
-    page_title="AI Impact Predictive Dashboard",
+    page_title="Enterprise AI Impact Simulator",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -104,8 +104,8 @@ def auto_save_data():
 auto_save_data()
 
 def main():
-    st.title("🎯 AI Impact Predictive Dashboard")
-    st.markdown("**Executive Dashboard for Predictive Modeling of AI Implementation Impact**")
+    st.title("🎯 Enterprise AI Impact Simulator")
+    st.markdown("**Forecast the business impact of AI across enterprise functions — before the budget is committed**")
     
     # Sidebar navigation with grouped buttons
     st.sidebar.title("Navigation")
@@ -310,7 +310,7 @@ def show_overview_introduction():
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04); margin-bottom: 1.5rem;">
         <p style="margin: 0; font-size: 1.15rem; line-height: 1.7; color: #1f2937;">
             <strong>Deciding where to invest in AI is a forecasting problem, not a technology problem.</strong>
-            This dashboard turns that decision into numbers: you describe each part of your business as it
+            The simulator turns that decision into numbers: you describe each part of your business as it
             operates today, describe the AI initiatives you are weighing, and it projects the financial,
             operational, and workforce impact of each one &mdash; with the uncertainty made explicit, so you
             can see the range of outcomes rather than a single optimistic figure.
@@ -385,10 +385,12 @@ def show_overview_introduction():
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    st.markdown("#### How to use it")
-    st.markdown("""
-    <div style="background: white; padding: 1.75rem; border-radius: 12px;
-                border: 1px solid #e5e7eb; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+    # Open the walkthrough for someone arriving at an empty dashboard, and fold it
+    # away once they have data, so returning users reach their metrics sooner.
+    has_data = bool(st.session_state.baseline_data)
+    with st.expander("📖 How to use it", expanded=not has_data):
+        st.markdown("""
+    <div style="background: white; padding: 0.25rem 0.5rem; border-radius: 12px;">
         <p style="margin: 0 0 1rem 0; color: #4b5563; font-size: 0.95rem; line-height: 1.6;">
             Work down the sidebar in order. Each stage builds on the one before it, and the
             metrics on this page fill in as you go. Nothing is required up front &mdash; every
@@ -412,7 +414,7 @@ def show_overview_introduction():
         <p style="margin: 1rem 0 0 0; color: #6b7280; font-size: 0.9rem; line-height: 1.6;">
             Exploring rather than modelling your own organisation? Open
             <em>Input by Department/Business</em>, pick any department, and save it with the
-            defaults already filled in &mdash; that is enough to light up the rest of the dashboard.
+            defaults already filled in &mdash; that is enough to light up the rest of the simulator.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -439,13 +441,6 @@ def show_overview():
     </style>
     """, unsafe_allow_html=True)
     
-    st.markdown("""
-    <h1 style="text-align: center; color: #2c3e50; font-size: 3rem; font-weight: 700;
-               text-shadow: 2px 2px 4px rgba(0,0,0,0.1); margin-bottom: 1.5rem;">
-        📊 AI Strategic Dashboard
-    </h1>
-    """, unsafe_allow_html=True)
-
     show_overview_introduction()
 
     # Modern metrics cards with gradient styling
@@ -1783,7 +1778,7 @@ def show_executive_summary():
     
     with col3:
         if st.button("🎯 Export for Presentation"):
-            st.info("💡 Use the visualizations above for your presentation. Screenshots can be taken directly from the dashboard.")
+            st.info("💡 Use the visualizations above for your presentation. Screenshots can be taken directly from the simulator.")
 
 def calculate_scenario_totals(functions, use_ai=False):
     """Calculate total metrics for a scenario"""

@@ -1,8 +1,8 @@
-# AI Impact Predictive Dashboard
+# Enterprise AI Impact Simulator
 
 ## Overview
 
-This is a comprehensive AI Impact Predictive Dashboard built with Streamlit that helps C-level executives analyze and predict the business impact of AI implementation across enterprise functions. The application provides data-driven insights for strategic AI investment decisions through interactive visualizations, predictive modeling, and scenario analysis.
+This is the Enterprise AI Impact Simulator, built with Streamlit that helps C-level executives analyze and predict the business impact of AI implementation across enterprise functions. The application provides data-driven insights for strategic AI investment decisions through interactive visualizations, predictive modeling, and scenario analysis.
 
 ## System Architecture
 
